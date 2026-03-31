@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useCart } from "@/context/CartContext"
 import { useState } from "react"
 import { ProductCardType } from "@/types/product"
-import { Heart } from "lucide-react"
+import { Heart, Check } from "lucide-react"
 import Image from "next/image"
 import { getImageUrl } from "@/lib/image"
 
@@ -16,11 +16,13 @@ export default function ProductCard({
   priority?: boolean
 }) {
   const { addToCart } = useCart()
+
   const [loading, setLoading] = useState(false)
+  const [added, setAdded] = useState(false)
 
-  const imageUrl = getImageUrl(product.image)
+  const imageUrl = getImageUrl(product.image) || "/placeholder.png"
 
-  const handleAdd = (e: any) => {
+  const handleAdd = async (e: any) => {
     e.preventDefault()
     e.stopPropagation()
 
@@ -28,18 +30,26 @@ export default function ProductCard({
 
     setLoading(true)
 
-    addToCart({
-      variantId: product.variantId,
-      name: product.name,
-      price: product.price,
-      quantity: 1,
-      image: imageUrl,
-    })
+    try {
+      await addToCart({
+        variantId: product.variantId,
+        name: product.name,
+        price: product.price,
+        quantity: 1,
+        image: imageUrl,
+      })
 
-    setLoading(false)
+      // ✅ success feedback
+      setAdded(true)
+
+      setTimeout(() => {
+        setAdded(false)
+      }, 1200)
+
+    } finally {
+      setLoading(false)
+    }
   }
-
-  const isNew = true
 
   return (
     <Link href={`/products/${product.slug}`} className="group block">
@@ -51,11 +61,9 @@ export default function ProductCard({
       ">
 
         {/* BADGE */}
-        {isNew && (
-          <div className="absolute top-3 left-3 z-10 text-[10px] tracking-wide bg-[var(--brand-primary)] text-white px-3 py-1 rounded-full shadow-sm">
-            NEW
-          </div>
-        )}
+        <div className="absolute top-3 left-3 z-10 text-[10px] tracking-wide bg-[var(--brand-primary)] text-white px-3 py-1 rounded-full shadow-sm">
+          NEW
+        </div>
 
         {/* WISHLIST */}
         <button
@@ -84,7 +92,6 @@ export default function ProductCard({
             "
           />
 
-          {/* SUBTLE OVERLAY */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/[0.04] transition duration-300" />
 
           {/* DESKTOP CTA */}
@@ -96,9 +103,23 @@ export default function ProductCard({
           ">
             <button
               onClick={handleAdd}
-              className="bg-[var(--brand-primary)] text-white text-sm px-5 py-2 rounded-full shadow-md hover:opacity-90 transition"
+              disabled={loading}
+              className="
+                bg-[var(--brand-primary)] text-white text-sm px-5 py-2 rounded-full 
+                shadow-md hover:opacity-90 transition
+                disabled:opacity-50
+                flex items-center gap-2
+              "
             >
-              {loading ? "Adding..." : "Add to Cart"}
+              {added ? (
+                <>
+                  <Check size={14} /> Added
+                </>
+              ) : loading ? (
+                "Adding..."
+              ) : (
+                "Add to Cart"
+              )}
             </button>
           </div>
 
@@ -121,9 +142,17 @@ export default function ProductCard({
             <button
               onClick={handleAdd}
               disabled={loading}
-              className="md:hidden text-xs bg-[var(--brand-primary)] text-white px-3 py-1 rounded-full transition disabled:opacity-50"
+              className="
+                md:hidden text-xs 
+                bg-[var(--brand-primary)] text-white 
+                px-3 py-1 rounded-full 
+                transition 
+                disabled:opacity-50
+                flex items-center gap-1
+              "
             >
-              {loading ? "..." : "Add"}
+              {added ? <Check size={12} /> : null}
+              {loading ? "..." : added ? "Added" : "Add"}
             </button>
 
           </div>

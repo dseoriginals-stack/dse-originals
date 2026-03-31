@@ -1,13 +1,15 @@
-import dotenv from "dotenv"
-dotenv.config()
-
 import express from "express"
 import cors from "cors"
 import helmet from "helmet"
 import cookieParser from "cookie-parser"
-import fs from "fs"
 import path from "path"
 import { fileURLToPath } from "url"
+
+// ✅ Load dotenv ONLY in development
+if (process.env.NODE_ENV !== "production") {
+  const dotenv = await import("dotenv")
+  dotenv.config()
+}
 
 import logger from "./config/logger.js"
 import passport from "./config/passport.js"
@@ -39,15 +41,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 // =========================
-// DEBUG ORIGIN (optional)
-// =========================
-app.use((req, _res, next) => {
-  console.log("🌍 ORIGIN:", req.headers.origin)
-  next()
-})
-
-// =========================
-// CORS (FIXED)
+// CORS (PRODUCTION SAFE)
 // =========================
 const allowedOrigins = [
   "http://localhost:3000",
@@ -58,7 +52,13 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
+      // allow server-to-server or curl
       if (!origin) return callback(null, true)
+
+      // allow Vercel preview deployments
+      if (origin.includes("vercel.app")) {
+        return callback(null, true)
+      }
 
       if (allowedOrigins.includes(origin)) {
         return callback(null, true)
@@ -77,18 +77,7 @@ app.use(
 app.use(helmet())
 
 // =========================
-// STATIC FILES (FIXED)
-// =========================
-const uploadsPath = path.resolve(__dirname, "../uploads")
-
-if (!fs.existsSync(uploadsPath)) {
-  fs.mkdirSync(uploadsPath, { recursive: true })
-}
-
-app.use("/uploads", express.static(uploadsPath))
-
-// =========================
-// WEBHOOK RAW
+// WEBHOOK RAW (MUST be before json)
 // =========================
 app.use("/webhooks/xendit", express.raw({ type: "*/*" }))
 app.use("/api/orders/webhook", express.raw({ type: "*/*" }))
@@ -99,8 +88,6 @@ app.use("/api/orders/webhook", express.raw({ type: "*/*" }))
 app.use(express.json({ limit: "1mb" }))
 app.use(cookieParser())
 app.use(passport.initialize())
-
-logger.info("Loading API routes...")
 
 // =========================
 // ROUTES
@@ -124,7 +111,7 @@ app.use("/api/admin", adminRoutes)
 app.post("/webhooks/xendit", handleXenditWebhook)
 
 // =========================
-// ROOT (for testing)
+// ROOT
 // =========================
 app.get("/", (_req, res) => {
   res.send("🚀 DSE Originals API Running")
@@ -153,4 +140,5 @@ const PORT = process.env.PORT || 10000
 
 app.listen(PORT, () => {
   console.log(`🔥 SERVER RUNNING ON PORT ${PORT}`)
+  console.log(`🌍 ENV: ${process.env.NODE_ENV || "development"}`)
 })

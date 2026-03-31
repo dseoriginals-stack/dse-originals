@@ -23,60 +23,67 @@ export default function ProductsClient({ initialProducts }: Props) {
   const minPrice = searchParams.get("minPrice") || ""
   const maxPrice = searchParams.get("maxPrice") || ""
 
-  // ✅ START with server data (instant render)
   const [products, setProducts] = useState<ProductFull[]>(initialProducts || [])
-  const [loading, setLoading] = useState(!initialProducts?.length)
+  const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState("latest")
   const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
-    // ✅ Only refetch when filters/search change
+    const controller = new AbortController()
+
     async function fetchProducts() {
       try {
+        // ✅ Avoid refetch if no filters AND we already have SSR data
+        if (
+          !categoryQuery &&
+          !minPrice &&
+          !maxPrice &&
+          !searchQuery &&
+          initialProducts?.length
+        ) {
+          return
+        }
+
         setLoading(true)
 
         const query = new URLSearchParams()
 
-        if (categoryQuery.trim()) query.append("category", categoryQuery)
-        if (minPrice.trim()) query.append("minPrice", minPrice)
-        if (maxPrice.trim()) query.append("maxPrice", maxPrice)
-        if (searchQuery.trim()) query.append("search", searchQuery)
+        if (categoryQuery) query.append("category", categoryQuery)
+        if (minPrice) query.append("minPrice", minPrice)
+        if (maxPrice) query.append("maxPrice", maxPrice)
+        if (searchQuery) query.append("search", searchQuery)
 
-        const endpoint = query.toString()
-          ? `/products?${query.toString()}`
-          : `/products`
+        // ✅ Move sorting to backend
+        if (sort === "price_low") query.append("sort", "price_asc")
+        if (sort === "price_high") query.append("sort", "price_desc")
+
+        const endpoint = `/products?${query.toString()}`
 
         const data = await api.get<{ data: ProductFull[] }>(endpoint)
 
         setProducts(Array.isArray(data?.data) ? data.data : [])
-      } catch (err) {
-        console.error("❌ Product fetch failed", err)
-        setProducts([])
+      } catch (err: any) {
+        if (err.name !== "AbortError") {
+          console.error("❌ Product fetch failed", err)
+          setProducts([])
+        }
       } finally {
         setLoading(false)
       }
     }
 
     fetchProducts()
-  }, [categoryQuery, minPrice, maxPrice, searchQuery])
+
+    return () => controller.abort()
+  }, [categoryQuery, minPrice, maxPrice, searchQuery, sort])
 
   const uiProducts = useMemo(() => {
     return products.map(transformProductToCard)
   }, [products])
 
-  const sorted = useMemo(() => {
-    let arr = [...uiProducts]
-
-    if (sort === "price_low") arr.sort((a, b) => a.price - b.price)
-    if (sort === "price_high") arr.sort((a, b) => b.price - a.price)
-    if (sort === "latest") arr.reverse()
-
-    return arr
-  }, [uiProducts, sort])
-
   return (
     <div className="max-w-[1400px] mx-auto py-12 px-4 md:px-8">
-      
+
       {/* HEADER */}
       <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div>
@@ -115,7 +122,7 @@ export default function ProductsClient({ initialProducts }: Props) {
       </div>
 
       <div className="flex gap-12">
-        
+
         {/* SIDEBAR */}
         <aside className="hidden md:block w-64 space-y-8 sticky top-24 h-fit">
           <CategoryFilter />
@@ -124,8 +131,9 @@ export default function ProductsClient({ initialProducts }: Props) {
 
         {/* PRODUCTS */}
         <div className="flex-1">
-          
-          {loading && (
+
+          {/* ✅ Skeleton (no flicker) */}
+          {loading && products.length === 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {[...Array(8)].map((_, i) => (
                 <div key={i} className="animate-pulse">
@@ -137,9 +145,10 @@ export default function ProductsClient({ initialProducts }: Props) {
             </div>
           )}
 
-          {!loading && sorted.length > 0 && (
+          {/* ✅ Products */}
+          {uiProducts.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {sorted.map((product) => (
+              {uiProducts.map((product) => (
                 <div
                   key={product.id}
                   className="transition-all duration-300 hover:-translate-y-1"
@@ -150,7 +159,8 @@ export default function ProductsClient({ initialProducts }: Props) {
             </div>
           )}
 
-          {!loading && sorted.length === 0 && (
+          {/* ✅ Empty */}
+          {!loading && uiProducts.length === 0 && (
             <div className="text-center py-24">
               <h2 className="text-lg font-semibold">No products found</h2>
               <p className="text-gray-500 text-sm mt-2">

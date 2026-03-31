@@ -2,9 +2,7 @@ import express from "express"
 import {
   searchProducts,
   getProducts,
-  getProduct,
   createProduct,
-  updateProduct,
   deleteProduct,
   getProductBySlugController
 } from "./product.controller.js"
@@ -18,13 +16,11 @@ const router = express.Router()
 router.get("/", getProducts)
 router.get("/search", searchProducts)
 router.get("/slug/:slug", getProductBySlugController)
-router.get("/:id", getProduct)
 
 /* =========================
    ADMIN
 ========================= */
-router.post("/", upload.single("image"), createProduct) // ✅ ONLY ONE
-router.put("/:id", upload.single("image"), updateProduct)
+router.post("/", upload.single("image"), createProduct)
 router.delete("/:id", deleteProduct)
 
 export default router

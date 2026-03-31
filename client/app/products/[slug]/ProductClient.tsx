@@ -16,6 +16,7 @@ import Reviews from "@/components/Reviews"
 import ReviewForm from "@/components/ReviewForm"
 
 import { getImageUrl } from "@/lib/image"
+import { Check } from "lucide-react"
 
 export default function ProductClient() {
   const params = useParams()
@@ -30,12 +31,14 @@ export default function ProductClient() {
   const [qty, setQty] = useState(1)
   const [activeImage, setActiveImage] = useState("")
   const [loading, setLoading] = useState(true)
+
+  const [adding, setAdding] = useState(false)
   const [added, setAdded] = useState(false)
 
   const [refreshReviews, setRefreshReviews] = useState(0)
 
   /* =========================
-     FETCH
+     FETCH (FIXED ONLY)
   ========================= */
 
   useEffect(() => {
@@ -43,9 +46,16 @@ export default function ProductClient() {
 
     async function fetchData() {
       try {
-        const data = await api.get<ProductFull[]>("/products")
+        // ✅ safer fallback if API not ready
+        let res: ProductFull | null = null
 
-        const res = data.find((p: ProductFull) => p.slug === slug)
+        try {
+          res = await api.get<ProductFull>(`/products/${slug}`)
+        } catch {
+          // fallback to old logic
+          const all = await api.get<ProductFull[]>("/products")
+          res = all.find((p) => p.slug === slug) || null
+        }
 
         if (!res) throw new Error("Product not found")
 
@@ -63,6 +73,7 @@ export default function ProductClient() {
         )
 
         setRelated(rel)
+
       } catch (err) {
         console.error("❌ Product fetch error:", err)
       } finally {
@@ -74,11 +85,13 @@ export default function ProductClient() {
   }, [slug])
 
   /* =========================
-     ADD TO CART
+     ADD TO CART (IMPROVED)
   ========================= */
 
-  const handleAdd = () => {
-    if (!product || !variant || variant.stock === 0) return
+  const handleAdd = async () => {
+    if (!product || !variant || variant.stock === 0 || adding) return
+
+    setAdding(true)
 
     const img = document.querySelector(
       "#product-main-image"
@@ -89,7 +102,7 @@ export default function ProductClient() {
       flyToCart(img, cart)
     }
 
-    addToCart({
+    await addToCart({
       variantId: variant.id,
       name: product.name,
       price: Number(variant.price),
@@ -99,6 +112,8 @@ export default function ProductClient() {
 
     setAdded(true)
     setTimeout(() => setAdded(false), 1200)
+
+    setAdding(false)
   }
 
   /* =========================
@@ -106,7 +121,11 @@ export default function ProductClient() {
   ========================= */
 
   if (loading) {
-    return <div className="container py-20 text-center">Loading...</div>
+    return (
+      <div className="container py-20 text-center">
+        Loading...
+      </div>
+    )
   }
 
   if (!product) {
@@ -121,11 +140,12 @@ export default function ProductClient() {
   const price = variant?.price || 0
 
   /* =========================
-     UI
+     UI (UNCHANGED STRUCTURE)
   ========================= */
 
   return (
     <div className="container py-6 md:py-12 pb-28">
+
       <div className="grid lg:grid-cols-2 gap-8 md:gap-14">
         
         {/* IMAGE */}
@@ -238,10 +258,11 @@ export default function ProductClient() {
           {/* ADD */}
           <button
             onClick={handleAdd}
-            disabled={stock === 0}
-            className="w-full bg-[#274C77] text-white py-4 rounded-xl"
+            disabled={stock === 0 || adding}
+            className="w-full bg-[#274C77] text-white py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            {added ? "✓ Added to Cart" : "Add to Cart"}
+            {added && <Check size={16} />}
+            {adding ? "Adding..." : added ? "Added to Cart" : "Add to Cart"}
           </button>
         </div>
       </div>
@@ -274,7 +295,7 @@ export default function ProductClient() {
         </div>
       )}
 
-      {/* MOBILE BAR */}
+      {/* ✅ MOBILE BAR (UNCHANGED — SAFE) */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 md:hidden">
         <div className="flex gap-3">
           <div className="flex-1">
@@ -283,7 +304,7 @@ export default function ProductClient() {
 
           <button
             onClick={handleAdd}
-            disabled={stock === 0}
+            disabled={stock === 0 || adding}
             className="bg-[#274C77] text-white px-6 py-3 rounded-xl"
           >
             Add

@@ -13,6 +13,11 @@ export default function CartPage() {
     100
   )
 
+  const totalItems = cart.reduce(
+    (acc, item) => acc + item.quantity,
+    0
+  )
+
   /* ---------------- EMPTY ---------------- */
 
   if (!cart || cart.length === 0) {
@@ -40,10 +45,20 @@ export default function CartPage() {
 
   return (
     <div className="container py-12 md:py-20 px-4">
-      {/* TITLE */}
-      <h1 className="text-3xl md:text-4xl font-bold text-[#274C77] mb-8 md:mb-10">
-        Shopping Cart
-      </h1>
+
+      {/* HEADER */}
+      <div className="mb-8 md:mb-10">
+        <h1 className="text-3xl md:text-4xl font-bold text-[#274C77]">
+          Shopping Cart
+        </h1>
+
+        <Link
+          href="/products"
+          className="text-sm text-slate-500 hover:text-[#274C77] transition mt-2 inline-block"
+        >
+          ← Continue Shopping
+        </Link>
+      </div>
 
       {/* FREE SHIPPING */}
       <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 md:p-6 mb-10">
@@ -60,7 +75,7 @@ export default function CartPage() {
 
         <div className="w-full bg-blue-100 h-2 rounded-full overflow-hidden">
           <div
-            className="h-full bg-[#274C77] transition-all duration-500"
+            className="h-full bg-[#274C77] transition-all duration-700 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -68,6 +83,7 @@ export default function CartPage() {
 
       {/* GRID */}
       <div className="grid lg:grid-cols-3 gap-10">
+
         {/* CART ITEMS */}
         <div className="lg:col-span-2 space-y-6">
           {cart.map((item) => {
@@ -77,11 +93,21 @@ export default function CartPage() {
             return (
               <div
                 key={item.variantId}
-                className="bg-white border border-slate-200 rounded-2xl p-4 md:p-6 flex flex-col sm:flex-row gap-6 shadow-sm"
+                className="
+                  bg-white 
+                  border border-slate-200 
+                  rounded-2xl 
+                  p-4 md:p-6 
+                  flex flex-col sm:flex-row gap-6 
+                  shadow-[0_10px_30px_rgba(0,0,0,0.05)]
+                  hover:shadow-[0_15px_40px_rgba(0,0,0,0.08)]
+                  transition
+                "
               >
                 {/* IMAGE */}
                 <div className="w-full sm:w-28 h-28 bg-[#F1F6FA] rounded-xl overflow-hidden">
                   <img
+                    src={item.image || "/placeholder.png"}
                     alt={item.name || "Product"}
                     className="w-full h-full object-cover"
                   />
@@ -101,14 +127,15 @@ export default function CartPage() {
 
                   {/* CONTROLS */}
                   <div className="flex items-center justify-between mt-4">
+
                     {/* QUANTITY */}
-                    <div className="flex items-center border border-slate-300 rounded-full overflow-hidden">
+                    <div className="flex items-center bg-slate-100 rounded-full overflow-hidden">
                       <button
                         onClick={() =>
                           quantity > 1 &&
                           updateQuantity(item.variantId, quantity - 1)
                         }
-                        className="px-4 py-2 hover:bg-slate-100"
+                        className="px-4 py-2 hover:bg-slate-200 transition"
                       >
                         −
                       </button>
@@ -121,7 +148,7 @@ export default function CartPage() {
                         onClick={() =>
                           updateQuantity(item.variantId, quantity + 1)
                         }
-                        className="px-4 py-2 hover:bg-slate-100"
+                        className="px-4 py-2 hover:bg-slate-200 transition"
                       >
                         +
                       </button>
@@ -130,10 +157,11 @@ export default function CartPage() {
                     {/* REMOVE */}
                     <button
                       onClick={() => removeFromCart(item.variantId)}
-                      className="text-sm text-red-500 hover:underline"
+                      className="text-xs text-red-500 hover:text-red-600 transition"
                     >
                       Remove
                     </button>
+
                   </div>
                 </div>
 
@@ -182,6 +210,7 @@ export default function CartPage() {
             <div>🚚 Reliable nationwide shipping</div>
           </div>
         </div>
+
       </div>
 
       {/* MOBILE STICKY CHECKOUT */}
@@ -192,7 +221,7 @@ export default function CartPage() {
           </span>
 
           <span className="text-xs text-slate-500">
-            {cart.length} items
+            {totalItems} items
           </span>
         </div>
 
@@ -203,6 +232,7 @@ export default function CartPage() {
           Checkout
         </Link>
       </div>
+
     </div>
   )
 }

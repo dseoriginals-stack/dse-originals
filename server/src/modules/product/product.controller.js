@@ -3,12 +3,30 @@ import { z } from "zod"
 import generateSlug from "../../utils/slugify.js"
 import { Prisma } from "@prisma/client"
 import cloudinary from "../../config/cloudinary.js"
+import streamifier from "streamifier"
 
 import {
   getCache,
   setCache,
   deleteCache
 } from "../../utils/searchCache.js"
+
+/* ================================
+   HELPERS
+================================ */
+
+const uploadFromBuffer = (buffer) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: "dse-products" },
+      (error, result) => {
+        if (result) resolve(result)
+        else reject(error)
+      }
+    )
+    streamifier.createReadStream(buffer).pipe(stream)
+  })
+}
 
 /* ================================
    PRODUCT SCHEMA
@@ -50,18 +68,10 @@ export const createProduct = async (req, res, next) => {
 
     let imageUrl = null
 
-if (req.file) {
-  const base64 = req.file.buffer.toString("base64")
-
-  const result = await cloudinary.uploader.upload(
-    `data:${req.file.mimetype};base64,${base64}`,
-    {
-      folder: "dse-products",
+    if (req.file) {
+      const result = await uploadFromBuffer(req.file.buffer)
+      imageUrl = result.secure_url
     }
-  )
-
-  imageUrl = result.secure_url
-}
 
     const slug = await generateSlug(name)
 
@@ -78,7 +88,7 @@ if (req.file) {
 
         ...(imageUrl && {
           images: {
-            create: [{ url: image, isPrimary: true }]
+            create: [{ url: imageUrl, isPrimary: true }]
           }
         }),
 
@@ -92,11 +102,6 @@ if (req.file) {
             }
           ]
         }
-      },
-      include: {
-        images: true,
-        variants: true,
-        category: true
       }
     })
 
@@ -111,7 +116,7 @@ if (req.file) {
 }
 
 /* ================================
-   GET PRODUCTS
+   GET PRODUCTS (OPTIMIZED)
 ================================ */
 
 export const getProducts = async (req, res) => {
@@ -163,24 +168,32 @@ export const getProducts = async (req, res) => {
     let orderBy = { createdAt: "desc" }
 
     if (sort === "price_asc") {
-      orderBy = {
-        variants: { _min: { price: "asc" } }
-      }
+      orderBy = { variants: { _min: { price: "asc" } } }
     }
 
     if (sort === "price_desc") {
-      orderBy = {
-        variants: { _max: { price: "desc" } }
-      }
+      orderBy = { variants: { _max: { price: "desc" } } }
     }
 
     const [products, total] = await prisma.$transaction([
       prisma.product.findMany({
         where,
-        include: {
-          images: true,
-          variants: true,
-          category: true
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          createdAt: true,
+
+          images: {
+            where: { isPrimary: true },
+            take: 1,
+            select: { url: true }
+          },
+
+          variants: {
+            take: 1,
+            select: { price: true }
+          }
         },
         skip,
         take: limitNum,
@@ -190,7 +203,13 @@ export const getProducts = async (req, res) => {
     ])
 
     const response = {
-      data: products,
+      data: products.map(p => ({
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        image: p.images?.[0]?.url || null,
+        price: Number(p.variants?.[0]?.price || 0)
+      })),
       pagination: {
         total,
         page: pageNum,
@@ -198,7 +217,7 @@ export const getProducts = async (req, res) => {
       }
     }
 
-    await setCache(cacheKey, response, 60)
+    await setCache(cacheKey, response, 120)
 
     res.json(response)
 
@@ -209,7 +228,7 @@ export const getProducts = async (req, res) => {
 }
 
 /* ================================
-   GET PRODUCT BY SLUG
+   GET PRODUCT BY SLUG (OPTIMIZED)
 ================================ */
 
 export const getProductBySlugController = async (req, res) => {
@@ -222,20 +241,36 @@ export const getProductBySlugController = async (req, res) => {
 
     const product = await prisma.product.findUnique({
       where: { slug },
-      include: {
-        images: true,
-        variants: {
-          include: { attributes: true }
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+
+        images: {
+          select: { url: true }
         },
-        category: true
+
+        variants: {
+          select: {
+            id: true,
+            price: true,
+            stock: true,
+            attributes: true
+          }
+        },
+
+        category: {
+          select: { id: true, name: true }
+        }
       }
     })
 
-    if (!product || product.status !== "active") {
+    if (!product) {
       return res.status(404).json({ message: "Product not found" })
     }
 
-    await setCache(cacheKey, product, 120)
+    await setCache(cacheKey, product, 180)
 
     res.json(product)
 
@@ -246,95 +281,49 @@ export const getProductBySlugController = async (req, res) => {
 }
 
 /* ================================
-   GET PRODUCT BY ID
+   SEARCH PRODUCTS (FIXED)
 ================================ */
 
-export const getProduct = async (req, res) => {
+export const searchProducts = async (req, res) => {
   try {
-    const { id } = req.params
+    const q = (req.query.q || "").trim()
 
-    const product = await prisma.product.findUnique({
-      where: { id },
-      include: {
-        images: true,
-        variants: true,
-        category: true
-      }
-    })
-
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" })
-    }
-
-    res.json(product)
-
-  } catch (err) {
-    console.error("❌ GET PRODUCT ERROR:", err)
-    res.status(500).json({ error: err.message })
-  }
-}
-
-/* ================================
-   RELATED PRODUCTS (ADDED FIX)
-================================ */
-
-export const getRelatedProductsController = async (req, res) => {
-  try {
-    const { productId, categoryId } = req.query
-
-    if (!categoryId) {
-      return res.status(400).json({
-        message: "categoryId is required"
-      })
-    }
+    if (!q) return res.json([])
 
     const products = await prisma.product.findMany({
       where: {
         status: "active",
-        categoryId,
-        ...(productId && { NOT: { id: productId } })
+        name: {
+          contains: q,
+          mode: "insensitive"
+        }
       },
-      include: {
-        images: true,
-        variants: true
-      },
-      take: 4
+      take: 8,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        images: {
+          take: 1,
+          select: { url: true }
+        },
+        variants: {
+          take: 1,
+          select: { price: true }
+        }
+      }
     })
 
-    res.json(products)
+    res.json(products.map(p => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      image: p.images?.[0]?.url || null,
+      price: Number(p.variants?.[0]?.price || 0)
+    })))
 
   } catch (err) {
-    console.error("❌ RELATED PRODUCTS ERROR:", err)
-    res.status(500).json({ error: err.message })
-  }
-}
-
-/* ================================
-   UPDATE PRODUCT
-================================ */
-
-export const updateProduct = async (req, res) => {
-  try {
-    const { id } = req.params
-
-    const updateData = { ...req.body }
-
-    if (req.file) {
-      updateData.image = req.file.path
-    }
-
-    const updated = await prisma.product.update({
-      where: { id },
-      data: updateData
-    })
-
-    await deleteCache("products:*")
-    await deleteCache("product:*")
-
-    res.json(updated)
-
-  } catch (err) {
-    console.error("❌ UPDATE PRODUCT ERROR:", err)
+    console.error(err)
     res.status(500).json({ error: err.message })
   }
 }
@@ -359,47 +348,6 @@ export const deleteProduct = async (req, res) => {
 
   } catch (err) {
     console.error("❌ DELETE PRODUCT ERROR:", err)
-    res.status(500).json({ error: err.message })
-  }
-}
-
-// ================================
-// SEARCH PRODUCTS (FOR HEADER)
-// ================================
-
-export const searchProducts = async (req, res) => {
-  try {
-    const q = (req.query.q || "").toLowerCase().trim()
-
-    console.log("🔥 SEARCH ROUTE HIT", req.query.q)
-
-    if (!q) return res.json([])
-
-    const products = await prisma.product.findMany({
-      include: {
-        images: true,
-        variants: true
-      }
-    })
-
-    const results = products.filter((p) => {
-      const name = p.name.toLowerCase()
-
-      // simple + guaranteed match
-      return name.includes(q)
-    })
-
-    res.json(
-      results.slice(0, 8).map((p) => ({
-        id: p.id,
-        name: p.name,
-        image: p.images?.[0]?.url || null,
-        price: Number(p.variants?.[0]?.price || 0)
-      }))
-    )
-
-  } catch (err) {
-    console.error(err)
     res.status(500).json({ error: err.message })
   }
 }
