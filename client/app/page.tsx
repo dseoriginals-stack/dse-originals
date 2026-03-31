@@ -1,21 +1,9 @@
 import HomePage from "./HomePage"
-import { API_URL } from "@/lib/api"
+import { api } from "@/lib/api"
 
 async function getProducts() {
   try {
-    if (!API_URL) {
-      throw new Error("API_URL is undefined")
-    }
-
-    const res = await fetch(`${API_URL}/products?limit=8`, {
-      next: { revalidate: 60 },
-    })
-
-    if (!res.ok) {
-      throw new Error(`Fetch failed: ${res.status}`)
-    }
-
-    const data = await res.json()
+    const data = await api.get("products?limit=8")
     return data
   } catch (err) {
     console.error("getProducts error:", err)

@@ -46,30 +46,32 @@ export default function HomePage({ initialProducts }: Props) {
       {/* HERO */}
       <section className="relative w-full h-[90vh] overflow-hidden">
 
-        {heroImages.map((img, i) => (
-          <Image
-            key={i}
-            src={img}
-            alt="Hero"
-            fill
-            priority={i === 0} // ✅ LCP FIX
-            sizes="100vw"
-            className={`object-cover transition-opacity duration-700 ${
-              i === currentSlide ? "opacity-100" : "opacity-0"
-            }`}
-          />
-        ))}
+  <Image
+    src={heroImages[currentSlide]}
+    alt="Hero"
+    fill
+    priority
+    sizes="100vw"
+    className="object-cover transition-opacity duration-700"
+  />
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-6">
-          <Link
-            href="/products"
-            className="bg-white text-black px-6 py-3 rounded-full text-sm md:text-base font-medium hover:scale-95 transition"
-          >
-            Shop Collection →
-          </Link>
-        </div>
+  {/* Preload next image */}
+  <link
+    rel="preload"
+    as="image"
+    href={heroImages[(currentSlide + 1) % heroImages.length]}
+  />
 
-      </section>
+  <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-6">
+    <Link
+      href="/products"
+      className="bg-white text-black px-6 py-3 rounded-full text-sm md:text-base font-medium hover:scale-95 transition"
+    >
+      Shop Collection →
+    </Link>
+  </div>
+
+</section>
 
       <div className="max-w-7xl mx-auto px-4">
 
