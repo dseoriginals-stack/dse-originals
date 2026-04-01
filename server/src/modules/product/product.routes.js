@@ -4,7 +4,8 @@ import {
   getProducts,
   createProduct,
   deleteProduct,
-  getProductBySlugController
+  getProductBySlugController,
+  updateProduct
 } from "./product.controller.js"
 import { upload } from "../../config/multer.js"
 
@@ -21,6 +22,9 @@ router.get("/slug/:slug", getProductBySlugController)
    ADMIN
 ========================= */
 router.post("/", upload.single("image"), createProduct)
+
+router.put("/:id", upload.single("image"), updateProduct)
+
 router.delete("/:id", deleteProduct)
 
 export default router

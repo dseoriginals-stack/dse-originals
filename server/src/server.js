@@ -30,9 +30,6 @@ import userRoutes from "./modules/user/user.routes.js"
 
 // Webhooks
 import { handleXenditWebhook } from "./webhooks/xendit.webhook.js"
-import categoryRoutes from "./routes/category.routes.js"
-
-app.use("/categories", categoryRoutes)
 
 const app = express()
 app.set("trust proxy", 1)

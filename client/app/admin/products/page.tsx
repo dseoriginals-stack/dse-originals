@@ -49,91 +49,93 @@ export default function AdminProducts() {
   }, [])
 
   async function fetchAll() {
-    
-    try {
-      setLoading(true)
-      
-      const [productRes, categoryRes] = await Promise.all([
-        api.get("/products"),
-        api.get("/categories")
-      ])
+  try {
+    setLoading(true)
 
-      const productData = productRes.data?.data || []
-      const categoryData = Array.isArray(categoryRes.data)
-        ? categoryRes.data
-        : categoryRes.data?.data || []
+    const [productRes, categoryRes] = await Promise.all([
+      api.get("/products"),
+      api.get("/categories")
+    ])
 
-      setCategories(categoryData)
+    // ✅ FIX: your API returns raw data already
+    const productData = Array.isArray(productRes)
+      ? productRes
+      : productRes?.data || []
 
-      const mapped = productData.map((p: any) => {
-        const category = categoryData.find((c: Category) => c.id === p.categoryId)
+    const categoryData = Array.isArray(categoryRes)
+      ? categoryRes
+      : categoryRes?.data || []
 
-        return {
-          id: p.id,
-          name: p.name,
-          description: p.description || "",
-          categoryId: p.categoryId,
-          category: category?.name || "Uncategorized",
-          image: p.image || p.images?.[0]?.url || null,
-          price: String(p.price ?? ""),
-          stock: String(p.stock ?? "")
-        }
-      })
+    setCategories(categoryData)
 
-      setProducts(mapped)
+    const mapped = productData.map((p: any) => {
+      const categoryId = p.categoryId || p.category?._id || ""
 
-    } catch (err) {
-      console.error(err)
-      setProducts([])
-    } finally {
-      setLoading(false)
-    }
+      const category = categoryData.find(
+        (c: any) => c.id === categoryId || c._id === categoryId
+      )
+
+      return {
+        id: p.id || p._id,
+        name: p.name,
+        description: p.description || "",
+        categoryId,
+        category: category?.name || "Uncategorized",
+        image: p.image || p.images?.[0]?.url || null,
+        price: String(p.price ?? ""),
+        stock: String(p.stock ?? "")
+      }
+    })
+
+    setProducts(mapped)
+
+  } catch (err) {
+    console.error(err)
+    setProducts([])
+    setCategories([])
+  } finally {
+    setLoading(false)
   }
+}
 
   async function handleSubmit() {
-    try {
-      setSaving(true)
-      setError("")
+  try {
+    setSaving(true)
+    setError("")
 
-      if (!form.name || !form.categoryId || !form.price || !form.stock) {
-        setError("All fields are required")
-        return
-      }
-
-      const formData = new FormData()
-      formData.append("name", form.name)
-      formData.append("description", form.description)
-      formData.append("categoryId", form.categoryId)
-      formData.append("price", String(Number(form.price)))
-      formData.append("stock", String(Number(form.stock)))
-
-      if (form.image) {
-        formData.append("image", form.image)
-      }
-
-      const url = editing
-        ? `${API_URL}/products/${editing.id}`
-        : `${API_URL}/products`
-
-      const res = await fetch(url, {
-        method: editing ? "PUT" : "POST",
-        credentials: "include",
-        body: formData
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) throw new Error(data.message)
-
-      resetForm()
-      fetchAll()
-
-    } catch (err: any) {
-      setError(err.message || "Save failed")
-    } finally {
-      setSaving(false)
+    if (!form.name || !form.categoryId || !form.price || !form.stock) {
+      setError("All fields are required")
+      return
     }
+
+    const formData = new FormData()
+    formData.append("name", form.name)
+    formData.append("description", form.description)
+    formData.append("categoryId", form.categoryId)
+    formData.append("price", String(Number(form.price)))
+    formData.append("stock", String(Number(form.stock)))
+
+    if (form.image) {
+      formData.append("image", form.image)
+    }
+
+    // ✅ USE YOUR API WRAPPER (IMPORTANT)
+    if (editing) {
+      await api.put(`/products/${editing.id}`, formData)
+    } else {
+      await api.post("/products", formData)
+    }
+
+    resetForm()
+    fetchAll()
+
+  } catch (err: any) {
+    console.error("SAVE ERROR:", err)
+    setError(err.message || "Save failed")
+  } finally {
+    setSaving(false)
   }
+}
 
   function resetForm() {
     setEditing(null)
@@ -206,6 +208,7 @@ export default function AdminProducts() {
             onChange={(e)=>setForm({...form,description:e.target.value})}
           />
 
+          {/* ✅ FIXED DROPDOWN */}
           <select
             className="input"
             value={form.categoryId}
@@ -213,8 +216,10 @@ export default function AdminProducts() {
           >
             <option value="">Select Category</option>
 
-            {categories.length === 0 && (
-              <option disabled>Loading categories...</option>
+            {loading && <option disabled>Loading categories...</option>}
+
+            {!loading && categories.length === 0 && (
+              <option disabled>No categories found</option>
             )}
 
             {categories.map(cat => (

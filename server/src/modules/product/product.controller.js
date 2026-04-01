@@ -12,8 +12,6 @@ import {
 } from "../../utils/searchCache.js"
 import { upload } from "../../config/multer.js"
 
-router.post("/", upload.single("image"), createProduct)
-router.put("/:id", upload.single("image"), updateProduct) // if you have update
 /* ================================
    HELPERS
 ================================ */
@@ -72,8 +70,13 @@ export const createProduct = async (req, res, next) => {
 
     const { name, price, stock, categoryId, description } = validation.data
 
-    const category = await prisma.category.findUnique({
-      where: { id: categoryId }
+    const category = await prisma.category.findFirst({
+      where: {
+        OR: [
+          { id: categoryId },
+          { slug: categoryId }
+        ]
+      }
     })
 
     if (!category) {
@@ -379,5 +382,65 @@ export const deleteProduct = async (req, res) => {
   } catch (err) {
     console.error("❌ DELETE PRODUCT ERROR:", err)
     res.status(500).json({ error: err.message })
+  }
+}
+
+export const updateProduct = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    const validation = productSchema.safeParse(req.body)
+    if (!validation.success) {
+      return res.status(400).json({
+        message: validation.error?.errors?.[0]?.message || "Invalid input"
+      })
+    }
+
+    const { name, price, stock, categoryId, description } = validation.data
+
+    let imageUrl = null
+
+    if (req.file) {
+      const result = await uploadFromBuffer(req.file.buffer)
+      imageUrl = result.secure_url
+    }
+
+    const updated = await prisma.product.update({
+      where: { id },
+      data: {
+        name,
+        description,
+
+        category: {
+          connect: { id: categoryId }
+        },
+
+        ...(imageUrl && {
+          images: {
+            deleteMany: {},
+            create: [{ url: imageUrl, isPrimary: true }]
+          }
+        }),
+
+        variants: {
+          updateMany: {
+            where: {},
+            data: {
+              price: new Prisma.Decimal(price),
+              stock
+            }
+          }
+        }
+      }
+    })
+
+    await deleteCache("products:*")
+    await deleteCache("product:*")
+
+    res.json(updated)
+
+  } catch (err) {
+    console.error("❌ UPDATE PRODUCT ERROR:", err)
+    next(err)
   }
 }
