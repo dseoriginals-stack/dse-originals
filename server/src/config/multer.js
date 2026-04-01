@@ -1,13 +1,19 @@
 import multer from "multer"
-import { CloudinaryStorage } from "multer-storage-cloudinary"
-import cloudinary from "./cloudinary.js"
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: "dse-products",
-    allowed_formats: ["jpg", "png", "jpeg", "webp"],
+const storage = multer.memoryStorage()
+
+export const upload = multer({
+  storage,
+  limits: {
+    fileSize: 2 * 1024 * 1024 // 2MB
   },
-})
+  fileFilter: (req, file, cb) => {
+    const allowed = ["image/jpeg", "image/png", "image/webp"]
 
-export const upload = multer({ storage })
+    if (!allowed.includes(file.mimetype)) {
+      return cb(new Error("Invalid file type"), false)
+    }
+
+    cb(null, true)
+  }
+})

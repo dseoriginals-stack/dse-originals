@@ -23,13 +23,16 @@ import orderRoutes from "./modules/order/order.routes.js"
 import adminRoutes from "./modules/admin/admin.routes.js"
 import wishlistRoutes from "./modules/wishlist/wishlist.routes.js"
 import cartRoutes from "./modules/cart/cart.routes.js"
-import categoryRoutes from "./routes/categoryRoutes.js"
+import categoryRoutes from "./routes/category.routes.js"
 import reviewRoutes from "./modules/review/review.routes.js"
 import analyticsRoutes from "./modules/analytics/analytics.routes.js"
 import userRoutes from "./modules/user/user.routes.js"
 
 // Webhooks
 import { handleXenditWebhook } from "./webhooks/xendit.webhook.js"
+import categoryRoutes from "./routes/category.routes.js"
+
+app.use("/categories", categoryRoutes)
 
 const app = express()
 app.set("trust proxy", 1)

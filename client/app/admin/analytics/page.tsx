@@ -1,12 +1,13 @@
 "use client"
 export const dynamic = "force-dynamic"
+export const fetchCache = "force-no-store"
 
 import { useEffect, useState } from "react"
 import dynamicImport from "next/dynamic"
 import { api } from "@/lib/api"
 
 /* =========================
-   FIX: DYNAMIC RECHARTS
+   RECHARTS
 ========================= */
 
 const LineChart = dynamicImport(() => import("recharts").then(m => m.LineChart), { ssr: false })
@@ -22,27 +23,14 @@ const Bar = dynamicImport(() => import("recharts").then(m => m.Bar), { ssr: fals
    TYPES
 ========================= */
 
-type RevenuePoint = {
-  date: string
-  revenue: number
-}
-
-type ProductStat = {
-  name: string
-  sales: number
-}
-
-type Order = {
-  id: string
-  total: number
-  status: string
-}
-
 type Analytics = {
-  revenueChart: RevenuePoint[]
-  orderChart: RevenuePoint[]
-  topProducts: ProductStat[]
-  recentOrders: Order[]
+  revenueChart: { date: string; revenue: number }[]
+  orderChart: { date: string; revenue: number }[]
+  topProducts: { name: string; sales: number }[]
+  recentOrders: { id: string; total: number; status: string }[]
+  revenueTotal: number
+  ordersTotal: number
+  productsTotal: number
 }
 
 /* =========================
@@ -52,110 +40,157 @@ type Analytics = {
 export default function AdminAnalytics() {
 
   const [data, setData] = useState<Analytics | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await api.get<Analytics>("/analytics")
-        setData(res)
+        const res = await api.get<any>("/analytics")
+
+        const formatted: Analytics = {
+          revenueChart: (res.sales || []).map((s: any) => ({
+            date: s.date,
+            revenue: s.total,
+          })),
+
+          orderChart: (res.sales || []).map((s: any) => ({
+            date: s.date,
+            revenue: s.total,
+          })),
+
+          topProducts: (res.topProducts || []).map((p: any) => ({
+            name: p.productName,
+            sales: p._sum?.quantity || 0,
+          })),
+
+          recentOrders: [],
+
+          revenueTotal: res.revenue || 0,
+          ordersTotal: res.orders || 0,
+          productsTotal: res.products || 0,
+        }
+
+        setData(formatted)
+
       } catch (err) {
-        console.error("Analytics fetch failed", err)
+        console.error(err)
+        setError("Failed to load analytics")
       }
     }
 
     load()
   }, [])
 
-  if (!data) {
-    return <p>Loading analytics...</p>
-  }
+  if (error) return <p className="p-6 text-red-500">{error}</p>
+  if (!data) return <p className="p-6">Loading analytics...</p>
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
 
-      <h1 className="text-3xl font-bold">
-        Analytics
-      </h1>
+      <h1 className="text-3xl font-semibold">Analytics</h1>
 
-      {/* REVENUE */}
+      {/* ================= KPI CARDS ================= */}
 
-      <div className="bg-white p-6 rounded shadow">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-        <h2 className="font-semibold mb-4">
-          Revenue
-        </h2>
+        <div className="bg-white p-5 rounded-xl shadow-sm border">
+          <p className="text-gray-500 text-sm">Total Revenue</p>
+          <p className="text-2xl font-semibold mt-1">
+            ₱{data.revenueTotal.toLocaleString()}
+          </p>
+        </div>
 
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data.revenueChart}>
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
-            <Line
-              type="monotone"
-              dataKey="revenue"
-              stroke="#2563eb"
-              strokeWidth={3}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <div className="bg-white p-5 rounded-xl shadow-sm border">
+          <p className="text-gray-500 text-sm">Orders</p>
+          <p className="text-2xl font-semibold mt-1">
+            {data.ordersTotal}
+          </p>
+        </div>
 
-      </div>
-
-      {/* ORDERS */}
-
-      <div className="bg-white p-6 rounded shadow">
-
-        <h2 className="font-semibold mb-4">
-          Orders
-        </h2>
-
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={data.orderChart}>
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="revenue" fill="#16a34a" />
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="bg-white p-5 rounded-xl shadow-sm border">
+          <p className="text-gray-500 text-sm">Products</p>
+          <p className="text-2xl font-semibold mt-1">
+            {data.productsTotal}
+          </p>
+        </div>
 
       </div>
 
-      {/* TOP PRODUCTS */}
+      {/* ================= CHARTS ================= */}
 
-      <div className="bg-white p-6 rounded shadow">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        <h2 className="font-semibold mb-4">
-          Top Products
-        </h2>
+        {/* REVENUE */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border">
+          <h2 className="font-semibold mb-4">Revenue</h2>
 
-        <ul className="space-y-2">
-          {data.topProducts.map((p, i) => (
-            <li key={i} className="flex justify-between">
-              <span>{p.name}</span>
-              <span>{p.sales} sold</span>
-            </li>
-          ))}
-        </ul>
+          {(data.revenueChart?.length ?? 0) === 0 ? (
+            <p className="text-gray-500">No revenue data</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={data.revenueChart}>
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Line
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#2d4c7c"
+                  strokeWidth={3}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+
+        {/* ORDERS */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border">
+          <h2 className="font-semibold mb-4">Orders</h2>
+
+          {(data.orderChart?.length ?? 0) === 0 ? (
+            <p className="text-gray-500">No order data</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={data.orderChart}>
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="revenue" fill="#4f7db3" />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
 
       </div>
 
-      {/* RECENT ORDERS */}
+      {/* ================= LOWER SECTION ================= */}
 
-      <div className="bg-white p-6 rounded shadow">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        <h2 className="font-semibold mb-4">
-          Recent Orders
-        </h2>
+        {/* TOP PRODUCTS */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border">
+          <h2 className="font-semibold mb-4">Top Products</h2>
 
-        <ul className="space-y-2">
-          {data.recentOrders.map(order => (
-            <li key={order.id} className="flex justify-between">
-              <span>#{order.id}</span>
-              <span>₱{order.total}</span>
-              <span>{order.status}</span>
-            </li>
-          ))}
-        </ul>
+          {(data.topProducts?.length ?? 0) === 0 ? (
+            <p className="text-gray-500">No products yet</p>
+          ) : (
+            <ul className="space-y-2">
+              {data.topProducts.map((p, i) => (
+                <li key={i} className="flex justify-between text-sm">
+                  <span>{p.name}</span>
+                  <span className="font-medium">{p.sales} sold</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* RECENT ORDERS */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border">
+          <h2 className="font-semibold mb-4">Recent Orders</h2>
+
+          <p className="text-gray-500">Coming soon</p>
+        </div>
 
       </div>
 

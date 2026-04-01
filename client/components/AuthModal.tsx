@@ -115,7 +115,7 @@ export default function AuthModal({ open, onClose }: any) {
 
             {/* HEADER (CENTERED LOGO ✅) */}
             <div className="relative mb-6 text-center">
-              <img src="/DSE.png" className="h-10 mx-auto opacity-90" />
+              <img src="/DSEoriginals.png" className="h-10 mx-auto opacity-90" />
 
               <button
                 onClick={onClose}
@@ -210,10 +210,10 @@ export default function AuthModal({ open, onClose }: any) {
                   <div className="flex-1 h-px bg-gray-200"></div>
                 </div>
 
-                <button className="w-full py-3 rounded-xl border flex items-center justify-center gap-2 hover:bg-gray-50 transition">
+                {/* <button className="w-full py-3 rounded-xl border flex items-center justify-center gap-2 hover:bg-gray-50 transition">
                   <FcGoogle size={18} />
                   Continue with Google
-                </button>
+                </button> */}
               </>
             )}
 

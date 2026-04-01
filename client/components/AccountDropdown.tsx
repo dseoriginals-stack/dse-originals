@@ -63,7 +63,17 @@ export default function AccountDropdown({ close }: any) {
             <Item label="Orders" onClick={() => router.push("/account?tab=orders")} />
 
             {user.role === "admin" && (
-              <Item label="Admin Panel" highlight onClick={() => router.push("/admin")} />
+              <Item
+                label="Admin Panel"
+                highlight
+                onClick={() => {
+                  close()
+
+                  // ✅ Force hard navigation (bypass Next.js client routing issues)
+                  window.location.href = "/admin"
+                }}
+              />
+              
             )}
           </div>
 

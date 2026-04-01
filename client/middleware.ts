@@ -2,10 +2,11 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 export function middleware(request: NextRequest) {
-
   const { pathname } = request.nextUrl
 
-  // Allow public + system routes
+  const token = request.cookies.get("accessToken")?.value
+
+  // ✅ PUBLIC ROUTES
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
@@ -17,17 +18,15 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  const token = request.cookies.get("accessToken")?.value
-
-  // Not logged in → redirect
+  // ❌ NOT LOGGED IN → redirect to account page
   if (!token) {
-    return NextResponse.redirect(new URL("/", request.url))
+    return NextResponse.redirect(new URL("/account", request.url))
   }
 
-  // ✅ DO NOTHING ELSE (no jwt, no decoding)
+  // ✅ ALLOW (including /admin for now)
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: [], // ❌ disable middleware for now
 }

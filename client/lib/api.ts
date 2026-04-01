@@ -27,6 +27,7 @@ export async function request<T = any>(
       ...options,
       credentials: "include",
       signal: controller.signal,
+      cache: "no-store",
       headers: {
         ...(isFormData ? {} : { "Content-Type": "application/json" }),
         ...(options?.headers || {}),

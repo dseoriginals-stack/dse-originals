@@ -10,7 +10,10 @@ import {
   setCache,
   deleteCache
 } from "../../utils/searchCache.js"
+import { upload } from "../../config/multer.js"
 
+router.post("/", upload.single("image"), createProduct)
+router.put("/:id", upload.single("image"), updateProduct) // if you have update
 /* ================================
    HELPERS
 ================================ */
@@ -18,12 +21,25 @@ import {
 const uploadFromBuffer = (buffer) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder: "dse-products" },
+      {
+        folder: "dse-products",
+
+        // 🔥 AUTO OPTIMIZATION
+        resource_type: "image",
+        format: "webp", // modern format
+        quality: "auto", // compress automatically
+
+        // 🔥 RESPONSIVE SIZING
+        transformation: [
+          { width: 1200, crop: "limit" } // prevent huge images
+        ]
+      },
       (error, result) => {
         if (result) resolve(result)
         else reject(error)
       }
     )
+
     streamifier.createReadStream(buffer).pipe(stream)
   })
 }
@@ -184,15 +200,29 @@ export const getProducts = async (req, res) => {
           slug: true,
           createdAt: true,
 
+          // ✅ FIX: include category
+          categoryId: true,
+          category: {
+            select: {
+              id: true,
+              name: true
+            }
+          },
+
+          // ✅ IMAGE
           images: {
             where: { isPrimary: true },
             take: 1,
             select: { url: true }
           },
 
+          // ✅ FIX: include stock
           variants: {
             take: 1,
-            select: { price: true }
+            select: {
+              price: true,
+              stock: true
+            }
           }
         },
         skip,
