@@ -10,7 +10,6 @@ import {
   setCache,
   deleteCache
 } from "../../utils/searchCache.js"
-import { upload } from "../../config/multer.js"
 
 /* ================================
    HELPERS
@@ -21,16 +20,10 @@ const uploadFromBuffer = (buffer) => {
     const stream = cloudinary.uploader.upload_stream(
       {
         folder: "dse-products",
-
-        // 🔥 AUTO OPTIMIZATION
         resource_type: "image",
-        format: "webp", // modern format
-        quality: "auto", // compress automatically
-
-        // 🔥 RESPONSIVE SIZING
-        transformation: [
-          { width: 1200, crop: "limit" } // prevent huge images
-        ]
+        format: "webp",
+        quality: "auto",
+        transformation: [{ width: 1200, crop: "limit" }]
       },
       (error, result) => {
         if (result) resolve(result)
@@ -43,7 +36,7 @@ const uploadFromBuffer = (buffer) => {
 }
 
 /* ================================
-   PRODUCT SCHEMA
+   SCHEMA
 ================================ */
 
 const productSchema = z.object({
@@ -72,10 +65,7 @@ export const createProduct = async (req, res, next) => {
 
     const category = await prisma.category.findFirst({
       where: {
-        OR: [
-          { id: categoryId },
-          { slug: categoryId }
-        ]
+        OR: [{ id: categoryId }, { slug: categoryId }]
       }
     })
 
@@ -127,7 +117,6 @@ export const createProduct = async (req, res, next) => {
     await deleteCache("products:*")
 
     res.status(201).json(product)
-
   } catch (err) {
     console.error("❌ CREATE PRODUCT ERROR:", err)
     next(err)
@@ -135,7 +124,7 @@ export const createProduct = async (req, res, next) => {
 }
 
 /* ================================
-   GET PRODUCTS (OPTIMIZED)
+   GET PRODUCTS (FIXED PROPERLY)
 ================================ */
 
 export const getProducts = async (req, res) => {
@@ -160,16 +149,13 @@ export const getProducts = async (req, res) => {
 
     const where = {
       status: "active",
-
       ...(category && { categoryId: category }),
-
       ...(search && {
         OR: [
           { name: { contains: search, mode: "insensitive" } },
           { description: { contains: search, mode: "insensitive" } }
         ]
       }),
-
       ...(minPrice || maxPrice
         ? {
             variants: {
@@ -201,25 +187,13 @@ export const getProducts = async (req, res) => {
           id: true,
           name: true,
           slug: true,
-          createdAt: true,
 
-          // ✅ FIX: include category
-          categoryId: true,
-          category: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
-
-          // ✅ IMAGE
           images: {
-            where: { isPrimary: true },
+            orderBy: { isPrimary: "desc" }, // ✅ ensures primary first
             take: 1,
             select: { url: true }
           },
 
-          // ✅ FIX: include stock
           variants: {
             take: 1,
             select: {
@@ -240,8 +214,13 @@ export const getProducts = async (req, res) => {
         id: p.id,
         name: p.name,
         slug: p.slug,
-        image: p.images?.[0]?.url || null,
-        price: Number(p.variants?.[0]?.price || 0)
+
+        // ✅ GUARANTEED FIX
+        image: p.images.length > 0 ? p.images[0].url : null,
+
+        price: p.variants.length > 0
+          ? Number(p.variants[0].price)
+          : 0
       })),
       pagination: {
         total,
@@ -253,7 +232,6 @@ export const getProducts = async (req, res) => {
     await setCache(cacheKey, response, 120)
 
     res.json(response)
-
   } catch (err) {
     console.error("❌ GET PRODUCTS ERROR:", err)
     res.status(500).json({ error: err.message })
@@ -261,7 +239,7 @@ export const getProducts = async (req, res) => {
 }
 
 /* ================================
-   GET PRODUCT BY SLUG (OPTIMIZED)
+   GET PRODUCT BY SLUG (IMPROVED)
 ================================ */
 
 export const getProductBySlugController = async (req, res) => {
@@ -281,17 +259,10 @@ export const getProductBySlugController = async (req, res) => {
         description: true,
 
         images: {
-          select: { url: true }
+          orderBy: { isPrimary: "desc" }
         },
 
-        variants: {
-          select: {
-            id: true,
-            price: true,
-            stock: true,
-            attributes: true
-          }
-        },
+        variants: true,
 
         category: {
           select: { id: true, name: true }
@@ -306,57 +277,8 @@ export const getProductBySlugController = async (req, res) => {
     await setCache(cacheKey, product, 180)
 
     res.json(product)
-
   } catch (err) {
-    console.error("❌ GET PRODUCT BY SLUG ERROR:", err)
-    res.status(500).json({ error: err.message })
-  }
-}
-
-/* ================================
-   SEARCH PRODUCTS (FIXED)
-================================ */
-
-export const searchProducts = async (req, res) => {
-  try {
-    const q = (req.query.q || "").trim()
-
-    if (!q) return res.json([])
-
-    const products = await prisma.product.findMany({
-      where: {
-        status: "active",
-        name: {
-          contains: q,
-          mode: "insensitive"
-        }
-      },
-      take: 8,
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        images: {
-          take: 1,
-          select: { url: true }
-        },
-        variants: {
-          take: 1,
-          select: { price: true }
-        }
-      }
-    })
-
-    res.json(products.map(p => ({
-      id: p.id,
-      name: p.name,
-      slug: p.slug,
-      image: p.images?.[0]?.url || null,
-      price: Number(p.variants?.[0]?.price || 0)
-    })))
-
-  } catch (err) {
-    console.error(err)
+    console.error("❌ GET PRODUCT ERROR:", err)
     res.status(500).json({ error: err.message })
   }
 }
@@ -378,9 +300,60 @@ export const deleteProduct = async (req, res) => {
     await deleteCache("product:*")
 
     res.json({ message: "Product disabled" })
-
   } catch (err) {
     console.error("❌ DELETE PRODUCT ERROR:", err)
+    res.status(500).json({ error: err.message })
+  }
+}
+
+export const searchProducts = async (req, res) => {
+  try {
+    const { q } = req.query
+
+    if (!q) {
+      return res.json({ data: [] })
+    }
+
+    const products = await prisma.product.findMany({
+      where: {
+        status: "active",
+        OR: [
+          { name: { contains: q, mode: "insensitive" } },
+          { description: { contains: q, mode: "insensitive" } }
+        ]
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+
+        images: {
+          take: 1,
+          select: { url: true }
+        },
+
+        variants: {
+          take: 1,
+          select: {
+            id: true,
+            price: true
+          }
+        }
+      }
+    })
+
+    res.json({
+      data: products.map(p => ({
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        image: p.images?.[0]?.url || null,
+        price: Number(p.variants?.[0]?.price || 0),
+        variantId: p.variants?.[0]?.id || ""
+      }))
+    })
+  } catch (err) {
+    console.error("❌ SEARCH ERROR:", err)
     res.status(500).json({ error: err.message })
   }
 }
@@ -390,6 +363,7 @@ export const updateProduct = async (req, res, next) => {
     const { id } = req.params
 
     const validation = productSchema.safeParse(req.body)
+
     if (!validation.success) {
       return res.status(400).json({
         message: validation.error?.errors?.[0]?.message || "Invalid input"
@@ -398,8 +372,20 @@ export const updateProduct = async (req, res, next) => {
 
     const { name, price, stock, categoryId, description } = validation.data
 
+    const product = await prisma.product.findUnique({
+      where: { id },
+      include: {
+        variants: true
+      }
+    })
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" })
+    }
+
     let imageUrl = null
 
+    // ✅ upload new image if exists
     if (req.file) {
       const result = await uploadFromBuffer(req.file.buffer)
       imageUrl = result.secure_url
@@ -411,26 +397,32 @@ export const updateProduct = async (req, res, next) => {
         name,
         description,
 
-        category: {
-          connect: { id: categoryId }
-        },
+        ...(categoryId && {
+          category: {
+            connect: { id: categoryId }
+          }
+        }),
 
+        // ✅ replace image if new one uploaded
         ...(imageUrl && {
           images: {
-            deleteMany: {},
+            deleteMany: {}, // remove old
             create: [{ url: imageUrl, isPrimary: true }]
           }
         }),
 
-        variants: {
-          updateMany: {
-            where: {},
-            data: {
-              price: new Prisma.Decimal(price),
-              stock
+        // ✅ update first variant
+        ...(product.variants.length > 0 && {
+          variants: {
+            update: {
+              where: { id: product.variants[0].id },
+              data: {
+                price: new Prisma.Decimal(price),
+                stock
+              }
             }
           }
-        }
+        })
       }
     })
 
@@ -438,7 +430,6 @@ export const updateProduct = async (req, res, next) => {
     await deleteCache("product:*")
 
     res.json(updated)
-
   } catch (err) {
     console.error("❌ UPDATE PRODUCT ERROR:", err)
     next(err)

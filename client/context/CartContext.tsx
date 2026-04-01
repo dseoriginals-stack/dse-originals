@@ -1,4 +1,6 @@
 "use client"
+import { useAuth } from "@/context/AuthContext"
+import { api } from "@/lib/api"
 
 import {
   createContext,
@@ -12,7 +14,7 @@ import {
 
 import { v4 as uuidv4 } from "uuid"
 
-
+const { user } = useAuth()
 /* =========================
    TYPES
 ========================= */
@@ -59,7 +61,8 @@ const CartContext = createContext<CartContextType | null>(null)
    STORAGE KEYS
 ========================= */
 
-const CART_STORAGE_KEY = "dse_cart"
+const getCartKey = (guestId: string | null) =>
+  guestId ? `dse_cart_${guestId}` : "dse_cart"
 const GUEST_STORAGE_KEY = "dse_guest_id"
 const MAX_QTY = 99
 
@@ -117,45 +120,74 @@ export function CartProvider({
   ========================= */
 
   useEffect(() => {
+  if (user) {
+    // ✅ LOGGED-IN → fetch from backend
+    api.get<{ items: CartItem[] }>("/cart")
+      .then(res => {
+        setCart(res.items || [])
+      })
+      .catch(() => setCart([]))
+  } else if (guestId) {
+    // ✅ GUEST → localStorage
     try {
-      const stored = localStorage.getItem(CART_STORAGE_KEY)
+      const key = getCartKey(guestId)
+      const stored = localStorage.getItem(key)
+
       if (!stored) return
 
       const parsed = JSON.parse(stored)
-
-      if (
-        Array.isArray(parsed) &&
-        parsed.every(
-          (i) =>
-            typeof i.variantId === "string" &&
-            typeof i.quantity === "number"
-        )
-      ) {
-        setCart(parsed)
-      }
+      setCart(parsed)
     } catch {
       setCart([])
     }
-  }, [])
+  }
+}, [user, guestId])
+useEffect(() => {
+  if (!user || !guestId) return
 
+  const key = getCartKey(guestId)
+  const guestCart = localStorage.getItem(key)
+
+  if (!guestCart) return
+
+  const parsed = JSON.parse(guestCart)
+
+  const merge = async () => {
+    for (const item of parsed) {
+      await api.post("/cart", {
+        variantId: item.variantId,
+        quantity: item.quantity
+      })
+    }
+
+    localStorage.removeItem(key)
+
+    const res = await api.get<{ items: CartItem[] }>("/cart")
+    setCart(res.items || [])
+  }
+
+  merge()
+}, [user, guestId])
   /* =========================
      SAVE CART (DEBOUNCED)
   ========================= */
 
   useEffect(() => {
-    if (storageDebounce.current) {
-      clearTimeout(storageDebounce.current)
-    }
+  if (user) return // ❌ don't use localStorage for users
 
-    storageDebounce.current = setTimeout(() => {
-      try {
-        localStorage.setItem(
-          CART_STORAGE_KEY,
-          JSON.stringify(cart)
-        )
-      } catch {}
-    }, 200)
-  }, [cart])
+  if (!guestId) return
+
+  if (storageDebounce.current) {
+    clearTimeout(storageDebounce.current)
+  }
+
+  storageDebounce.current = setTimeout(() => {
+    try {
+      const key = getCartKey(guestId)
+      localStorage.setItem(key, JSON.stringify(cart))
+    } catch {}
+  }, 200)
+}, [cart, guestId, user])
 
   /* =========================
      CLEANUP
@@ -192,37 +224,42 @@ export function CartProvider({
      ADD TO CART
   ========================= */
 
-  const addToCart = useCallback((item: CartItem) => {
+  const addToCart = useCallback(async (item: CartItem) => {
+  if (user) {
+    // ✅ API cart
+    try {
+      await api.post("/cart", {
+        variantId: item.variantId,
+        quantity: item.quantity
+      })
+
+      const res = await api.get<{ items: CartItem[] }>("/cart")
+      setCart(res.items || [])
+    } catch (err) {
+      console.error("Cart API error", err)
+    }
+  } else {
+    // ✅ LOCAL cart
     setCart(prev => {
-      const existing = prev.find(
-        p => p.variantId === item.variantId
-      )
+      const existing = prev.find(p => p.variantId === item.variantId)
 
       if (existing) {
-        const newQty = Math.min(
-          existing.quantity + item.quantity,
-          MAX_QTY
-        )
-
         return prev.map(p =>
           p.variantId === item.variantId
-            ? { ...p, quantity: newQty }
+            ? {
+                ...p,
+                quantity: Math.min(p.quantity + item.quantity, MAX_QTY)
+              }
             : p
         )
       }
 
-      return [
-        ...prev,
-        {
-          ...item,
-          quantity: Math.min(item.quantity, MAX_QTY)
-        }
-      ]
+      return [...prev, item]
     })
+  }
 
-    triggerCartAnimation()
-    openCart()
-  }, [])
+  triggerCartAnimation()
+}, [user])
 
   /* =========================
      UPDATE QTY
@@ -343,4 +380,6 @@ export const useCart = () => {
   }
 
   return ctx
+  
 }
+

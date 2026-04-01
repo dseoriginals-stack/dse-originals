@@ -3,17 +3,20 @@ import { ProductFull, ProductCardType } from "@/types/product"
 export function transformProductToCard(
   product: ProductFull
 ): ProductCardType {
+
+  const p = product as any // ✅ allow mixed API shapes
+  const variant = product.variants?.[0]
+
   const image =
+    p.image || // from /products
     product.images?.find(i => i.isPrimary)?.url ||
     product.images?.[0]?.url ||
-    "/placeholder.png"
+    null
 
   const price =
-    product.variants?.length > 0
-      ? Number(product.variants[0].price)
-      : 0
-
-  const variant = product.variants?.[0]
+    p.price !== undefined
+      ? Number(p.price)
+      : Number(variant?.price || 0)
 
   return {
     id: product.id,

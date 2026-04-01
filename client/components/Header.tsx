@@ -101,7 +101,7 @@ export default function Header() {
             <div className="flex justify-end gap-4 items-center">
 
               {/* CART */}
-              <button onClick={openCart} className="relative text-white">
+              <Link href="/cart" className="relative text-white">
                 <ShoppingCart size={20} />
 
                 {cartCount > 0 && (
@@ -109,7 +109,7 @@ export default function Header() {
                     {cartCount}
                   </span>
                 )}
-              </button>
+              </Link>
 
               {/* ACCOUNT */}
               <div className="relative" ref={mobileDropdownRef}>
@@ -171,7 +171,7 @@ export default function Header() {
             <div className="flex-1 flex justify-end gap-6 items-center">
 
               {/* CART */}
-              <button onClick={openCart} className="relative text-white">
+              <Link href="/cart" className="relative text-white">
                 <ShoppingCart size={20} />
 
                 {cartCount > 0 && (
@@ -179,7 +179,7 @@ export default function Header() {
                     {cartCount}
                   </span>
                 )}
-              </button>
+              </Link>
 
               {/* ACCOUNT */}
               <div className="relative" ref={dropdownRef}>

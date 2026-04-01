@@ -25,7 +25,17 @@ export const getCart = async (req, res, next) => {
       }
     })
 
-    res.json(cart || { items: [] })
+    res.json({
+  items:
+    cart?.items.map(item => ({
+      variantId: item.variantId,
+      name: item.variant.product.name,
+      price: Number(item.variant.price),
+      quantity: item.quantity,
+      image:
+        item.variant.product.images?.[0]?.url || null
+    })) || []
+})
 
   } catch (err) {
     next(err)

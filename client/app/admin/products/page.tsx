@@ -68,24 +68,31 @@ export default function AdminProducts() {
 
     setCategories(categoryData)
 
-    const mapped = productData.map((p: any) => {
+      const mapped = productData.map((p: any) => {
+      
       const categoryId = p.categoryId || p.category?._id || ""
 
       const category = categoryData.find(
         (c: any) => c.id === categoryId || c._id === categoryId
       )
 
-      return {
-        id: p.id || p._id,
-        name: p.name,
-        description: p.description || "",
-        categoryId,
-        category: category?.name || "Uncategorized",
-        image: p.image || p.images?.[0]?.url || null,
-        price: String(p.price ?? ""),
-        stock: String(p.stock ?? "")
-      }
-    })
+        return {
+          id: p.id,
+          name: p.name,
+          description: p.description || "",
+          categoryId: p.categoryId || "",
+          category: p.category?.name || "Uncategorized",
+
+          // ✅ FIX IMAGE
+          image: p.image || null,
+
+          // ✅ FIX PRICE
+          price: String(p.price  || 0),
+
+          // ⚠️ stock not returned in your API
+          stock: "0"
+        }
+      })
 
     setProducts(mapped)
 

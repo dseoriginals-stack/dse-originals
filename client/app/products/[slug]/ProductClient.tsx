@@ -38,7 +38,7 @@ export default function ProductClient() {
   const [refreshReviews, setRefreshReviews] = useState(0)
 
   /* =========================
-     FETCH (FIXED ONLY)
+     FETCH (FIXED)
   ========================= */
 
   useEffect(() => {
@@ -46,16 +46,8 @@ export default function ProductClient() {
 
     async function fetchData() {
       try {
-        // ✅ safer fallback if API not ready
-        let res: ProductFull | null = null
-
-        try {
-          res = await api.get<ProductFull>(`/products/${slug}`)
-        } catch {
-          // fallback to old logic
-          const all = await api.get<ProductFull[]>("/products")
-          res = all.find((p) => p.slug === slug) || null
-        }
+        // ✅ CORRECT ENDPOINT
+        const res = await api.get<ProductFull>(`/products/slug/${slug}`)
 
         if (!res) throw new Error("Product not found")
 
@@ -68,14 +60,19 @@ export default function ProductClient() {
 
         setActiveImage(res.images?.[0]?.url ?? "/placeholder.png")
 
-        const rel = await api.get<ProductFull[]>(
-          `/products/${res.id}/related`
-        )
-
-        setRelated(rel)
+        // OPTIONAL: related (only if you have this route)
+        try {
+          const rel = await api.get<ProductFull[]>(
+            `/products/${res.id}/related`
+          )
+          setRelated(rel)
+        } catch {
+          setRelated([])
+        }
 
       } catch (err) {
         console.error("❌ Product fetch error:", err)
+        setProduct(null)
       } finally {
         setLoading(false)
       }
@@ -85,7 +82,7 @@ export default function ProductClient() {
   }, [slug])
 
   /* =========================
-     ADD TO CART (IMPROVED)
+     ADD TO CART
   ========================= */
 
   const handleAdd = async () => {
@@ -140,7 +137,7 @@ export default function ProductClient() {
   const price = variant?.price || 0
 
   /* =========================
-     UI (UNCHANGED STRUCTURE)
+     UI
   ========================= */
 
   return (
@@ -295,7 +292,7 @@ export default function ProductClient() {
         </div>
       )}
 
-      {/* ✅ MOBILE BAR (UNCHANGED — SAFE) */}
+      {/* MOBILE BAR */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 md:hidden">
         <div className="flex gap-3">
           <div className="flex-1">

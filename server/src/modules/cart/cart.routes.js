@@ -9,7 +9,7 @@ router.post("/save-email", saveCartEmail)
 
 router.get("/", authenticate, controller.getCart)
 
-router.post("/item", authenticate, controller.addItem)
+router.post("/", authenticate, controller.addItem)
 
 router.delete("/item/:id", authenticate, controller.removeItem)
 

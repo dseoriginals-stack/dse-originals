@@ -20,7 +20,14 @@ export default function ProductCard({
   const [loading, setLoading] = useState(false)
   const [added, setAdded] = useState(false)
 
-  const imageUrl = getImageUrl(product.image) || "/placeholder.png"
+  // ✅ safer image fallback
+  const imageUrl =
+  product.image && product.image.startsWith("http")
+    ? product.image
+    : "/placeholder.png"
+
+  // ✅ prevent broken navigation
+  if (!product.slug) return null
 
   const handleAdd = async (e: any) => {
     e.preventDefault()
@@ -39,7 +46,6 @@ export default function ProductCard({
         image: imageUrl,
       })
 
-      // ✅ success feedback
       setAdded(true)
 
       setTimeout(() => {
@@ -52,13 +58,16 @@ export default function ProductCard({
   }
 
   return (
-    <Link href={`/products/${product.slug}`} className="group block">
+    <Link href={`/product/${product.slug}`} className="group block">
 
-      <div className="
-        relative rounded-2xl bg-white overflow-hidden
-        transition-all duration-300
-        hover:shadow-xl hover:-translate-y-1
-      ">
+      <div
+        className="
+          relative rounded-2xl bg-white overflow-hidden
+          border border-gray-100
+          transition-all duration-300
+          hover:shadow-xl hover:-translate-y-1
+        "
+      >
 
         {/* BADGE */}
         <div className="absolute top-3 left-3 z-10 text-[10px] tracking-wide bg-[var(--brand-primary)] text-white px-3 py-1 rounded-full shadow-sm">
@@ -77,7 +86,7 @@ export default function ProductCard({
         </button>
 
         {/* IMAGE */}
-        <div className="relative aspect-square bg-gray-100 overflow-hidden">
+        <div className="relative aspect-square bg-gray-50 overflow-hidden">
 
           <Image
             src={imageUrl}
@@ -92,15 +101,18 @@ export default function ProductCard({
             "
           />
 
+          {/* subtle overlay */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/[0.04] transition duration-300" />
 
           {/* DESKTOP CTA */}
-          <div className="
-            absolute bottom-4 left-1/2 -translate-x-1/2
-            opacity-0 translate-y-2
-            group-hover:opacity-100 group-hover:translate-y-0
-            transition-all duration-300 hidden md:block
-          ">
+          <div
+            className="
+              absolute bottom-4 left-1/2 -translate-x-1/2
+              opacity-0 translate-y-2
+              group-hover:opacity-100 group-hover:translate-y-0
+              transition-all duration-300 hidden md:block
+            "
+          >
             <button
               onClick={handleAdd}
               disabled={loading}
@@ -126,7 +138,7 @@ export default function ProductCard({
         </div>
 
         {/* CONTENT */}
-        <div className="p-4 space-y-1">
+        <div className="p-4 space-y-2">
 
           <h3 className="text-sm font-medium text-gray-900 line-clamp-1">
             {product.name}
@@ -134,7 +146,7 @@ export default function ProductCard({
 
           <div className="flex items-center justify-between">
 
-            <span className="text-sm font-semibold text-[var(--brand-primary)]">
+            <span className="text-base font-semibold text-[var(--brand-primary)]">
               ₱{Number(product.price || 0).toLocaleString()}
             </span>
 
