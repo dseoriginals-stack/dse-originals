@@ -1,0 +1,16 @@
+{
+  "projectId": "prj_ljnKZTb4O6NSBYAfdWyFYwhYG6pz",
+  "orgId": "team_D6j8zn3JTdeAv04p7LccqcZb",
+  "projectName": "dse-originals-client",
+  "settings": {
+    "createdAt": 1774318496307,
+    "framework": "nextjs",
+    "devCommand": null,
+    "installCommand": null,
+    "buildCommand": null,
+    "outputDirectory": null,
+    "rootDirectory": null,
+    "directoryListing": false,
+    "nodeVersion": "24.x"
+  }
+}
