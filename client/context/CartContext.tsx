@@ -1,4 +1,5 @@
 "use client"
+
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
 
@@ -14,7 +15,6 @@ import {
 
 import { v4 as uuidv4 } from "uuid"
 
-const { user } = useAuth()
 /* =========================
    TYPES
 ========================= */
@@ -51,24 +51,19 @@ type CartContextType = {
   closeCart: () => void
 }
 
-/* =========================
-   CONTEXT
-========================= */
+/* ========================= */
 
 const CartContext = createContext<CartContextType | null>(null)
 
-/* =========================
-   STORAGE KEYS
-========================= */
+/* ========================= */
 
 const getCartKey = (guestId: string | null) =>
   guestId ? `dse_cart_${guestId}` : "dse_cart"
+
 const GUEST_STORAGE_KEY = "dse_guest_id"
 const MAX_QTY = 99
 
-/* =========================
-   PROVIDER
-========================= */
+/* ========================= */
 
 export function CartProvider({
   children
@@ -76,17 +71,18 @@ export function CartProvider({
   children: React.ReactNode
 }) {
 
+  // ✅ FIX: moved inside component
+  const { user } = useAuth()
+
   const [cart, setCart] = useState<CartItem[]>([])
   const [guestId, setGuestId] = useState<string | null>(null)
 
-  // ✅ FIXED: defined after setCart
   const setCartItems = useCallback((items: CartItem[]) => {
     setCart(items)
   }, [])
 
   const [animateCart, setAnimateCart] = useState(false)
 
-  // ✅ FIXED timeout typing
   const animationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const storageDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -120,74 +116,77 @@ export function CartProvider({
   ========================= */
 
   useEffect(() => {
-  if (user) {
-    // ✅ LOGGED-IN → fetch from backend
-    api.get<{ items: CartItem[] }>("/cart")
-      .then(res => {
-        setCart(res.items || [])
-      })
-      .catch(() => setCart([]))
-  } else if (guestId) {
-    // ✅ GUEST → localStorage
-    try {
-      const key = getCartKey(guestId)
-      const stored = localStorage.getItem(key)
+    if (user) {
+      api.get<{ items: CartItem[] }>("/cart")
+        .then(res => {
+          setCart(res.items || [])
+        })
+        .catch(() => setCart([]))
+    } else if (guestId) {
+      try {
+        const key = getCartKey(guestId)
+        const stored = localStorage.getItem(key)
 
-      if (!stored) return
+        if (!stored) return
 
-      const parsed = JSON.parse(stored)
-      setCart(parsed)
-    } catch {
-      setCart([])
+        const parsed = JSON.parse(stored)
+        setCart(parsed)
+      } catch {
+        setCart([])
+      }
     }
-  }
-}, [user, guestId])
-useEffect(() => {
-  if (!user || !guestId) return
+  }, [user, guestId])
 
-  const key = getCartKey(guestId)
-  const guestCart = localStorage.getItem(key)
-
-  if (!guestCart) return
-
-  const parsed = JSON.parse(guestCart)
-
-  const merge = async () => {
-    for (const item of parsed) {
-      await api.post("/cart", {
-        variantId: item.variantId,
-        quantity: item.quantity
-      })
-    }
-
-    localStorage.removeItem(key)
-
-    const res = await api.get<{ items: CartItem[] }>("/cart")
-    setCart(res.items || [])
-  }
-
-  merge()
-}, [user, guestId])
   /* =========================
-     SAVE CART (DEBOUNCED)
+     MERGE GUEST CART
   ========================= */
 
   useEffect(() => {
-  if (user) return // ❌ don't use localStorage for users
+    if (!user || !guestId) return
 
-  if (!guestId) return
+    const key = getCartKey(guestId)
+    const guestCart = localStorage.getItem(key)
 
-  if (storageDebounce.current) {
-    clearTimeout(storageDebounce.current)
-  }
+    if (!guestCart) return
 
-  storageDebounce.current = setTimeout(() => {
-    try {
-      const key = getCartKey(guestId)
-      localStorage.setItem(key, JSON.stringify(cart))
-    } catch {}
-  }, 200)
-}, [cart, guestId, user])
+    const parsed = JSON.parse(guestCart)
+
+    const merge = async () => {
+      for (const item of parsed) {
+        await api.post("/cart", {
+          variantId: item.variantId,
+          quantity: item.quantity
+        })
+      }
+
+      localStorage.removeItem(key)
+
+      const res = await api.get<{ items: CartItem[] }>("/cart")
+      setCart(res.items || [])
+    }
+
+    merge()
+  }, [user, guestId])
+
+  /* =========================
+     SAVE CART
+  ========================= */
+
+  useEffect(() => {
+    if (user) return
+    if (!guestId) return
+
+    if (storageDebounce.current) {
+      clearTimeout(storageDebounce.current)
+    }
+
+    storageDebounce.current = setTimeout(() => {
+      try {
+        const key = getCartKey(guestId)
+        localStorage.setItem(key, JSON.stringify(cart))
+      } catch {}
+    }, 200)
+  }, [cart, guestId, user])
 
   /* =========================
      CLEANUP
@@ -225,45 +224,41 @@ useEffect(() => {
   ========================= */
 
   const addToCart = useCallback(async (item: CartItem) => {
-  if (user) {
-    // ✅ API cart
-    try {
-      await api.post("/cart", {
-        variantId: item.variantId,
-        quantity: item.quantity
-      })
+    if (user) {
+      try {
+        await api.post("/cart", {
+          variantId: item.variantId,
+          quantity: item.quantity
+        })
 
-      const res = await api.get<{ items: CartItem[] }>("/cart")
-      setCart(res.items || [])
-    } catch (err) {
-      console.error("Cart API error", err)
-    }
-  } else {
-    // ✅ LOCAL cart
-    setCart(prev => {
-      const existing = prev.find(p => p.variantId === item.variantId)
-
-      if (existing) {
-        return prev.map(p =>
-          p.variantId === item.variantId
-            ? {
-                ...p,
-                quantity: Math.min(p.quantity + item.quantity, MAX_QTY)
-              }
-            : p
-        )
+        const res = await api.get<{ items: CartItem[] }>("/cart")
+        setCart(res.items || [])
+      } catch (err) {
+        console.error("Cart API error", err)
       }
+    } else {
+      setCart(prev => {
+        const existing = prev.find(p => p.variantId === item.variantId)
 
-      return [...prev, item]
-    })
-  }
+        if (existing) {
+          return prev.map(p =>
+            p.variantId === item.variantId
+              ? {
+                  ...p,
+                  quantity: Math.min(p.quantity + item.quantity, MAX_QTY)
+                }
+              : p
+          )
+        }
 
-  triggerCartAnimation()
-}, [user])
+        return [...prev, item]
+      })
+    }
 
-  /* =========================
-     UPDATE QTY
-  ========================= */
+    triggerCartAnimation()
+  }, [user])
+
+  /* ========================= */
 
   const updateQuantity = useCallback(
     (variantId: string, quantity: number) => {
@@ -286,76 +281,49 @@ useEffect(() => {
     []
   )
 
-  /* =========================
-     REMOVE
-  ========================= */
-
   const removeFromCart = useCallback(
     (variantId: string) => {
       setCart(prev =>
-        prev.filter(
-          item => item.variantId !== variantId
-        )
+        prev.filter(item => item.variantId !== variantId)
       )
     },
     []
   )
 
-  /* =========================
-     CLEAR
-  ========================= */
-
   const clearCart = useCallback(() => {
     setCart([])
   }, [])
 
-  /* =========================
-     DERIVED
-  ========================= */
+  /* ========================= */
 
   const cartCount = useMemo(() => {
-    return cart.reduce(
-      (acc, item) => acc + item.quantity,
-      0
-    )
+    return cart.reduce((acc, item) => acc + item.quantity, 0)
   }, [cart])
 
   const subtotal = useMemo(() => {
-    return cart.reduce(
-      (acc, item) =>
-        acc + item.price * item.quantity,
-      0
-    )
+    return cart.reduce((acc, item) => acc + item.price * item.quantity, 0)
   }, [cart])
 
   const total = subtotal
   const isEmpty = cart.length === 0
 
-  /* =========================
-     PROVIDER
-  ========================= */
+  /* ========================= */
 
   return (
     <CartContext.Provider
       value={{
         cart,
-
         addToCart,
         updateQuantity,
         removeFromCart,
         clearCart,
-
         setCartItems,
-
         cartCount,
         subtotal,
         total,
         isEmpty,
-
         guestId,
-
         animateCart,
-
         isCartOpen,
         openCart,
         closeCart
@@ -366,20 +334,14 @@ useEffect(() => {
   )
 }
 
-/* =========================
-   HOOK
-========================= */
+/* ========================= */
 
 export const useCart = () => {
   const ctx = useContext(CartContext)
 
   if (!ctx) {
-    throw new Error(
-      "useCart must be used within CartProvider"
-    )
+    throw new Error("useCart must be used within CartProvider")
   }
 
   return ctx
-  
 }
-
