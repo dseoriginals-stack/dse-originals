@@ -1,27 +1,19 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL!
-
 export function getImageUrl(path?: string | null) {
-  if (!BASE_URL) {
-    throw new Error("NEXT_PUBLIC_API_URL is not defined")
-  }
+  // ✅ fallback
+  if (!path) return "/placeholder.png"
 
-  // ✅ strict fallback
-  if (!path || path === "placeholder.png") {
-    return "/placeholder.png"
-  }
-
-  // ✅ full URL (Cloudinary)
+  // ✅ Cloudinary / external URLs
   if (path.startsWith("http")) return path
 
-  let clean = path.trim()
+  // ✅ optional local fallback
+  const base = process.env.NEXT_PUBLIC_API_URL
 
-  // remove leading slash
-  clean = clean.replace(/^\/+/, "")
+  if (!base) return "/placeholder.png" // ❗ DO NOT THROW
 
-  // ❗ prevent double uploads path
-  if (clean.startsWith("uploads/")) {
-    clean = clean.replace(/^uploads\//, "")
-  }
+  const clean = path
+    .trim()
+    .replace(/^\/+/, "")
+    .replace(/^uploads\//, "")
 
-  return `${BASE_URL}/api/uploads/${clean}`
+  return `${base}/api/uploads/${clean}`
 }
