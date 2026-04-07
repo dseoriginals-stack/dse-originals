@@ -69,30 +69,27 @@ export default function AdminProducts() {
     setCategories(categoryData)
 
       const mapped = productData.map((p: any) => {
-      
-      const categoryId = p.categoryId || p.category?._id || ""
+
+      const categoryId = p.categoryId || ""
 
       const category = categoryData.find(
-        (c: any) => c.id === categoryId || c._id === categoryId
+        (c: any) => c.id === categoryId
       )
 
-        return {
-          id: p.id,
-          name: p.name,
-          description: p.description || "",
-          categoryId: p.categoryId || "",
-          category: p.category?.name || "Uncategorized",
+      return {
+        id: p.id,
+        name: p.name,
+        description: p.description || "",
+        categoryId,
+        category: category?.name || "Uncategorized",
 
-          // ✅ FIX IMAGE
-          image: p.image || null,
+        // ✅ GUARANTEED IMAGE
+        image: p.image ?? null,
 
-          // ✅ FIX PRICE
-          price: String(p.price  || 0),
-
-          // ⚠️ stock not returned in your API
-          stock: "0"
-        }
-      })
+        price: String(p.price || 0),
+        stock: "0"
+      }
+    })
 
     setProducts(mapped)
 
@@ -126,12 +123,14 @@ export default function AdminProducts() {
       formData.append("image", form.image)
     }
 
-    // ✅ USE YOUR API WRAPPER (IMPORTANT)
-    if (editing) {
-      await api.put(`/products/${editing.id}`, formData)
-    } else {
-      await api.post("/products", formData)
-    }
+    // 🚨 FORCE RAW REQUEST (NO WRAPPER, NO HEADERS)
+    const res = await fetch(`${API_URL}/api/products`, {
+      method: "POST",
+      body: formData,
+    })
+
+    const data = await res.json()
+    console.log("UPLOAD RESPONSE:", data)
 
     resetForm()
     fetchAll()
@@ -248,18 +247,30 @@ export default function AdminProducts() {
           </div>
 
           <input type="file"
-            onChange={async (e)=>{
+            onChange={async (e) => {
               const file = e.target.files?.[0]
               if (!file) return
 
               const compressed = await imageCompression(file, {
                 maxSizeMB: 1,
-                maxWidthOrHeight: 1200
+                maxWidthOrHeight: 1200,
+                useWebWorker: true
               })
 
-              setForm({...form,image:compressed})
-              setPreview(URL.createObjectURL(compressed))
-            }}
+              // ✅ FORCE it to be a real File
+              const finalFile = new File(
+                [compressed],
+                file.name,
+                { type: compressed.type }
+              )
+
+              setForm((prev) => ({
+                ...prev,
+                image: finalFile
+              }))
+
+              setPreview(URL.createObjectURL(finalFile))
+            }}  
           />
 
           {preview && (
@@ -287,7 +298,7 @@ export default function AdminProducts() {
             {filteredProducts.map(p => (
               <div key={p.id} className="flex justify-between items-center border p-3 rounded-lg">
                 <div className="flex gap-3 items-center">
-                  <img src={p.image || "/placeholder.png"} className="w-10 h-10 rounded"/>
+                  <img src={p.image ? p.image : "/placeholder.png"} className="w-10 h-10 rounded"/>
                   <div>
                     <div className="font-medium">{p.name}</div>
                     <div className="text-xs text-gray-500">{p.category}</div>

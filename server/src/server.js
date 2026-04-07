@@ -1,3 +1,4 @@
+import "dotenv/config"
 import express from "express"
 import cors from "cors"
 import helmet from "helmet"
@@ -31,6 +32,7 @@ import userRoutes from "./modules/user/user.routes.js"
 // Webhooks
 import { handleXenditWebhook } from "./webhooks/xendit.webhook.js"
 
+
 const app = express()
 app.set("trust proxy", 1)
 
@@ -48,7 +50,7 @@ const allowedOrigins = [
   "https://dseoriginals.com",
   "https://www.dseoriginals.com",
 ]
-
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")))
 app.use(
   cors({
     origin: function (origin, callback) {

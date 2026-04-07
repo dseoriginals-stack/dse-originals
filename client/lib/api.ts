@@ -17,7 +17,12 @@ export async function request<T = any>(
   const isFormData = options?.body instanceof FormData
 
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 15000)
+
+  // ✅ Increase timeout + only abort on client
+  const timeout =
+    typeof window !== "undefined"
+      ? setTimeout(() => controller.abort(), 30000)
+      : null
 
   const isServer = typeof window === "undefined"
 
@@ -27,7 +32,6 @@ export async function request<T = any>(
       credentials: "include",
       signal: controller.signal,
 
-      // ✅ FIXED (no more build error)
       ...(isServer ? { next: { revalidate: 60 } } : {}),
 
       headers: {
@@ -43,8 +47,16 @@ export async function request<T = any>(
     }
 
     return data
+  } catch (error: any) {
+    // ✅ HANDLE abort properly (no crash UI)
+    if (error.name === "AbortError") {
+      console.warn("Request timeout:", url)
+      throw new Error("Request timeout — server may be slow")
+    }
+
+    throw error
   } finally {
-    clearTimeout(timeout)
+    if (timeout) clearTimeout(timeout)
   }
 }
 

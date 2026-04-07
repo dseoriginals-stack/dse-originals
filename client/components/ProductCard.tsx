@@ -21,10 +21,9 @@ export default function ProductCard({
   const [added, setAdded] = useState(false)
 
   // ✅ safer image fallback
-  const imageUrl =
-  product.image && product.image.startsWith("http")
-    ? product.image
-    : "/placeholder.png"
+  const imageUrl = product.image
+  ? getImageUrl(product.image)
+  : "/placeholder.png"
 
   // ✅ prevent broken navigation
   if (!product.slug) return null

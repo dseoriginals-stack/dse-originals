@@ -3,8 +3,7 @@ import { z } from "zod"
 import generateSlug from "../../utils/slugify.js"
 import { Prisma } from "@prisma/client"
 import cloudinary from "../../config/cloudinary.js"
-import streamifier from "streamifier"
-
+import fs from "fs"
 import {
   getCache,
   setCache,
@@ -15,24 +14,24 @@ import {
    HELPERS
 ================================ */
 
-const uploadFromBuffer = (buffer) => {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        folder: "dse-products",
-        resource_type: "image",
-        format: "webp",
-        quality: "auto",
-        transformation: [{ width: 1200, crop: "limit" }]
-      },
-      (error, result) => {
-        if (result) resolve(result)
-        else reject(error)
-      }
-    )
+const uploadFromPath = async (filePath) => {
+  try {
+    const result = await cloudinary.uploader.upload(filePath, {
+      folder: "dse-products",
+      resource_type: "image",
+      format: "webp",
+      quality: "auto",
+      transformation: [{ width: 1200, crop: "limit" }]
+    })
 
-    streamifier.createReadStream(buffer).pipe(stream)
-  })
+    // delete local file after upload
+    fs.unlinkSync(filePath)
+
+    return result
+  } catch (error) {
+    console.error("CLOUDINARY ERROR:", error)
+    throw error
+  }
 }
 
 /* ================================
@@ -53,16 +52,27 @@ const productSchema = z.object({
 
 export const createProduct = async (req, res, next) => {
   try {
+    console.log("HIT CREATE PRODUCT")
+    console.log("FILE:", req.file)
+
+    // ================================
+    // VALIDATE INPUT FIRST
+    // ================================
     const validation = productSchema.safeParse(req.body)
 
     if (!validation.success) {
       return res.status(400).json({
-        message: validation.error?.errors?.[0]?.message || "Invalid input"
+        message:
+          validation.error?.errors?.[0]?.message || "Invalid input"
       })
     }
 
-    const { name, price, stock, categoryId, description } = validation.data
+    const { name, price, stock, categoryId, description } =
+      validation.data
 
+    // ================================
+    // CHECK CATEGORY
+    // ================================
     const category = await prisma.category.findFirst({
       where: {
         OR: [{ id: categoryId }, { slug: categoryId }]
@@ -75,13 +85,36 @@ export const createProduct = async (req, res, next) => {
       })
     }
 
+    // ================================
+    // UPLOAD IMAGE (SAFE VERSION)
+    // ================================
     let imageUrl = null
 
     if (req.file) {
-      const result = await uploadFromBuffer(req.file.buffer)
-      imageUrl = result.secure_url
+      try {
+        console.log("Uploading to Cloudinary:", req.file.path)
+
+        const result = await uploadFromPath(req.file.path)
+
+        console.log("UPLOAD RESULT:", result)
+
+        if (result?.secure_url) {
+          imageUrl = result.secure_url
+        } else {
+          console.warn("⚠️ No secure_url returned")
+        }
+
+      } catch (err) {
+        console.error("⚠️ CLOUDINARY FAILED:", err.message)
+        // ❗ DO NOT THROW — continue creating product
+      }
     }
 
+    console.log("FINAL IMAGE URL:", imageUrl)
+
+    // ================================
+    // CREATE PRODUCT (ALWAYS RUNS)
+    // ================================
     const slug = await generateSlug(name)
 
     const product = await prisma.product.create({
@@ -92,12 +125,17 @@ export const createProduct = async (req, res, next) => {
         status: "active",
 
         category: {
-          connect: { id: categoryId }
+          connect: { id: category.id }
         },
 
         ...(imageUrl && {
           images: {
-            create: [{ url: imageUrl, isPrimary: true }]
+            create: [
+              {
+                url: imageUrl,
+                isPrimary: true
+              }
+            ]
           }
         }),
 
@@ -117,6 +155,7 @@ export const createProduct = async (req, res, next) => {
     await deleteCache("products:*")
 
     res.status(201).json(product)
+
   } catch (err) {
     console.error("❌ CREATE PRODUCT ERROR:", err)
     next(err)
@@ -387,8 +426,16 @@ export const updateProduct = async (req, res, next) => {
 
     // ✅ upload new image if exists
     if (req.file) {
-      const result = await uploadFromBuffer(req.file.buffer)
-      imageUrl = result.secure_url
+      try {
+        const result = await uploadFromPath(req.file.path)
+
+        if (result?.secure_url) {
+          imageUrl = result.secure_url
+        }
+
+      } catch (err) {
+        console.error("⚠️ CLOUDINARY UPDATE FAILED:", err.message)
+      }
     }
 
     const updated = await prisma.product.update({
