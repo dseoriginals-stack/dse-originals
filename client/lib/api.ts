@@ -29,7 +29,6 @@ export async function request<T = any>(
   try {
     const res = await fetch(url, {
       ...options,
-      credentials: "include",
       signal: controller.signal,
 
       ...(isServer ? { next: { revalidate: 60 } } : {}),

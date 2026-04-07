@@ -32,7 +32,6 @@ import userRoutes from "./modules/user/user.routes.js"
 // Webhooks
 import { handleXenditWebhook } from "./webhooks/xendit.webhook.js"
 
-
 const app = express()
 app.set("trust proxy", 1)
 
@@ -43,35 +42,17 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 // =========================
-// CORS (PRODUCTION SAFE)
+// ✅ FIXED CORS (NO BLOCKING)
 // =========================
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://dseoriginals.com",
-  "https://www.dseoriginals.com",
-]
+app.use(cors({
+  origin: true, // 🔥 allow all origins temporarily
+  credentials: true
+}))
+
+// =========================
+// STATIC FILES
+// =========================
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")))
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // allow server-to-server or curl
-      if (!origin) return callback(null, true)
-
-      // allow Vercel preview deployments
-      if (origin.includes("vercel.app")) {
-        return callback(null, true)
-      }
-
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true)
-      }
-
-      console.warn("❌ Blocked by CORS:", origin)
-      return callback(new Error("Not allowed by CORS"))
-    },
-    credentials: true,
-  })
-)
 
 // =========================
 // SECURITY
