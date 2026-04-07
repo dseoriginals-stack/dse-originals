@@ -18,7 +18,6 @@ export async function request<T = any>(
 
   const controller = new AbortController()
 
-  // ✅ Increase timeout + only abort on client
   const timeout =
     typeof window !== "undefined"
       ? setTimeout(() => controller.abort(), 30000)
@@ -33,6 +32,9 @@ export async function request<T = any>(
 
       ...(isServer ? { next: { revalidate: 60 } } : {}),
 
+      // ✅ CRITICAL FIX (COOKIE AUTH)
+      credentials: "include",
+
       headers: {
         ...(isFormData ? {} : { "Content-Type": "application/json" }),
         ...(options?.headers || {})
@@ -42,12 +44,17 @@ export async function request<T = any>(
     const data = await res.json().catch(() => null)
 
     if (!res.ok) {
+      console.error("❌ API ERROR:", {
+        url,
+        status: res.status,
+        data,
+      })
+
       throw new Error(data?.message || `Request failed: ${res.status}`)
     }
 
     return data
   } catch (error: any) {
-    // ✅ HANDLE abort properly (no crash UI)
     if (error.name === "AbortError") {
       console.warn("Request timeout:", url)
       throw new Error("Request timeout — server may be slow")

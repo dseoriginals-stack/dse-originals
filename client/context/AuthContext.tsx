@@ -44,17 +44,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   -----------------------------
   */
   const refresh = async () => {
-    try {
-      const data = await api.get<{ user: User }>("/auth/me") // ✅ FIXED ENDPOINT
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
 
-      setUser(data.user)
-    } catch (err) {
-      // silent fail (user not logged in)
-      setUser(null)
-    } finally {
-      setLoading(false)
-    }
+  if (!token) {
+    setUser(null)
+    setLoading(false)
+    return
   }
+
+  try {
+    const data = await api.get<{ user: User }>("/auth/me")
+    setUser(data.user)
+  } catch {
+    setUser(null)
+  } finally {
+    setLoading(false)
+  }
+}
 
   /*
   -----------------------------
@@ -71,28 +77,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   -----------------------------
   */
   const login = async (
-    email: string,
-    password: string
-  ): Promise<boolean> => {
-    try {
-      const res = await api.post<{ user: User }>("/auth/login", {
-        email,
-        password,
-      })
+  email: string,
+  password: string
+): Promise<boolean> => {
+  try {
+    const res = await api.post<{ user: User; token: string }>("/auth/login", {
+      email,
+      password,
+    })
 
-      // ✅ immediately update UI
-      setUser(res.user)
-
-      // ✅ ensure cookie/session is valid
-      await refresh()
-
-      return true
-    } catch (err: any) {
-      console.error("Login failed:", err.message)
-      setUser(null)
-      return false
+    // ✅ STORE TOKEN (CRITICAL FIX)
+    if (res.token) {
+      localStorage.setItem("token", res.token)
     }
+
+    setUser(res.user)
+
+    await refresh()
+
+    return true
+  } catch (err: any) {
+    console.error("Login failed:", err.message)
+    setUser(null)
+    return false
   }
+}
 
   /*
   -----------------------------
@@ -100,43 +109,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   -----------------------------
   */
   const register = async (
-    name: string,
-    email: string,
-    password: string
-  ): Promise<boolean> => {
-    try {
-      const res = await api.post<{ user: User }>("/auth/register", {
-        name,
-        email: email.trim().toLowerCase(),
-        password: password.trim(),
-      })
+  name: string,
+  email: string,
+  password: string
+): Promise<boolean> => {
+  try {
+    const res = await api.post<{ user: User; token: string }>("/auth/register", {
+      name,
+      email: email.trim().toLowerCase(),
+      password: password.trim(),
+    })
 
-      setUser(res.user)
-
-      // ✅ optional: sync session
-      await refresh()
-
-      return true
-    } catch (err: any) {
-      console.error("Register failed:", err.message)
-      return false
+    // ✅ STORE TOKEN
+    if (res.token) {
+      localStorage.setItem("token", res.token)
     }
-  }
 
+    setUser(res.user)
+
+    await refresh()
+
+    return true
+  } catch (err: any) {
+    console.error("Register failed:", err.message)
+    return false
+  }
+}
   /*
   -----------------------------
   LOGOUT (FIXED)
   -----------------------------
   */
   const logout = async () => {
-    try {
-      await api.post("/auth/logout") // ✅ FIXED ENDPOINT
-    } catch {
-      console.warn("Logout request failed")
-    } finally {
-      setUser(null)
-    }
+  try {
+    await api.post("/auth/logout")
+  } catch {
+    console.warn("Logout request failed")
+  } finally {
+    // ✅ REMOVE TOKEN
+    localStorage.removeItem("token")
+    setUser(null)
   }
+}
 
   return (
     <AuthContext.Provider

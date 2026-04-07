@@ -123,13 +123,9 @@ export default function AdminProducts() {
       formData.append("image", form.image)
     }
 
-    // 🚨 FORCE RAW REQUEST (NO WRAPPER, NO HEADERS)
-    const res = await fetch(`${API_URL}/api/products`, {
-      method: "POST",
-      body: formData,
-    })
+    // ✅ USE API WRAPPER
+    const data = await api.post("/products", formData)
 
-    const data = await res.json()
     console.log("UPLOAD RESPONSE:", data)
 
     resetForm()
