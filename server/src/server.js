@@ -6,11 +6,7 @@ import cookieParser from "cookie-parser"
 import path from "path"
 import { fileURLToPath } from "url"
 
-// ✅ Load dotenv ONLY in development
-if (process.env.NODE_ENV !== "production") {
-  const dotenv = await import("dotenv")
-  dotenv.config()
-}
+// Environment loading via dotenv/config on line 1
 
 import logger from "./config/logger.js"
 import passport from "./config/passport.js"
@@ -42,17 +38,24 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 // =========================
-// ✅ FIXED CORS (NO BLOCKING)
+// ✅ CORS FIX (ENFORCED)
 // =========================
+const allowedOrigins = [process.env.CLIENT_URL, "http://localhost:3000"].filter(Boolean)
 app.use(cors({
-  origin: true, // 🔥 allow all origins temporarily
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error("Not allowed by CORS"))
+    }
+  },
   credentials: true
 }))
 
 // =========================
 // STATIC FILES
 // =========================
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")))
+// User uploads are handled directly via Cloudinary.
 
 // =========================
 // SECURITY

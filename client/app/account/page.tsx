@@ -67,29 +67,29 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#d7ecff] px-4 py-10 md:px-10">
+    <div className="min-h-screen bg-[var(--bg-main)] px-4 py-10 md:py-16 md:px-10">
       <div className="max-w-6xl mx-auto">
 
         {/* HEADER */}
-        <div className="mb-10 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="mb-12 flex items-center justify-between bg-[var(--bg-card)] border border-[var(--border-light)] px-8 py-6 rounded-[2rem] shadow-sm">
+          <div className="flex items-center gap-6">
 
             {/* AVATAR */}
             <div className="
-              w-12 h-12 rounded-full
-              bg-gradient-to-br from-primary to-accent
-              text-white flex items-center justify-center
-              font-semibold shadow-md
+              w-16 h-16 rounded-full
+              bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-accent)]
+              text-white flex items-center justify-center text-2xl
+              font-extrabold shadow-lg border-4 border-white
             ">
               {(user?.name?.charAt(0) || user?.email?.charAt(0) || "?").toUpperCase()}
             </div>
 
             <div>
-              <h1 className="text-2xl font-semibold text-primary">
-                {user ? `Hi, ${user.name || "User"}` : "Your Account"}
+              <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-heading)]">
+                {user ? `Welcome back, ${user.name || "User"}` : "Your Account"}
               </h1>
-              <p className="text-gray-500 text-sm">
-                {user ? user.email : "Login to access your account"}
+              <p className="text-[var(--text-muted)] font-semibold text-sm tracking-wide mt-1">
+                {user ? user.email : "Login to access your profile"}
               </p>
             </div>
           </div>
@@ -107,16 +107,16 @@ export default function AccountPage() {
 
         {/* GUEST */}
         {!user && (
-          <div className="bg-white rounded-2xl shadow-lg p-10 text-center">
-            <h2 className="text-xl font-semibold mb-2">
+          <div className="bg-[var(--bg-card)] rounded-[2rem] border border-[var(--border-light)] shadow-md p-10 md:p-16 text-center max-w-2xl mx-auto mt-16">
+            <h2 className="text-3xl font-bold text-[var(--text-heading)] mb-4">
               Welcome to DSEoriginals
             </h2>
-            <p className="text-gray-500 mb-6">
-              Login to manage orders and your profile
+            <p className="text-[var(--text-muted)] text-lg mb-10 max-w-sm mx-auto">
+              Login to manage your orders, access your wishlist, and configure your exclusive profile.
             </p>
             <button
               onClick={() => setOpen(true)}
-              className="px-6 py-3 rounded-xl bg-primary text-white hover:bg-accent transition"
+              className="btn-premium !py-4 !px-12 text-lg shadow-xl"
             >
               Login / Register
             </button>
@@ -125,23 +125,23 @@ export default function AccountPage() {
 
         {/* DASHBOARD */}
         {user && (
-          <div className="grid md:grid-cols-[240px_1fr] gap-6">
+          <div className="grid md:grid-cols-[260px_1fr] gap-8">
 
             {/* SIDEBAR */}
-            <div className="bg-white rounded-2xl shadow-md p-4">
-              <SidebarItem icon={<User size={18} />} label="Dashboard" active={activeTab === "dashboard"} onClick={() => setActiveTab("dashboard")} />
-              <SidebarItem icon={<Package size={18} />} label="Orders" active={activeTab === "orders"} onClick={() => setActiveTab("orders")} />
-              <SidebarItem icon={<Heart size={18} />} label="Wishlist" active={activeTab === "wishlist"} onClick={() => setActiveTab("wishlist")} />
-              <SidebarItem icon={<Settings size={18} />} label="Account" active={activeTab === "settings"} onClick={() => setActiveTab("settings")} />
+            <div className="bg-[var(--bg-card)] rounded-3xl shadow-sm border border-[var(--border-light)] p-5 h-fit sticky top-28 flex flex-col gap-2">
+              <SidebarItem icon={<User size={20} />} label="Overview" active={activeTab === "dashboard"} onClick={() => setActiveTab("dashboard")} />
+              <SidebarItem icon={<Package size={20} />} label="Order History" active={activeTab === "orders"} onClick={() => setActiveTab("orders")} />
+              <SidebarItem icon={<Heart size={20} />} label="My Wishlist" active={activeTab === "wishlist"} onClick={() => setActiveTab("wishlist")} />
+              <SidebarItem icon={<Settings size={20} />} label="Account Settings" active={activeTab === "settings"} onClick={() => setActiveTab("settings")} />
             </div>
 
             {/* CONTENT */}
-            <div className="bg-white rounded-2xl shadow-md p-8">
+            <div className="bg-[var(--bg-card)] rounded-[2rem] shadow-sm border border-[var(--border-light)] p-8 md:p-10 min-h-[500px]">
 
               {/* DASHBOARD */}
               {activeTab === "dashboard" && (
-                <div>
-                  <h3 className="text-xl font-semibold mb-6">Overview</h3>
+                <div className="animate-fade-in">
+                  <h3 className="text-2xl font-bold text-[var(--text-heading)] mb-8">Account Overview</h3>
                   <div className="grid md:grid-cols-3 gap-4">
                     <StatCard title="Orders" value={orders.length} />
                     <StatCard title="Wishlist" value="0" />
@@ -152,32 +152,34 @@ export default function AccountPage() {
 
               {/* ORDERS */}
               {activeTab === "orders" && (
-                <div>
-                  <h3 className="text-xl font-semibold mb-4">Order History</h3>
+                <div className="animate-fade-in">
+                  <h3 className="text-2xl font-bold text-[var(--text-heading)] mb-8">Order History</h3>
 
                   {ordersLoading ? (
-                    <p className="text-gray-500">Loading orders...</p>
+                    <p className="text-[var(--text-muted)] animate-pulse">Loading amazing orders...</p>
                   ) : orders.length === 0 ? (
                     <EmptyState text="You don’t have any orders yet." />
                   ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       {orders.map((order) => (
-                        <div key={order.id} className="p-4 border rounded-xl flex justify-between items-center hover:shadow-md transition">
+                        <div key={order.id} className="p-6 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center hover:shadow-md transition gap-4">
                           <div>
-                            <p className="font-semibold">Order #{order.id.slice(0, 8)}</p>
-                            <p className="text-sm text-gray-500">
-                              {new Date(order.createdAt).toLocaleDateString()}
+                            <p className="font-bold text-[var(--text-heading)] tracking-wide">Order #{order.id.slice(0, 8)}</p>
+                            <p className="text-sm font-semibold text-[var(--text-muted)] mt-1">
+                              {new Date(order.createdAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
                             </p>
-                            <p className="text-xs text-gray-400 capitalize">{order.status}</p>
+                            <span className="mt-3 inline-block px-3 py-1 bg-[var(--brand-soft)]/20 text-[var(--brand-primary)] text-[10px] font-bold uppercase tracking-widest rounded-full">
+                              {order.status}
+                            </span>
                           </div>
 
-                          <div className="text-right">
-                            <p className="font-semibold">₱{Number(order.total).toFixed(2)}</p>
+                          <div className="text-left md:text-right w-full md:w-auto flex flex-row md:flex-col justify-between items-center md:items-end">
+                            <p className="font-extrabold text-xl text-[var(--brand-primary)]">₱{Number(order.total).toLocaleString()}</p>
                             <button
                               onClick={() => handleViewOrder(order)}
-                              className="text-sm text-primary hover:underline"
+                              className="text-sm font-bold text-[var(--brand-primary)] hover:text-white hover:bg-[var(--brand-primary)] transition-colors px-4 py-2 rounded-xl border border-[var(--brand-primary)] md:mt-3"
                             >
-                              View Details
+                              Track & Details
                             </button>
                           </div>
                         </div>
@@ -236,8 +238,8 @@ function SidebarItem({ icon, label, active, onClick }: any) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm w-full transition ${
-        active ? "bg-primary text-white" : "text-gray-600 hover:bg-gray-100"
+      className={`flex items-center gap-4 px-5 py-4 rounded-2xl text-base font-semibold w-full transition-all duration-300 ${
+        active ? "bg-[var(--brand-primary)] text-white shadow-md drop-shadow-sm translate-x-1" : "text-[var(--text-muted)] hover:bg-[var(--bg-main)] hover:text-[var(--brand-primary)]"
       }`}
     >
       {icon}
@@ -248,9 +250,9 @@ function SidebarItem({ icon, label, active, onClick }: any) {
 
 function StatCard({ title, value }: any) {
   return (
-    <div className="p-5 rounded-xl border shadow-sm hover:shadow-md transition">
-      <p className="text-gray-500 text-sm">{title}</p>
-      <h4 className="text-2xl font-semibold mt-1">{value}</h4>
+    <div className="p-8 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-light)] shadow-sm hover:shadow-md transition flex flex-col items-center justify-center text-center">
+      <p className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-[0.2em]">{title}</p>
+      <h4 className="text-4xl md:text-5xl font-extrabold text-[var(--brand-primary)] mt-4">{value}</h4>
     </div>
   )
 }
@@ -321,20 +323,20 @@ function OrderModal({ order, tracking, loading, onClose }: any) {
         </div>
 
         {/* ACTIONS */}
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-[var(--border-light)]">
           <a
             href={`${process.env.NEXT_PUBLIC_API_URL}/api/orders/${order.id}/invoice`}
             target="_blank"
-            className="flex-1 text-center py-2 rounded-xl bg-primary text-white"
+            className="btn-premium flex-1 !p-3.5"
           >
-            Download Invoice
+            Download Official Invoice
           </a>
 
           <button
             onClick={onClose}
-            className="flex-1 border rounded-xl py-2"
+            className="btn-outline flex-1 !p-3.5"
           >
-            Close
+            Close Details
           </button>
         </div>
 

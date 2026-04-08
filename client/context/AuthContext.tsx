@@ -40,27 +40,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /*
   -----------------------------
-  REFRESH USER (FIXED)
+  REFRESH USER
   -----------------------------
   */
   const refresh = async () => {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
-
-  if (!token) {
-    setUser(null)
-    setLoading(false)
-    return
+    try {
+      const data = await api.get<{ user: User }>("/auth/me")
+      setUser(data.user)
+    } catch {
+      setUser(null)
+    } finally {
+      setLoading(false)
+    }
   }
-
-  try {
-    const data = await api.get<{ user: User }>("/auth/me")
-    setUser(data.user)
-  } catch {
-    setUser(null)
-  } finally {
-    setLoading(false)
-  }
-}
 
   /*
   -----------------------------
@@ -73,84 +65,73 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /*
   -----------------------------
-  LOGIN (FIXED)
+  LOGIN
   -----------------------------
   */
   const login = async (
-  email: string,
-  password: string
-): Promise<boolean> => {
-  try {
-    const res = await api.post<{ user: User; token: string }>("/auth/login", {
-      email,
-      password,
-    })
+    email: string,
+    password: string
+  ): Promise<boolean> => {
+    try {
+      const res = await api.post<{ user: User }>("/auth/login", {
+        email,
+        password,
+      })
 
-    // ✅ STORE TOKEN (CRITICAL FIX)
-    if (res.token) {
-      localStorage.setItem("token", res.token)
+      setUser(res.user)
+
+      // Sync state globally
+      await refresh()
+
+      return true
+    } catch (err: any) {
+      console.error("Login failed:", err.message)
+      setUser(null)
+      return false
     }
-
-    setUser(res.user)
-
-    await refresh()
-
-    return true
-  } catch (err: any) {
-    console.error("Login failed:", err.message)
-    setUser(null)
-    return false
   }
-}
 
   /*
   -----------------------------
-  REGISTER (FIXED)
+  REGISTER
   -----------------------------
   */
   const register = async (
-  name: string,
-  email: string,
-  password: string
-): Promise<boolean> => {
-  try {
-    const res = await api.post<{ user: User; token: string }>("/auth/register", {
-      name,
-      email: email.trim().toLowerCase(),
-      password: password.trim(),
-    })
+    name: string,
+    email: string,
+    password: string
+  ): Promise<boolean> => {
+    try {
+      const res = await api.post<{ user: User }>("/auth/register", {
+        name,
+        email: email.trim().toLowerCase(),
+        password: password.trim(),
+      })
 
-    // ✅ STORE TOKEN
-    if (res.token) {
-      localStorage.setItem("token", res.token)
+      setUser(res.user)
+
+      await refresh()
+
+      return true
+    } catch (err: any) {
+      console.error("Register failed:", err.message)
+      return false
     }
-
-    setUser(res.user)
-
-    await refresh()
-
-    return true
-  } catch (err: any) {
-    console.error("Register failed:", err.message)
-    return false
   }
-}
   /*
   -----------------------------
-  LOGOUT (FIXED)
+  LOGOUT
   -----------------------------
   */
   const logout = async () => {
-  try {
-    await api.post("/auth/logout")
-  } catch {
-    console.warn("Logout request failed")
-  } finally {
-    // ✅ REMOVE TOKEN
-    localStorage.removeItem("token")
-    setUser(null)
+    try {
+      await api.post("/auth/logout")
+    } catch {
+      console.warn("Logout request failed")
+    } finally {
+      setUser(null)
+    }
   }
-}
 
   return (
     <AuthContext.Provider

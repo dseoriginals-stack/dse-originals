@@ -9,6 +9,7 @@ import {
   releaseReservation
 } from "../inventory/inventoryService.js"
 import { createOrderEvent } from "../../services/orderEvent.service.js"
+import { createInvoice } from "../../config/xendit.js"
 
 /* ============================
 CREATE ORDER
@@ -22,11 +23,12 @@ export const createOrder = async (req, res, next) => {
 
     const {
       items,
-      shippingAddr,
       address,
       guestEmail,
       guestName,
-      clientOrderId
+      clientOrderId,
+      deliveryMethod = "delivery",
+      shippingFee = 0
     } = req.body
 
     const userId = req.user?.id || null
@@ -34,12 +36,6 @@ export const createOrder = async (req, res, next) => {
     if (!items || items.length === 0) {
       return res.status(400).json({
         message: "No items provided"
-      })
-    }
-
-    if (!address) {
-      return res.status(400).json({
-        message: "Address is required"
       })
     }
 
@@ -72,38 +68,59 @@ export const createOrder = async (req, res, next) => {
 
     order = await prisma.$transaction(async (tx) => {
 
-      let total = 0
+      let subtotal = 0
       const orderItems = []
 
-      for (const item of items) {
+      for (let item of items) {
+        // Handle cases where item might be wrapped in an array
+        while (Array.isArray(item)) item = item[0]
+        
+        if (!item) continue;
+
+        let vId = typeof item === "string" ? item : (item.variantId || item.productId || item.id)
+        let quantity = item.quantity || 1
+
+        // If vId itself is still an object/array, drill down
+        while (vId && typeof vId === "object") {
+          if (Array.isArray(vId)) vId = vId[0]
+          else vId = vId.variantId || vId.id || vId.productId || vId
+        }
+
+        if (!vId || typeof vId !== "string") {
+          logger.error("Invalid item in order", { item })
+          throw new Error("Invalid item ID provided")
+        }
 
         const variant = await tx.productVariant.findUnique({
-          where: { id: item.productId },
+          where: { id: vId },
           include: { product: true }
         })
 
-        if (!variant || variant.stock < item.quantity) {
-          throw new Error(`Insufficient stock for ${variant?.product?.name}`)
+        if (!variant || variant.stock < quantity) {
+          throw new Error(`Insufficient stock for ${variant?.product?.name || 'product'}`)
         }
 
-        const itemTotal = Number(variant.price) * item.quantity
-        total += itemTotal
+        const itemTotal = Number(variant.price) * quantity
+        subtotal += itemTotal
 
         orderItems.push({
           variantId: variant.id,
           productName: variant.product.name,
-          quantity: item.quantity,
+          quantity: quantity,
           price: variant.price
         })
       }
+
+      const totalAmount = subtotal + Number(shippingFee)
 
       return tx.order.create({
         data: {
           userId,
           guestEmail: userId ? null : guestEmail,
           guestName: userId ? null : guestName,
-          shippingAddr,
-          total,
+          totalAmount,
+          shippingFee: Number(shippingFee),
+          deliveryMethod,
           clientOrderId,
           status: "pending",
 
@@ -111,7 +128,7 @@ export const createOrder = async (req, res, next) => {
             create: orderItems
           },
 
-          address: {
+          address: address ? {
             create: {
               fullName: address.fullName,
               phone: address.phone,
@@ -122,7 +139,7 @@ export const createOrder = async (req, res, next) => {
               street: address.street,
               postalCode: address.postalCode || null
             }
-          }
+          } : undefined
         },
         include: {
           items: true,
@@ -194,25 +211,11 @@ export const createOrder = async (req, res, next) => {
     ---------------------------
     */
 
-    const email =
-      req.user?.email ||
-      guestEmail ||
-      "customer@example.com"
-
-    const invoice = await xendit.Invoice.createInvoice({
-      externalId: order.id,
+    const invoice = await createInvoice({
+      external_id: order.id,
       amount: Number(order.total),
-      payerEmail: email,
+      payer_email: req.user?.email || guestEmail || "no-reply@dseoriginals.com",
       description: `DSE Order #${order.id}`,
-
-      successRedirectUrl: `${process.env.CLIENT_URL}/order-success/${order.id}`,
-      failureRedirectUrl: `${process.env.CLIENT_URL}/checkout`,
-
-      metadata: {
-        orderId: order.id,
-        customer: guestName || req.user?.email,
-        items: items.length
-      }
     })
 
     /*
@@ -230,7 +233,7 @@ export const createOrder = async (req, res, next) => {
 
     return res.json({
       orderId: order.id,
-      invoiceUrl: invoice.invoiceUrl
+      invoiceUrl: invoice.invoice_url
     })
 
   } catch (err) {

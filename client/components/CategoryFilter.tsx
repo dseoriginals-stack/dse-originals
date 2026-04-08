@@ -23,12 +23,14 @@ export default function CategoryFilter() {
       try {
         const data = await api.get<Category[]>("/categories")
 
-        // ✅ FIXED ORDER (stable)
+        // ✅ FIXED ORDER (push unknown slugs to end)
         const order = ["perfume", "apparel", "dsecollection"]
 
-        const sorted = [...data].sort(
-          (a, b) => order.indexOf(a.slug) - order.indexOf(b.slug)
-        )
+        const sorted = [...data].sort((a, b) => {
+          const indexA = order.indexOf(a.slug) === -1 ? 999 : order.indexOf(a.slug)
+          const indexB = order.indexOf(b.slug) === -1 ? 999 : order.indexOf(b.slug)
+          return indexA - indexB
+        })
 
         setCategories(sorted)
 
@@ -40,10 +42,10 @@ export default function CategoryFilter() {
     load()
   }, [])
 
-  const handleClick = (slug: string) => {
+  const handleClick = (slug: string | null) => {
     const query = new URLSearchParams(params.toString())
 
-    if (activeCategory === slug) {
+    if (!slug || activeCategory === slug) {
       query.delete("category")
     } else {
       query.set("category", slug)
@@ -63,6 +65,18 @@ export default function CategoryFilter() {
       {/* PILLS */}
       <div className="flex flex-wrap gap-2">
 
+        <button
+          onClick={() => handleClick(null)}
+          className={`
+            px-4 py-2 rounded-full text-sm border font-medium transition-all duration-200
+            ${!activeCategory
+              ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-sm"
+              : "bg-white text-slate-600 border-[var(--border-light)] hover:bg-slate-100"}
+          `}
+        >
+          All
+        </button>
+
         {categories.map(cat => {
 
           const isActive = activeCategory === cat.slug
@@ -72,11 +86,10 @@ export default function CategoryFilter() {
               key={cat.id}
               onClick={() => handleClick(cat.slug)}
               className={`
-                px-4 py-2 rounded-full text-sm border transition-all duration-200
-
+                px-4 py-2 rounded-full text-sm border font-medium transition-all duration-200
                 ${isActive
-                  ? "bg-[#274C77] text-white border-[#274C77] shadow-sm"
-                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"}
+                  ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-sm"
+                  : "bg-white text-slate-600 border-[var(--border-light)] hover:bg-slate-100"}
               `}
             >
               {cat.name}

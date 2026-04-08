@@ -10,10 +10,13 @@ import { sendOrderPaidEmail } from "../services/email.service.js"
 export const handleXenditWebhook = async (req, res) => {
   try {
 
-    const event = req.body
+    // ✅ FIX Buffer parsing from express.raw()
+    const eventBody = req.body?.toString?.("utf8") || "{}"
+    const event = JSON.parse(eventBody)
 
     const callbackToken = req.headers["x-callback-token"]
 
+    // ✅ SECURITY
     if (callbackToken !== process.env.XENDIT_CALLBACK_TOKEN) {
       return res.status(403).json({ message: "Invalid token" })
     }
@@ -33,39 +36,70 @@ export const handleXenditWebhook = async (req, res) => {
       return res.status(404).json({ message: "Order not found" })
     }
 
+    /* =========================
+       PAID
+    ========================= */
+
     if (status === "PAID") {
 
-      await prisma.order.update({
-        where: { id: orderId },
-        data: { status: "paid" }
-      })
+      // ✅ IDEMPOTENCY FIX
+      if (order.status === "paid") {
+        return res.json({ success: true })
+      }
 
-      await confirmReservation(orderId)
+      await prisma.$transaction(async (tx) => {
 
-      await createOrderEvent(orderId, "paid", "Payment confirmed")
-
-      logger.info("Order PAID", { orderId })
-      
-      const user = await prisma.user.findUnique({
-        where: { id: order.userId }
+        await tx.order.update({
+          where: { id: orderId },
+          data: { status: "paid" }
         })
 
+        await confirmReservation(orderId)
+
+        await createOrderEvent(orderId, "paid", "Payment confirmed")
+
+      })
+
+      logger.info("Order PAID", { orderId })
+
+      // ✅ EMAIL (outside transaction)
+      try {
+        const user = order.userId
+          ? await prisma.user.findUnique({ where: { id: order.userId } })
+          : null
+
         await sendOrderPaidEmail(
-        user?.email || order.guestEmail,
-        order
+          user?.email || order.guestEmail,
+          order
         )
+      } catch (err) {
+        logger.error("Email failed", { error: err.message })
+      }
     }
+
+    /* =========================
+       EXPIRED
+    ========================= */
 
     if (status === "EXPIRED") {
 
-      await prisma.order.update({
-        where: { id: orderId },
-        data: { status: "cancelled" }
+      // ✅ IDEMPOTENCY FIX
+      if (order.status === "cancelled") {
+        return res.json({ success: true })
+      }
+
+      await prisma.$transaction(async (tx) => {
+
+        await tx.order.update({
+          where: { id: orderId },
+          data: { status: "cancelled" }
+        })
+
+        await releaseReservation(orderId)
+
+        await createOrderEvent(orderId, "cancelled", "Payment expired")
+
       })
-
-      await releaseReservation(orderId)
-
-      await createOrderEvent(orderId, "cancelled", "Payment expired")
 
       logger.info("Order EXPIRED", { orderId })
     }

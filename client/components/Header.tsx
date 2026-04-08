@@ -79,21 +79,21 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-primary">
+      <header className="sticky top-0 z-50 bg-[#274C77] shadow-lg transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4">
 
           {/* ================= MOBILE ================= */}
-          <div className="grid grid-cols-3 h-16 items-center md:hidden">
+          <div className="grid grid-cols-3 h-12 items-center md:hidden">
 
             {/* MENU */}
-            <button onClick={() => setMenuOpen(true)} className="text-white">
+            <button onClick={() => setMenuOpen(true)} className="text-white hover:text-white/80 transition-colors">
               <Menu size={24} />
             </button>
 
             {/* LOGO */}
             <div className="flex justify-center">
               <Link href="/">
-                <Image src="/DSE.png" alt="DSE" width={95} height={36} />
+                <Image src="/DSE.png" alt="DSE" width={80} height={30} className="filter drop-shadow-sm brightness-0 invert hover:scale-105 transition-transform" />
               </Link>
             </div>
 
@@ -101,11 +101,11 @@ export default function Header() {
             <div className="flex justify-end gap-4 items-center">
 
               {/* CART */}
-              <Link href="/cart" className="relative text-white">
+              <Link href="/cart" className="relative text-white hover:text-white/80 transition-colors">
                 <ShoppingCart size={20} />
 
                 {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-white text-black text-xs px-2 rounded-full">
+                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-[var(--brand-accent)] to-[var(--brand-soft)] text-[#274C77] text-[10px] font-bold px-[6px] py-[2px] rounded-full shadow-[0_0_10px_rgba(255,255,255,0.3)]">
                     {cartCount}
                   </span>
                 )}
@@ -115,10 +115,10 @@ export default function Header() {
               <div className="relative" ref={mobileDropdownRef}>
                 <button
                   onClick={() => setMobileDropdownOpen((prev) => !prev)}
-                  className="text-white"
+                  className="text-white hover:text-white/80 transition-colors"
                 >
                   {user ? (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent text-white flex items-center justify-center text-sm font-semibold">
+                    <div className="w-8 h-8 rounded-full bg-white text-[#274C77] flex items-center justify-center text-sm font-semibold shadow-[0_4px_10px_rgba(255,255,255,0.2)]">
                       {user.name?.charAt(0) || user.email.charAt(0)}
                     </div>
                   ) : (
@@ -128,7 +128,7 @@ export default function Header() {
 
                 <AnimatePresence>
                   {mobileDropdownOpen && (
-                    <div className="absolute right-0 mt-3 z-50">
+                    <div className="absolute right-0 mt-3 z-50 animate-fade-up">
                       <AccountDropdown close={() => setMobileDropdownOpen(false)} />
                     </div>
                   )}
@@ -139,17 +139,17 @@ export default function Header() {
           </div>
 
           {/* ================= DESKTOP ================= */}
-          <div className="hidden md:flex h-20 items-center">
+          <div className="hidden md:flex h-14 items-center">
 
             {/* LOGO */}
             <div className="flex-1">
               <Link href="/">
-                <Image src="/DSE.png" alt="DSE" width={120} height={40} />
+                <Image src="/DSE.png" alt="DSE" width={100} height={34} className="filter drop-shadow-sm brightness-0 invert hover:scale-105 transition-transform" />
               </Link>
             </div>
 
             {/* NAV */}
-            <nav className="flex-1 flex justify-center gap-10 text-sm">
+            <nav className="flex-1 flex justify-center gap-8 text-sm font-medium">
               {menuItems.map((item) => {
                 const active = pathname === `/${item.name}`
 
@@ -157,11 +157,14 @@ export default function Header() {
                   <Link
                     key={item.name}
                     href={`/${item.name}`}
-                    className={`transition ${
-                      active ? "text-white" : "text-white/70"
-                    } hover:text-white`}
+                    className={`relative transition-all duration-300 py-2 ${
+                      active ? "text-white" : "text-white/70 hover:text-white"
+                    }`}
                   >
                     {item.label}
+                    {active && (
+                       <span className="absolute left-0 bottom-0 w-full h-[2px] bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.5)]"></span>
+                    )}
                   </Link>
                 )
               })}
@@ -171,11 +174,11 @@ export default function Header() {
             <div className="flex-1 flex justify-end gap-6 items-center">
 
               {/* CART */}
-              <Link href="/cart" className="relative text-white">
-                <ShoppingCart size={20} />
+              <Link href="/cart" className="relative group text-white hover:text-white/80 transition-colors">
+                <ShoppingCart size={20} className="group-hover:scale-110 transition-transform" />
 
                 {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-white text-black text-xs px-2 rounded-full">
+                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-[var(--brand-accent)] to-[var(--brand-soft)] text-[#274C77] text-[10px] font-bold px-[6px] py-[2px] rounded-full shadow-[0_0_10px_rgba(255,255,255,0.3)]">
                     {cartCount}
                   </span>
                 )}
@@ -185,20 +188,20 @@ export default function Header() {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen((prev) => !prev)}
-                  className="text-white transition hover:opacity-80 active:scale-95"
+                  className="text-white transition hover:text-white/80 active:scale-95 group"
                 >
                   {user ? (
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-accent text-white flex items-center justify-center text-sm font-semibold">
+                    <div className="w-9 h-9 rounded-full bg-white text-[#274C77] flex items-center justify-center text-sm font-semibold shadow-[0_4px_15px_rgba(255,255,255,0.3)] group-hover:scale-110 transition-transform">
                       {user.name?.charAt(0) || user.email.charAt(0)}
                     </div>
                   ) : (
-                    <User size={20} />
+                    <User size={20} className="group-hover:scale-110 transition-transform" />
                   )}
                 </button>
 
                 <AnimatePresence>
                   {dropdownOpen && (
-                    <div className="absolute right-0 mt-4 z-50">
+                    <div className="absolute right-0 mt-4 z-50 animate-fade-up">
                       <AccountDropdown close={() => setDropdownOpen(false)} />
                     </div>
                   )}
@@ -211,45 +214,54 @@ export default function Header() {
       </header>
 
       {/* ================= MOBILE MENU ================= */}
+      <AnimatePresence>
       {menuOpen && (
-        <>
+        <div className="fixed inset-0 z-[999]">
           <div
-            className="fixed inset-0 z-[999] bg-black/20 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity"
             onClick={() => setMenuOpen(false)}
           />
 
           <div
             ref={menuRef}
-            className="fixed top-16 left-4 z-[1000] w-[260px] rounded-2xl shadow-xl overflow-hidden border bg-white"
+            className="absolute top-12 left-0 right-0 z-[1000] bg-white rounded-b-3xl shadow-[0_20px_40px_rgba(39,76,119,0.2)] animate-fade-down overflow-hidden"
           >
-            <div className="px-5 py-4 text-xs font-semibold text-gray-400">
-              NAVIGATION
+            <div className="bg-gray-50 px-6 py-4 text-[10px] font-bold text-[var(--brand-primary)] tracking-[0.2em] uppercase border-b border-gray-100">
+              Menu Navigation
             </div>
 
-            <div className="divide-y">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={`/${item.name}`}
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-gray-50"
-                >
-                  {item.label}
-                </Link>
-              ))}
+            <div className="flex flex-col p-4 gap-1">
+              {menuItems.map((item) => {
+                 const active = pathname === `/${item.name}`
+                 return (
+                  <Link
+                    key={item.name}
+                    href={`/${item.name}`}
+                    onClick={() => setMenuOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-base font-semibold transition-all ${
+                       active ? "bg-[var(--brand-primary)] text-white shadow-md" : "text-[var(--text-heading)] hover:bg-[var(--bg-main)]"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                 )
+              })}
+
+              <div className="h-[1px] bg-gray-100 my-4 mx-2"></div>
 
               <Link
                 href="/account"
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 px-5 py-3 text-primary hover:bg-gray-50"
+                className="flex items-center gap-3 px-4 py-4 rounded-2xl text-base font-semibold text-[var(--brand-primary)] bg-[var(--brand-soft)]/10 hover:bg-[var(--brand-soft)]/20 transition-all group"
               >
-                <User size={18} />
+                <User size={20} className="text-[var(--brand-primary)]" />
                 My Account
               </Link>
             </div>
           </div>
-        </>
+        </div>
       )}
+      </AnimatePresence>
     </>
   )
 }

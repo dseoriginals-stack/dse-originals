@@ -57,7 +57,7 @@ export default function ReviewForm({
         onChange={e => setRating(Number(e.target.value))}
         className="border p-2 rounded"
       >
-        {[5,4,3,2,1].map(n => (
+        {[5, 4, 3, 2, 1].map(n => (
           <option key={n}>{n}</option>
         ))}
       </select>
@@ -72,7 +72,7 @@ export default function ReviewForm({
       <button
         onClick={submit}
         disabled={loading}
-        className="mt-3 bg-black text-white px-4 py-2 rounded"
+        className="mt-3 bg-primary text-white px-4 py-2 rounded"
       >
         {loading ? "Submitting..." : "Submit Review"}
       </button>

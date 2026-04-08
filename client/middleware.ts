@@ -17,16 +17,17 @@ export function middleware(request: NextRequest) {
   ) {
     return NextResponse.next()
   }
-
-  // ❌ NOT LOGGED IN → redirect to account page
-  if (!token) {
-    return NextResponse.redirect(new URL("/account", request.url))
+  // ❌ PROTECT ADMIN
+  if (pathname.startsWith("/admin")) {
+    if (!token) {
+      return NextResponse.redirect(new URL("/account", request.url))
+    }
   }
 
-  // ✅ ALLOW (including /admin for now)
+  // ✅ ALLOW
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: [], // ❌ disable middleware for now
+  matcher: ["/admin/:path*"], // ✅ ENABLED Security
 }

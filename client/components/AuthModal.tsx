@@ -109,9 +109,9 @@ export default function AuthModal({ open, onClose }: any) {
         />
 
         {/* CARD */}
-        <div className="relative w-full max-w-md mx-auto animate-slideUp">
+        <div className="relative w-full max-w-md mx-auto transform translate-y-0 transition-transform">
 
-          <div className="surface p-8">
+          <div className="bg-[var(--bg-card)] rounded-[2rem] border border-[var(--border-light)] shadow-2xl p-8 md:p-10">
 
             {/* HEADER (CENTERED LOGO ✅) */}
             <div className="relative mb-6 text-center">
@@ -126,7 +126,7 @@ export default function AuthModal({ open, onClose }: any) {
             </div>
 
             {/* TITLE */}
-            <h2 className="text-center text-2xl font-semibold mb-6">
+            <h2 className="text-center text-3xl font-extrabold text-[var(--text-heading)] mb-6 tracking-tight">
               {mode === "login" ? "Login" : "Create Account"}
             </h2>
 
@@ -142,7 +142,7 @@ export default function AuthModal({ open, onClose }: any) {
 
               {mode === "signup" && (
                 <input
-                  className="input"
+                  className="w-full px-5 py-4 rounded-xl border border-[var(--border-light)] bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent transition-all shadow-inner text-[var(--text-heading)] placeholder-[var(--text-muted)] font-medium"
                   placeholder="Full Name"
                   onChange={(e) =>
                     setForm({ ...form, name: e.target.value })
@@ -151,7 +151,7 @@ export default function AuthModal({ open, onClose }: any) {
               )}
 
               <input
-                className="input"
+                className="w-full px-5 py-4 rounded-xl border border-[var(--border-light)] bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent transition-all shadow-inner text-[var(--text-heading)] placeholder-[var(--text-muted)] font-medium"
                 placeholder="Email Address"
                 onChange={(e) =>
                   setForm({ ...form, email: e.target.value })
@@ -161,7 +161,7 @@ export default function AuthModal({ open, onClose }: any) {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  className="input pr-10"
+                  className="w-full px-5 py-4 rounded-xl border border-[var(--border-light)] bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent transition-all shadow-inner text-[var(--text-heading)] placeholder-[var(--text-muted)] pr-12 font-medium"
                   placeholder="Password"
                   onKeyDown={(e) => e.key === "Enter" && handleSubmit()} // ✅ ENTER FIX
                   onChange={(e) =>
@@ -171,16 +171,16 @@ export default function AuthModal({ open, onClose }: any) {
 
                 <button
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-gray-400"
+                  className="absolute right-4 top-4 transform text-[var(--text-muted)] hover:text-[var(--brand-primary)] transition"
                 >
-                  {showPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
+                  {showPassword ? <EyeOff size={20}/> : <Eye size={20}/>}
                 </button>
               </div>
 
               {mode === "signup" && (
                 <input
                   type="password"
-                  className="input"
+                  className="w-full px-5 py-4 rounded-xl border border-[var(--border-light)] bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent transition-all shadow-inner text-[var(--text-heading)] placeholder-[var(--text-muted)] font-medium"
                   placeholder="Confirm Password"
                   onChange={(e) =>
                     setForm({ ...form, confirmPassword: e.target.value })
@@ -192,13 +192,13 @@ export default function AuthModal({ open, onClose }: any) {
             {/* CTA */}
             <button
               onClick={handleSubmit}
-              className="btn-primary w-full mt-6"
+              className="btn-premium w-full mt-8 !py-4 text-lg shadow-lg"
             >
               {loading
                 ? "Please wait..."
                 : mode === "login"
-                ? "Login"
-                : "Create Account"}
+                ? "Sign Into My Account"
+                : "Create Premium Account"}
             </button>
 
             {/* SOCIAL */}
@@ -218,7 +218,7 @@ export default function AuthModal({ open, onClose }: any) {
             )}
 
             {/* SWITCH */}
-            <p className="text-center text-sm mt-6 text-gray-500">
+            <p className="text-center text-sm mt-8 text-[var(--text-muted)] font-medium">
               {mode === "login"
                 ? "Don't have an account?"
                 : "Already have an account?"}{" "}
@@ -226,9 +226,9 @@ export default function AuthModal({ open, onClose }: any) {
                 onClick={() =>
                   setMode(mode === "login" ? "signup" : "login")
                 }
-                className="text-primary font-semibold hover:underline"
+                className="text-[var(--brand-primary)] font-bold hover:underline underline-offset-2 ml-1"
               >
-                {mode === "login" ? "Create Account" : "Login"}
+                {mode === "login" ? "Create Profile" : "Login instead"}
               </button>
             </p>
 

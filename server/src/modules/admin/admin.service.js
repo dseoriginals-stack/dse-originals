@@ -70,11 +70,31 @@ const getStories = async () => {
   })
 }
 
+const getReviews = async () => {
+  return prisma.review.findMany({
+    include: {
+      user: { select: { name: true, email: true } },
+      product: { select: { name: true } }
+    },
+    orderBy: {
+      createdAt: "desc"
+    }
+  })
+}
+
+const deleteReview = async (id) => {
+  return prisma.review.delete({
+    where: { id }
+  })
+}
+
 export default {
   getAdminStats,
   getOrders,
   updateOrderStatus,
   getProducts,
   getUsers,
-  getStories
+  getStories,
+  getReviews,
+  deleteReview
 }

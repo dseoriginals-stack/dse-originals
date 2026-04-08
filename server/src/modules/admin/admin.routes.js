@@ -22,4 +22,8 @@ router.get("/users", adminController.getUsers)
 
 router.get("/stories", adminController.getStories)
 
+router.get("/reviews", adminController.getReviews)
+
+router.delete("/reviews/:id", adminController.deleteReview)
+
 export default router

@@ -69,11 +69,34 @@ const getStories = async (req, res, next) => {
   }
 }
 
+const getReviews = async (req, res, next) => {
+  try {
+    const reviews = await adminService.getReviews()
+    res.json(reviews)
+  } catch (err) {
+    logger.error("Admin reviews fetch failed", { error: err })
+    next(err)
+  }
+}
+
+const deleteReview = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    await adminService.deleteReview(id)
+    res.json({ success: true })
+  } catch (err) {
+    logger.error("Admin review delete failed", { error: err })
+    next(err)
+  }
+}
+
 export default {
   getAdminStats,
   getOrders,
   updateOrderStatus,
   getProducts,
   getUsers,
-  getStories
+  getStories,
+  getReviews,
+  deleteReview
 }

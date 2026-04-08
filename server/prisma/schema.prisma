@@ -196,24 +196,29 @@ model VariantAttribute {
 //////////////////////////////////////////////////////
 
 model Order {
-  id            String      @id @default(uuid())
-  userId        String?
-  guestEmail    String?
-  guestName     String?
-  shippingAddr  String
-  total         Decimal     @db.Decimal(10, 2)
-  paymentId     String?     @unique
-  trackingNo    String?
-  createdAt     DateTime    @default(now())
-  status        OrderStatus @default(pending)
-  clientOrderId String?     @unique
+  id         String  @id @default(uuid())
+  userId     String?
+  guestEmail String?
+  guestName  String?
 
-  user                  User?                  @relation(fields: [userId], references: [id])
-  items                 OrderItem[]
-  events                OrderEvent[]
+  totalAmount    Decimal   @db.Decimal(10, 2)
+  shippingFee    Decimal   @default(0)
+  deliveryMethod String
+  pickupTime     DateTime?
+
+  paymentId  String? @unique
+  trackingNo String?
+
+  status    OrderStatus @default(pending)
+  createdAt DateTime    @default(now())
+
+  user    User?         @relation(fields: [userId], references: [id])
+  items   OrderItem[]
+  events  OrderEvent[]
+  address OrderAddress?
+
   inventoryReservations InventoryReservation[]
   inventoryMovements    InventoryMovement[]
-  address               OrderAddress?
 
   @@index([userId])
   @@index([status])

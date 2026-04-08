@@ -24,6 +24,6 @@ export function transformProductToCard(
     slug: product.slug,
     image,
     price,
-    variantId: variant?.id || ""
+    variantId: p.variantId || variant?.id || ""
   }
 }

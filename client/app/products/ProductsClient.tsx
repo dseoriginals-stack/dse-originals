@@ -4,12 +4,14 @@ import { useEffect, useState, useMemo } from "react"
 import { useSearchParams } from "next/navigation"
 
 import ProductCard from "@/components/ProductCard"
+import ProductModal from "@/components/ProductModal" // ✅ NEW
+
 import CategoryFilter from "@/components/CategoryFilter"
 import PriceFilter from "@/components/PriceFilter"
 
 import { api } from "@/lib/api"
 import { transformProductToCard } from "@/lib/transformProduct"
-import { ProductFull } from "@/types/product"
+import { ProductFull, ProductCardType } from "@/types/product"
 
 type Props = {
   initialProducts: ProductFull[]
@@ -28,12 +30,14 @@ export default function ProductsClient({ initialProducts }: Props) {
   const [sort, setSort] = useState("latest")
   const [showFilters, setShowFilters] = useState(false)
 
+  // ✅ MODAL STATE
+  const [selectedProduct, setSelectedProduct] = useState<ProductCardType | null>(null)
+
   useEffect(() => {
     const controller = new AbortController()
 
     async function fetchProducts() {
       try {
-        // ✅ Avoid refetch if no filters AND we already have SSR data
         if (
           !categoryQuery &&
           !minPrice &&
@@ -41,6 +45,7 @@ export default function ProductsClient({ initialProducts }: Props) {
           !searchQuery &&
           initialProducts?.length
         ) {
+          setProducts(initialProducts)
           return
         }
 
@@ -53,7 +58,6 @@ export default function ProductsClient({ initialProducts }: Props) {
         if (maxPrice) query.append("maxPrice", maxPrice)
         if (searchQuery) query.append("search", searchQuery)
 
-        // ✅ Move sorting to backend
         if (sort === "price_low") query.append("sort", "price_asc")
         if (sort === "price_high") query.append("sort", "price_desc")
 
@@ -82,12 +86,12 @@ export default function ProductsClient({ initialProducts }: Props) {
   }, [products])
 
   return (
-    <div className="max-w-[1400px] mx-auto py-12 px-4 md:px-8">
+    <div className="max-w-[1300px] mx-auto py-7 px-4 md:px-8">
 
       {/* HEADER */}
-      <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight">
             Products
           </h1>
 
@@ -102,12 +106,6 @@ export default function ProductsClient({ initialProducts }: Props) {
         </div>
 
         <div className="flex gap-3">
-          <button
-            onClick={() => setShowFilters(true)}
-            className="md:hidden px-4 py-2 border rounded-xl text-sm hover:bg-gray-50 transition"
-          >
-            Filters
-          </button>
 
           <select
             value={sort}
@@ -121,10 +119,10 @@ export default function ProductsClient({ initialProducts }: Props) {
         </div>
       </div>
 
-      <div className="flex gap-12">
+      <div className="flex flex-col md:flex-row gap-6 md:gap-8">
 
         {/* SIDEBAR */}
-        <aside className="hidden md:block w-64 space-y-8 sticky top-24 h-fit">
+        <aside className="w-full md:w-64 space-y-6 md:space-y-8 md:sticky md:top-24 h-fit border-b md:border-0 border-[var(--border-light)] pb-6 md:pb-0">
           <CategoryFilter />
           <PriceFilter />
         </aside>
@@ -132,7 +130,7 @@ export default function ProductsClient({ initialProducts }: Props) {
         {/* PRODUCTS */}
         <div className="flex-1">
 
-          {/* ✅ Skeleton (no flicker) */}
+          {/* LOADING */}
           {loading && products.length === 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {[...Array(8)].map((_, i) => (
@@ -145,21 +143,21 @@ export default function ProductsClient({ initialProducts }: Props) {
             </div>
           )}
 
-          {/* ✅ Products */}
+          {/* PRODUCTS */}
           {uiProducts.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {uiProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="transition-all duration-300 hover:-translate-y-1"
-                >
-                  <ProductCard product={product} />
+                <div key={product.id}>
+                  <ProductCard
+                    product={product}
+                    onQuickView={(p) => setSelectedProduct(p)} // ✅ TRIGGER MODAL
+                  />
                 </div>
               ))}
             </div>
           )}
 
-          {/* ✅ Empty */}
+          {/* EMPTY */}
           {!loading && uiProducts.length === 0 && (
             <div className="text-center py-24">
               <h2 className="text-lg font-semibold">No products found</h2>
@@ -171,21 +169,12 @@ export default function ProductsClient({ initialProducts }: Props) {
         </div>
       </div>
 
-      {/* MOBILE FILTER */}
-      {showFilters && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm">
-          <div className="absolute right-0 top-0 h-full w-80 bg-white p-6 shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="font-semibold text-lg">Filters</h3>
-              <button onClick={() => setShowFilters(false)}>✕</button>
-            </div>
-
-            <div className="space-y-8">
-              <CategoryFilter />
-              <PriceFilter />
-            </div>
-          </div>
-        </div>
+      {/* ✅ MODAL */}
+      {selectedProduct && (
+        <ProductModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+        />
       )}
     </div>
   )

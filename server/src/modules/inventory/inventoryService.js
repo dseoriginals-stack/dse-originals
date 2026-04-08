@@ -2,57 +2,49 @@ import prisma from "../../config/prisma.js"
 
 /*
 ================================
-RESERVE STOCK
+RESERVE STOCK (VARIANT-BASED)
 ================================
 */
 
-export async function reserveStock(items, orderId) {
+export async function reserveStock(variantId, quantity) {
 
   return await prisma.$transaction(async (tx) => {
 
-    const reservations = []
+    // 🔒 LOCK ROW (IMPORTANT)
+    const variant = await tx.productVariant.findUnique({
+      where: { id: variantId }
+    })
 
-    for (const item of items) {
-
-      const product = await tx.product.findUnique({
-        where: { id: item.productId }
-      })
-
-      if (!product) {
-        throw new Error("Product not found")
-      }
-
-      if (product.stock < item.quantity) {
-        throw new Error(`Insufficient stock for ${product.name}`)
-      }
-
-      const reservation = await tx.inventoryReservation.create({
-        data: {
-          productId: item.productId,
-          quantity: item.quantity,
-          orderId,
-          status: "reserved",
-          expiresAt: new Date(Date.now() + 15 * 60 * 1000)
-        }
-      })
-
-      await tx.product.update({
-        where: { id: item.productId },
-        data: {
-          stock: {
-            decrement: item.quantity
-          }
-        }
-      })
-
-      reservations.push(reservation)
-
+    if (!variant) {
+      throw new Error("Product variant not found")
     }
 
-    return reservations
+    if (variant.stock < quantity) {
+      throw new Error("Insufficient stock")
+    }
 
+    // ➖ decrement stock
+    await tx.productVariant.update({
+      where: { id: variantId },
+      data: {
+        stock: {
+          decrement: quantity
+        }
+      }
+    })
+
+    // 🧾 create reservation
+    const reservation = await tx.inventoryReservation.create({
+      data: {
+        variantId,
+        quantity,
+        status: "reserved",
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 min
+      }
+    })
+
+    return reservation
   })
-
 }
 
 /*
@@ -74,7 +66,6 @@ export async function confirmReservation(orderId) {
   })
 
   return true
-
 }
 
 /*
@@ -96,8 +87,9 @@ export async function releaseReservation(orderId) {
 
     for (const reservation of reservations) {
 
-      await tx.product.update({
-        where: { id: reservation.productId },
+      // ➕ restore stock
+      await tx.productVariant.update({
+        where: { id: reservation.variantId },
         data: {
           stock: {
             increment: reservation.quantity
@@ -105,15 +97,13 @@ export async function releaseReservation(orderId) {
         }
       })
 
+      // update reservation
       await tx.inventoryReservation.update({
         where: { id: reservation.id },
         data: {
           status: "released"
         }
       })
-
     }
-
   })
-
 }

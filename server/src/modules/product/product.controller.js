@@ -236,6 +236,7 @@ export const getProducts = async (req, res) => {
           variants: {
             take: 1,
             select: {
+              id: true,
               price: true,
               stock: true
             }
@@ -259,7 +260,11 @@ export const getProducts = async (req, res) => {
 
         price: p.variants.length > 0
           ? Number(p.variants[0].price)
-          : 0
+          : 0,
+          
+        variantId: p.variants.length > 0
+          ? p.variants[0].id
+          : ""
       })),
       pagination: {
         total,

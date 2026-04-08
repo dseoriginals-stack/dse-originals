@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 
 import { api } from "@/lib/api"
@@ -21,6 +21,7 @@ import { Check } from "lucide-react"
 export default function ProductClient() {
   const params = useParams()
   const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug
+  const router = useRouter()
 
   const { addToCart } = useCart()
 
@@ -100,6 +101,7 @@ export default function ProductClient() {
     }
 
     await addToCart({
+      productId: product.id,
       variantId: variant.id,
       name: product.name,
       price: Number(variant.price),
@@ -108,9 +110,11 @@ export default function ProductClient() {
     })
 
     setAdded(true)
-    setTimeout(() => setAdded(false), 1200)
-
-    setAdding(false)
+    setTimeout(() => {
+      setAdded(false)
+      setAdding(false)
+      router.push("/cart")
+    }, 600)
   }
 
   /* =========================
@@ -141,25 +145,25 @@ export default function ProductClient() {
   ========================= */
 
   return (
-    <div className="container py-6 md:py-12 pb-28">
+    <div className="max-w-[1300px] mx-auto py-6 md:py-10 px-4 md:px-8 pb-28">
 
-      <div className="grid lg:grid-cols-2 gap-8 md:gap-14">
+      <div className="grid lg:grid-cols-2 gap-6 md:gap-10">
         
         {/* IMAGE */}
         <div>
-          <div className="relative bg-white rounded-2xl border border-slate-100 shadow-sm h-[320px] md:h-[520px] overflow-hidden">
+          <div className="relative bg-[var(--bg-surface)] rounded-2xl md:rounded-3xl border border-[var(--border-light)] shadow-xl w-full aspect-square overflow-hidden flex items-center justify-center group">
             <Image
               id="product-main-image"
               src={getImageUrl(activeImage || "/placeholder.png")}
               alt={product.name}
               fill
               sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-contain"
+              className="object-cover transition-transform duration-700 ease-out md:group-hover:scale-105"
               priority
             />
           </div>
 
-          <div className="flex gap-3 mt-4 overflow-x-auto px-1">
+          <div className="flex gap-2 mt-3 overflow-x-auto px-1">
             {product.images.map((img, i) => {
               const isActive = activeImage === img.url
 
@@ -167,18 +171,17 @@ export default function ProductClient() {
                 <button
                   key={i}
                   onClick={() => setActiveImage(img.url)}
-                  className={`border rounded-lg p-1 ${
+                  className={`relative overflow-hidden rounded-lg w-14 h-14 flex-shrink-0 transition-all ${
                     isActive
-                      ? "border-[#274C77] ring-1 ring-[#274C77]"
-                      : "border-gray-200"
+                      ? "ring-2 ring-[var(--brand-primary)] ring-offset-2 opacity-100 shadow-sm"
+                      : "border border-[var(--border-light)] opacity-60 hover:opacity-100"
                   }`}
                 >
                   <Image
                     src={getImageUrl(img.url)}
                     alt={product.name}
-                    width={64}
-                    height={64}
-                    className="object-cover rounded-md"
+                    fill
+                    className="object-cover"
                     unoptimized
                   />
                 </button>
@@ -188,84 +191,96 @@ export default function ProductClient() {
         </div>
 
         {/* INFO */}
-        <div className="space-y-6">
-          <h1 className="text-3xl font-semibold">{product.name}</h1>
+        <div className="bg-[var(--bg-card)] rounded-2xl md:rounded-3xl border border-[var(--border-light)] shadow-lg p-5 md:p-8 space-y-4 md:space-y-6 flex flex-col justify-center">
+          <div>
+            <span className="inline-block px-2.5 py-0.5 bg-[var(--brand-soft)]/20 text-[var(--brand-primary)] text-[9px] font-bold uppercase tracking-widest rounded-full mb-2">
+              DSE Premium Collection
+            </span>
+            <h1 className="text-2xl md:text-4xl font-extrabold text-[var(--text-heading)] leading-tight tracking-tight">{product.name}</h1>
+          </div>
 
-          <div className="text-3xl font-bold">
+          <div className="text-2xl md:text-3xl font-black text-[var(--brand-primary)]">
             ₱{Number(price).toLocaleString()}
           </div>
 
-          <p className="text-gray-600">{product.description}</p>
+          <p className="text-[var(--text-muted)] text-sm md:text-base leading-relaxed font-medium">{product.description || "Premium product meticulously crafted for a refined and luxurious experience."}</p>
+
+          <div className="h-px w-full bg-[var(--border-light)]"></div>
 
           {/* VARIANTS */}
-          <div className="flex gap-2 overflow-x-auto">
-            {product.variants.map((v) => {
-              const isOut = v.stock === 0
-              const isActive = variant?.id === v.id
+          <div>
+             <h3 className="text-[10px] font-bold text-[var(--text-heading)] uppercase tracking-[0.15em] mb-2.5">Select Variant</h3>
+             <div className="flex gap-2 flex-wrap">
+               {product.variants.map((v) => {
+                 const isOut = v.stock === 0
+                 const isActive = variant?.id === v.id
 
-              return (
-                <button
-                  key={v.id}
-                  disabled={isOut}
-                  onClick={() => setVariant(v)}
-                  className={`px-4 py-2 border rounded-full text-sm ${
-                    isOut
-                      ? "opacity-40 line-through"
-                      : isActive
-                      ? "bg-[#274C77] text-white"
-                      : "bg-white"
-                  }`}
-                >
-                  {v.attributes?.length
-                    ? v.attributes.map((a: any) => a.value).join(" / ")
-                    : "Default"}
-                </button>
-              )
-            })}
+                 return (
+                   <button
+                     key={v.id}
+                     disabled={isOut}
+                     onClick={() => setVariant(v)}
+                     className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 border-2 ${
+                       isOut
+                         ? "opacity-40 bg-gray-50 border-gray-100 line-through cursor-not-allowed text-gray-500"
+                         : isActive
+                         ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-md drop-shadow-sm scale-[1.02]"
+                         : "bg-transparent border-[var(--border-light)] text-[var(--text-main)] hover:border-[var(--brand-primary)] hover:bg-[var(--bg-main)]"
+                     }`}
+                   >
+                     {v.attributes?.length
+                       ? v.attributes.map((a: any) => a.value).join(" / ")
+                       : "Default Size"}
+                   </button>
+                 )
+               })}
+             </div>
           </div>
 
           {/* STOCK */}
-          <div className="text-sm">
+          <div className="text-sm font-bold tracking-widest uppercase">
             {stock > 0 ? (
-              <span className="text-green-600">In stock ({stock})</span>
+              <span className="text-emerald-700 bg-emerald-100/50 border border-emerald-200 px-4 py-2 rounded-full flex items-center w-fit shadow-sm"><span className="mr-2 shadow-sm rounded-full bg-emerald-500 w-2.5 h-2.5 inline-block animate-pulse"></span>In stock, ready to ship</span>
             ) : (
-              <span className="text-red-500">Out of stock</span>
+              <span className="text-red-700 bg-red-100/50 border border-red-200 px-4 py-2 rounded-full flex items-center w-fit shadow-sm"><span className="mr-2 shadow-sm rounded-full bg-red-500 w-2.5 h-2.5 inline-block"></span>Currently Out of Stock</span>
             )}
           </div>
 
-          {/* QTY */}
-          <div className="flex items-center border rounded-xl w-fit">
-            <button
-              onClick={() => setQty((q) => Math.max(1, q - 1))}
-              className="px-4 py-2"
-            >
-              −
-            </button>
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch pt-3 border-t border-[var(--border-light)]">
+            {/* QTY */}
+            <div className="flex items-center justify-between border-2 border-[var(--border-light)] bg-[var(--bg-surface)] rounded-xl w-full sm:w-36 overflow-hidden h-12 shadow-inner">
+              <button
+                onClick={() => setQty((q) => Math.max(1, q - 1))}
+                className="w-10 h-full flex items-center justify-center text-[var(--text-main)] hover:bg-[var(--border-light)] transition-colors active:scale-95 text-lg font-bold"
+              >
+                −
+              </button>
 
-            <span className="px-5">{qty}</span>
+              <span className="flex-1 text-center font-black text-base text-[var(--text-heading)]">{qty}</span>
 
+              <button
+                onClick={() => setQty((q) => Math.min(stock, q + 1))}
+                className="w-10 h-full flex items-center justify-center text-[var(--text-main)] hover:bg-[var(--border-light)] transition-colors active:scale-95 text-lg font-bold"
+              >
+                +
+              </button>
+            </div>
+
+            {/* ADD */}
             <button
-              onClick={() => setQty((q) => Math.min(stock, q + 1))}
-              className="px-4 py-2"
+              onClick={handleAdd}
+              disabled={stock === 0 || adding}
+              className="btn-premium flex-1 !h-12 !rounded-xl !text-sm shadow-lg"
             >
-              +
+              {added && <Check size={24} />}
+              {adding ? "Preparing Order..." : added ? "Successfully Added" : "Add to Cart Now"}
             </button>
           </div>
-
-          {/* ADD */}
-          <button
-            onClick={handleAdd}
-            disabled={stock === 0 || adding}
-            className="w-full bg-[#274C77] text-white py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            {added && <Check size={16} />}
-            {adding ? "Adding..." : added ? "Added to Cart" : "Add to Cart"}
-          </button>
         </div>
       </div>
 
       {/* REVIEWS */}
-      <div className="mt-16">
+      <div className="mt-10">
         <ReviewForm
           productId={product.id}
           onSuccess={() => setRefreshReviews((p) => p + 1)}
@@ -276,10 +291,13 @@ export default function ProductClient() {
 
       {/* RELATED */}
       {related.length > 0 && (
-        <div className="mt-20">
-          <h2 className="text-2xl font-semibold mb-6">
-            You may also like
-          </h2>
+        <div className="mt-14">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="h-[2px] w-8 bg-[var(--brand-primary)]"></div>
+            <h2 className="text-xl md:text-2xl font-bold tracking-[0.1em] text-[var(--brand-primary)] uppercase">
+              You May Also Like
+            </h2>
+          </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {related.map((p) => (
@@ -293,18 +311,19 @@ export default function ProductClient() {
       )}
 
       {/* MOBILE BAR */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 md:hidden">
-        <div className="flex gap-3">
+      <div className="fixed bottom-0 left-0 right-0 glass-header border-t p-4 md:hidden pb-safe">
+        <div className="flex gap-4 items-center max-w-lg mx-auto">
           <div className="flex-1">
-            ₱{Number(price).toLocaleString()}
+             <div className="text-xs text-[var(--text-muted)] font-bold uppercase tracking-wider">Total</div>
+            <div className="font-bold text-base text-[var(--brand-primary)]">₱{Number(price * qty).toLocaleString()}</div>
           </div>
 
           <button
             onClick={handleAdd}
             disabled={stock === 0 || adding}
-            className="bg-[#274C77] text-white px-6 py-3 rounded-xl"
+            className="btn-premium flex-1 !py-3 px-2 shadow-md flex items-center justify-center"
           >
-            Add
+            Add to Cart
           </button>
         </div>
       </div>

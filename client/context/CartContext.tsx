@@ -21,6 +21,7 @@ import { v4 as uuidv4 } from "uuid"
 
 export type CartItem = {
   variantId: string
+  productId: string
   name: string
   price: number
   quantity: number
@@ -36,6 +37,15 @@ type CartContextType = {
   clearCart: () => void
 
   setCartItems: (items: CartItem[]) => void
+
+  selectedItems: string[]
+  toggleSelection: (variantId: string) => void
+  toggleAllSelection: () => void
+  selectedSubtotal: number
+  selectedCount: number
+
+  lastAddedVariantId: string | null
+  clearLastAdded: () => void
 
   cartCount: number
   subtotal: number
@@ -75,10 +85,13 @@ export function CartProvider({
   const { user } = useAuth()
 
   const [cart, setCart] = useState<CartItem[]>([])
+  const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [guestId, setGuestId] = useState<string | null>(null)
+  const [lastAddedVariantId, setLastAddedVariantId] = useState<string | null>(null)
 
   const setCartItems = useCallback((items: CartItem[]) => {
     setCart(items)
+    // Do NOT auto-select — cart starts with nothing selected
   }, [])
 
   const [animateCart, setAnimateCart] = useState(false)
@@ -131,6 +144,7 @@ export function CartProvider({
 
         const parsed = JSON.parse(stored)
         setCart(parsed)
+        // Do NOT auto-select on load — starts unselected
       } catch {
         setCart([])
       }
@@ -155,6 +169,7 @@ export function CartProvider({
       for (const item of parsed) {
         await api.post("/cart", {
           variantId: item.variantId,
+          productId: item.productId,
           quantity: item.quantity
         })
       }
@@ -228,6 +243,7 @@ export function CartProvider({
       try {
         await api.post("/cart", {
           variantId: item.variantId,
+          productId: item.productId,
           quantity: item.quantity
         })
 
@@ -238,7 +254,11 @@ export function CartProvider({
       }
     } else {
       setCart(prev => {
-        const existing = prev.find(p => p.variantId === item.variantId)
+        const existing = prev.find(
+        p =>
+          p.variantId === item.variantId &&
+          p.productId === item.productId
+      )
 
         if (existing) {
           return prev.map(p =>
@@ -255,13 +275,20 @@ export function CartProvider({
       })
     }
 
+    // Select ONLY this newly added item (deselect others)
+    setSelectedItems([item.variantId])
+    setLastAddedVariantId(item.variantId)
     triggerCartAnimation()
   }, [user])
+
+  const clearLastAdded = useCallback(() => {
+    setLastAddedVariantId(null)
+  }, [])
 
   /* ========================= */
 
   const updateQuantity = useCallback(
-    (variantId: string, quantity: number) => {
+    async (variantId: string, quantity: number) => {
       if (quantity <= 0) {
         removeFromCart(variantId)
         return
@@ -277,22 +304,48 @@ export function CartProvider({
             : item
         )
       )
+
+      if (user) {
+        try {
+          await api.patch("/cart/qty", { variantId, quantity: Math.min(quantity, MAX_QTY) })
+        } catch (err) {
+          console.error("Failed to update quantity on server", err)
+        }
+      }
     },
-    []
+    [user]
   )
 
   const removeFromCart = useCallback(
-    (variantId: string) => {
+    async (variantId: string) => {
       setCart(prev =>
         prev.filter(item => item.variantId !== variantId)
       )
+      setSelectedItems(prev => prev.filter(id => id !== variantId))
+
+      if (user) {
+        try {
+          await api.delete(`/cart/item/${variantId}`)
+        } catch (err) {
+          console.error("Failed to remove item from server cart", err)
+        }
+      }
     },
-    []
+    [user]
   )
 
-  const clearCart = useCallback(() => {
+  const clearCart = useCallback(async () => {
     setCart([])
-  }, [])
+    setSelectedItems([])
+    
+    if (user) {
+      try {
+        await api.delete("/cart")
+      } catch (err) {
+        console.error("Failed to clear server cart", err)
+      }
+    }
+  }, [user])
 
   /* ========================= */
 
@@ -307,6 +360,33 @@ export function CartProvider({
   const total = subtotal
   const isEmpty = cart.length === 0
 
+  const toggleSelection = useCallback((variantId: string) => {
+    setSelectedItems(prev =>
+      // If already selected → deselect (empty). If not → select ONLY this one.
+      prev.includes(variantId) ? [] : [variantId]
+    )
+  }, [])
+
+  const toggleAllSelection = useCallback(() => {
+    if (selectedItems.length === cart.length) {
+      setSelectedItems([])
+    } else {
+      setSelectedItems(cart.map(i => i.variantId))
+    }
+  }, [cart, selectedItems])
+
+  const selectedSubtotal = useMemo(() => {
+    return cart
+      .filter(item => selectedItems.includes(item.variantId))
+      .reduce((acc, item) => acc + item.price * item.quantity, 0)
+  }, [cart, selectedItems])
+
+  const selectedCount = useMemo(() => {
+    return cart
+      .filter(item => selectedItems.includes(item.variantId))
+      .reduce((acc, item) => acc + item.quantity, 0)
+  }, [cart, selectedItems])
+
   /* ========================= */
 
   return (
@@ -318,6 +398,13 @@ export function CartProvider({
         removeFromCart,
         clearCart,
         setCartItems,
+        selectedItems,
+        toggleSelection,
+        toggleAllSelection,
+        selectedSubtotal,
+        selectedCount,
+        lastAddedVariantId,
+        clearLastAdded,
         cartCount,
         subtotal,
         total,
