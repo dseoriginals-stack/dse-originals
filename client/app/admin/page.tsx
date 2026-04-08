@@ -60,7 +60,7 @@ export default function AdminDashboard() {
             Dashboard Overview
           </h1>
           <p className="text-[var(--brand-accent)] font-semibold mt-2 tracking-wide uppercase text-xs">
-            Welcome back, Administrator {user.name.split(" ")[0]}
+            Welcome back, Administrator {user.name?.split(" ")[0] || "Admin"}
           </p>
         </div>
         <button className="btn-premium !py-3 !px-6 text-sm shadow-md md:self-end">

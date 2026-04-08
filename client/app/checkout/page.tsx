@@ -74,7 +74,9 @@ export default function CheckoutPage() {
     try {
       const data = await api.post("/orders/checkout", {
         items: itemsToCheckout.map(item => ({
-          variantId: typeof item.variantId === "string" ? item.variantId : (item.variantId?.id || item.variantId?.[0]?.variantId),
+          variantId: typeof item.variantId === "string" 
+            ? item.variantId 
+            : ((item.variantId as any)?.id || (item.variantId as any)?.[0]?.variantId || ""),
           quantity:  item.quantity,
         })),
         deliveryMethod: delivery,
