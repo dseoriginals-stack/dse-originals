@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: dse-originals-api
+    env: node
+    plan: free
+    region: singapore
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dse-db
+          property: connectionString
+      # Add other ENVs manually in Render dashboard for security
+      - key: XENDIT_SECRET_KEY
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+
+databases:
+  - name: dse-db
+    plan: free
+    region: singapore
