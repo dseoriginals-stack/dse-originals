@@ -34,15 +34,24 @@ export default function RootClientLayout({
 
           <Toaster 
             position="top-right"
+            containerStyle={{
+              top: 80,
+              right: 20,
+              left: 20
+            }}
+            gutter={12}
             toastOptions={{
               duration: 3000,
               style: {
-                background: '#fff',
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(10px)',
                 color: '#274C77',
-                borderRadius: '16px',
+                borderRadius: '20px',
                 padding: '16px 24px',
-                boxShadow: '0 10px 30px rgba(39, 76, 119, 0.15)',
-                fontWeight: '600',
+                boxShadow: '0 20px 40px rgba(39, 76, 119, 0.12)',
+                fontWeight: '700',
+                border: '1px solid rgba(255,255,255,0.5)',
+                fontSize: '14px'
               },
             }}
           />

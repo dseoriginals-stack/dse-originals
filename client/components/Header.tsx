@@ -79,8 +79,30 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-[#274C77] shadow-lg transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4">
+      {/* TOP ANNOUNCEMENT BAR */}
+      <div className="bg-[#1B3B60] text-white py-1.5 overflow-hidden border-b border-white/5 relative z-[60]">
+        <div className="container mx-auto px-4 flex justify-center items-center gap-10 whitespace-nowrap animate-slide-left">
+           <span className="text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-2">
+             <span className="w-1 h-1 bg-emerald-400 rounded-full animate-pulse" />
+             Free Shipping on Orders over ₱5,000
+           </span>
+           <span className="hidden md:flex text-[10px] font-black uppercase tracking-[0.3em] items-center gap-2 opacity-50">
+             •
+           </span>
+           <span className="hidden md:flex text-[10px] font-black uppercase tracking-[0.3em] items-center gap-2">
+             Premium Faith-Inspired Collective
+           </span>
+           <span className="hidden md:flex text-[10px] font-black uppercase tracking-[0.3em] items-center gap-2 opacity-50">
+             •
+           </span>
+           <span className="hidden md:flex text-[10px] font-black uppercase tracking-[0.3em] items-center gap-2">
+             Official DSE Originals Store
+           </span>
+        </div>
+      </div>
+
+      <header className="sticky top-0 z-50 bg-[#274C77]/80 backdrop-blur-2xl border-b border-white/5 shadow-[0_10px_30px_rgba(0,0,0,0.1)] transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-6">
 
           {/* ================= MOBILE ================= */}
           <div className="grid grid-cols-3 h-12 items-center md:hidden">
@@ -141,7 +163,7 @@ export default function Header() {
           </div>
 
           {/* ================= DESKTOP ================= */}
-          <div className="hidden md:flex h-14 items-center">
+          <div className="hidden md:flex h-16 items-center">
 
             {/* LOGO */}
             <div className="flex-1">
