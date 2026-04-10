@@ -15,9 +15,7 @@ export default function StaffOrders() {
     const session = await supabase.auth.getSession()
     const token = session.data.session?.access_token
 
-    const res = await api.get("/orders")
-
-    const data = await res.json()
+    const data = await api.get("/orders")
     setOrders(data)
   }
 

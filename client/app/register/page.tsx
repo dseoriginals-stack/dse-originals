@@ -6,6 +6,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle, User, Mail, Lock } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
+import { api } from "@/lib/api"
 
 type FieldError = {
   name?: string
