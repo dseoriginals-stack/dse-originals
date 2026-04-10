@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic"
 import Image from "next/image"
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
-import { Menu, ShoppingCart, User } from "lucide-react"
+import { Menu, ShoppingCart, User, ArrowRight } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { AnimatePresence, motion } from "framer-motion"
 
@@ -232,7 +232,7 @@ export default function Header() {
         </div>
       </header>
 
-      {/* ================= MOBILE MENU (SIDEBAR) ================= */}
+      {/* ================= MOBILE MENU (FLOATING DROPDOWN) ================= */}
       <AnimatePresence>
         {menuOpen && (
           <div className="fixed inset-0 z-[100] md:hidden">
@@ -242,68 +242,84 @@ export default function Header() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMenuOpen(false)}
-              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/20 backdrop-blur-md"
             />
 
-            {/* Sidebar Content */}
+            {/* Floating Dropdown */}
             <motion.div
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
               ref={menuRef}
-              className="absolute top-0 left-0 bottom-0 w-[80%] max-w-[320px] bg-white shadow-2xl flex flex-col overflow-hidden"
+              className="absolute top-16 left-4 w-72 bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-[var(--border-light)] overflow-hidden"
             >
-              <div className="p-6 bg-[#274C77] text-white">
-                <div className="flex justify-between items-center mb-4">
-                   <Image src="/DSE.png" alt="DSE" width={80} height={28} className="brightness-0 invert" />
-                   <button onClick={() => setMenuOpen(false)} className="bg-white/10 p-2 rounded-full hover:bg-white/20">
-                     <span className="text-xl">✕</span>
-                   </button>
-                </div>
-                <p className="text-[10px] font-bold opacity-70 uppercase tracking-[0.2em]">Menu Navigation</p>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
-                {menuItems.map((item) => {
-                  const active = pathname === `/${item.name}`
-                  return (
-                    <Link
-                      key={item.name}
-                      href={`/${item.name}`}
-                      onClick={() => setMenuOpen(false)}
-                      className={`flex items-center gap-3 px-5 py-4 rounded-2xl text-base font-bold transition-all ${
-                        active 
-                          ? "bg-[var(--brand-primary)] text-white shadow-lg translate-x-1" 
-                          : "text-[var(--text-heading)] hover:bg-gray-50 hover:translate-x-1"
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  )
-                })}
-
-                <div className="h-[1px] bg-gray-100 my-4 mx-2"></div>
-
-                <Link
-                  href="/account"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-5 py-4 rounded-2xl text-base font-bold text-[var(--brand-primary)] bg-[var(--brand-soft)]/10 hover:bg-[var(--brand-soft)]/20 transition-all active:scale-95"
-                >
-                  <User size={20} />
-                  My Account
-                </Link>
-              </div>
-              
-              <div className="p-6 bg-gray-50 border-t border-gray-100">
-                <p className="text-[10px] text-center text-[var(--text-muted)] font-bold uppercase tracking-widest">
-                  © 2026 DSE Originals
+              <div className="p-6">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 px-1">
+                  Corporate Profile
                 </p>
+
+                <div className="flex flex-col">
+                  <MobileMenuItem 
+                    icon={<div className="text-orange-500"><Menu size={18} /></div>} 
+                    label="Products" 
+                    href="/products" 
+                    onClick={() => setMenuOpen(false)} 
+                  />
+                  <MobileMenuItem 
+                    icon={<div className="text-orange-500"><ImageItem size={18} /></div>} 
+                    label="Stories" 
+                    href="/stories" 
+                    onClick={() => setMenuOpen(false)} 
+                  />
+                  <MobileMenuItem 
+                    icon={<div className="text-orange-500"><Heart size={18} /></div>} 
+                    label="Donate" 
+                    href="/donate" 
+                    onClick={() => setMenuOpen(false)} 
+                  />
+                  
+                  <div className="h-[1px] bg-gray-50 my-2"></div>
+                  
+                  <MobileMenuItem 
+                    icon={<div className="text-orange-500"><User size={18} /></div>} 
+                    label="My Account" 
+                    href="/account" 
+                    onClick={() => setMenuOpen(false)} 
+                  />
+                </div>
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
     </>
+  )
+}
+
+function ImageItem({ size }: { size: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+      <circle cx="9" cy="9" r="2"/>
+      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+    </svg>
+  )
+}
+
+function MobileMenuItem({ icon, label, href, onClick }: any) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className="flex items-center gap-4 px-2 py-4 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors group"
+    >
+      <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all duration-300">
+        {icon}
+      </div>
+      <span className="text-sm font-black text-[#274C77] tracking-tight">{label}</span>
+      <span className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+        <ArrowRight size={14} className="text-orange-500" />
+      </span>
+    </Link>
   )
 }

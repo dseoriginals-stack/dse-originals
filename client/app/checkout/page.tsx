@@ -18,7 +18,7 @@ type InputProps = { label: string; value: string; onChange: (v: string) => void;
 type SelectProps = { value: string; onChange: (v: string, o?: Option) => void; options: Option[]; placeholder: string; disabled?: boolean }
 
 const STORE_ADDRESS = "Chancery Compound, Rizal St, Tagum, 8100 Davao del Norte"
-const STORE_HOURS  = "Mon–Sat, 9 AM – 6 PM"
+const STORE_HOURS = "Mon–Sat, 9 AM – 6 PM"
 
 /* ============================ PAGE ============================ */
 
@@ -26,34 +26,34 @@ export default function CheckoutPage() {
   const { cart, selectedItems, removeFromCart } = useCart()
   const itemsToCheckout = cart.filter(item => selectedItems.includes(item.variantId))
 
-  const [step, setStep]       = useState<Step>(1)
+  const [step, setStep] = useState<Step>(1)
   const [delivery, setDelivery] = useState<DeliveryMethod>("delivery")
-  const [loading, setLoading]  = useState(false)
-  const [error, setError]      = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [shipping, setShipping] = useState<ShippingZone | null>(null)
   const [showPayment, setShowPayment] = useState(false)
-  const [paymentUrl, setPaymentUrl]   = useState("")
+  const [paymentUrl, setPaymentUrl] = useState("")
 
   const [form, setForm] = useState({
     name: "", email: "", phone: "",
     street: "", barangay: "", city: "", province: "", region: "",
   })
 
-  const [selectedRegion,   setSelectedRegion]   = useState("")
+  const [selectedRegion, setSelectedRegion] = useState("")
   const [selectedProvince, setSelectedProvince] = useState("")
-  const [selectedCity,     setSelectedCity]     = useState("")
-  const [regionLabel,      setRegionLabel]      = useState("")
+  const [selectedCity, setSelectedCity] = useState("")
+  const [regionLabel, setRegionLabel] = useState("")
 
-  const subtotal    = itemsToCheckout.reduce((acc, item) => acc + item.price * item.quantity, 0)
+  const subtotal = itemsToCheckout.reduce((acc, item) => acc + item.price * item.quantity, 0)
   const shippingFee = delivery === "pickup" ? 0 : (shipping?.fee ?? 0)
-  const total       = subtotal + shippingFee
+  const total = subtotal + shippingFee
 
   const isDetailsValid = delivery === "pickup"
     ? !!(form.name && form.phone)
     : !!(form.name && form.phone && form.street && form.barangay && form.city && form.province && form.region)
 
   const filteredProvinces = (provinces as any[]).filter(p => String(p.region) === String(selectedRegion))
-  const filteredCities    = (cities    as any[]).filter(c => String(c.province) === String(selectedProvince))
+  const filteredCities = (cities as any[]).filter(c => String(c.province) === String(selectedProvince))
 
   /* ── Step 2 → 3: calculate shipping ── */
   const goToPayment = () => {
@@ -75,31 +75,31 @@ export default function CheckoutPage() {
     try {
       const data = await api.post("/orders/checkout", {
         items: itemsToCheckout.map(item => ({
-          variantId: typeof item.variantId === "string" 
-            ? item.variantId 
+          variantId: typeof item.variantId === "string"
+            ? item.variantId
             : ((item.variantId as any)?.id || (item.variantId as any)?.variantId || (item.variantId as any)?.[0]?.variantId || (item.variantId as any)?.[0]?.id || ""),
-          quantity:  item.quantity,
+          quantity: item.quantity,
         })),
         deliveryMethod: delivery,
         shippingFee,
         guestEmail: form.email || undefined,
         address: delivery === "delivery" ? {
           fullName: form.name,
-          phone:    form.phone,
-          region:   form.region,
+          phone: form.phone,
+          region: form.region,
           province: form.province,
-          city:     form.city,
+          city: form.city,
           barangay: form.barangay,
-          street:   form.street,
+          street: form.street,
         } : {
           fullName: form.name,
-          phone:    form.phone,
+          phone: form.phone,
           // Placeholder for pickup
-          region:   "Store Pickup",
+          region: "Store Pickup",
           province: "Store Pickup",
-          city:     "Tagum",
+          city: "Tagum",
           barangay: "Tagum",
-          street:   "Store Pickup"
+          street: "Store Pickup"
         },
       })
 
@@ -133,17 +133,16 @@ export default function CheckoutPage() {
         {/* STEP INDICATOR */}
         <div className="flex items-center mb-8">
           {steps.map((label, i) => {
-            const num   = (i + 1) as Step
-            const done  = step > num
+            const num = (i + 1) as Step
+            const done = step > num
             const active = step === num
             return (
               <div key={label} className="flex items-center flex-1 last:flex-none">
                 <div className="flex flex-col items-center">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all ${
-                    done   ? "bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white"
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all ${done ? "bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white"
                     : active ? "border-[var(--brand-primary)] text-[var(--brand-primary)] bg-white"
-                    : "border-gray-200 text-gray-400 bg-white"
-                  }`}>
+                      : "border-gray-200 text-gray-400 bg-white"
+                    }`}>
                     {done ? <Check size={14} /> : num}
                   </div>
                   <span className={`text-[10px] font-bold mt-1 tracking-wider uppercase ${active ? "text-[var(--brand-primary)]" : "text-[var(--text-muted)]"}`}>
@@ -168,11 +167,10 @@ export default function CheckoutPage() {
 
                   <button
                     onClick={() => setDelivery("delivery")}
-                    className={`p-5 rounded-2xl border-2 text-left transition-all ${
-                      delivery === "delivery"
-                        ? "border-[var(--brand-primary)] bg-[var(--brand-soft)]/10 shadow-sm"
-                        : "border-[var(--border-light)] hover:border-gray-300"
-                    }`}
+                    className={`p-5 rounded-2xl border-2 text-left transition-all ${delivery === "delivery"
+                      ? "border-[var(--brand-primary)] bg-[var(--brand-soft)]/10 shadow-sm"
+                      : "border-[var(--border-light)] hover:border-gray-300"
+                      }`}
                   >
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${delivery === "delivery" ? "bg-[var(--brand-primary)] text-white" : "bg-gray-100 text-gray-500"}`}>
                       <Truck size={20} />
@@ -187,11 +185,10 @@ export default function CheckoutPage() {
 
                   <button
                     onClick={() => setDelivery("pickup")}
-                    className={`p-5 rounded-2xl border-2 text-left transition-all ${
-                      delivery === "pickup"
-                        ? "border-[var(--brand-primary)] bg-[var(--brand-soft)]/10 shadow-sm"
-                        : "border-[var(--border-light)] hover:border-gray-300"
-                    }`}
+                    className={`p-5 rounded-2xl border-2 text-left transition-all ${delivery === "pickup"
+                      ? "border-[var(--brand-primary)] bg-[var(--brand-soft)]/10 shadow-sm"
+                      : "border-[var(--border-light)] hover:border-gray-300"
+                      }`}
                   >
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${delivery === "pickup" ? "bg-[var(--brand-primary)] text-white" : "bg-gray-100 text-gray-500"}`}>
                       <Store size={20} />
@@ -224,8 +221,8 @@ export default function CheckoutPage() {
                 {error && <ErrorBox message={error} />}
 
                 <div className="grid grid-cols-2 gap-3">
-                  <Input label="Full Name *"  value={form.name}  onChange={v => setForm(p => ({ ...p, name: v }))} />
-                  <Input label="Phone *"       value={form.phone} onChange={v => setForm(p => ({ ...p, phone: v }))} />
+                  <Input label="Full Name *" value={form.name} onChange={v => setForm(p => ({ ...p, name: v }))} />
+                  <Input label="Phone *" value={form.phone} onChange={v => setForm(p => ({ ...p, phone: v }))} />
                 </div>
                 <Input label="Email (for receipt)" value={form.email} onChange={v => setForm(p => ({ ...p, email: v }))} type="email" />
 
@@ -417,14 +414,14 @@ export default function CheckoutPage() {
               </div>
             </Card>
           </div>
-      </div>
+        </div>
 
-      <PaymentModal 
-        isOpen={showPayment}
-        onClose={() => setShowPayment(false)}
-        invoiceUrl={paymentUrl}
-        total={total}
-      />
+        <PaymentModal
+          isOpen={showPayment}
+          onClose={() => setShowPayment(false)}
+          invoiceUrl={paymentUrl}
+          total={total}
+        />
       </div>
     </div>
   )
@@ -450,7 +447,7 @@ function ShippingPreview({ zone, regionLabel }: { zone: ShippingZone; regionLabe
 /* ============================ SEARCHABLE SELECT ============================ */
 
 function SearchableSelect({ value, onChange, options, placeholder, disabled }: SelectProps) {
-  const [open, setOpen]   = useState(false)
+  const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
   const ref = useRef<HTMLDivElement>(null)
 
