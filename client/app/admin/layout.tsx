@@ -4,9 +4,11 @@ export const dynamic = "force-dynamic"
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, BarChart3, Package, ShoppingCart, Users, LogOut, MessageSquare } from "lucide-react"
+import { LayoutDashboard, BarChart3, Package, ShoppingCart, Users, LogOut, MessageSquare, Bell } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import NotificationPanel from "@/components/admin/NotificationPanel"
+import AdminSearch from "@/components/admin/AdminSearch"
 
 const nav = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -25,19 +27,22 @@ export default function AdminLayout({
   const pathname = usePathname()
   const router = useRouter()
   const { user, loading, logout } = useAuth()
+  const [showNotifications, setShowNotifications] = useState(false)
 
   /* =========================
-     FIX: SAFE REDIRECT (NO HYDRATION BUG)
+     FIX: ROLE ACCESS (ADMIN & STAFF)
   ========================= */
   useEffect(() => {
-    if (!loading && (!user || user.role !== "admin")) {
+    if (!loading && (!user || (user.role !== "admin" && user.role !== "staff"))) {
       router.push("/")
     }
   }, [user, loading, router])
 
-  if (loading || !user || user.role !== "admin") {
+  if (loading || !user || (user.role !== "admin" && user.role !== "staff")) {
     return null
   }
+
+  const isStaff = user.role === 'staff'
 
   return (
     <div className="flex min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-sans selection:bg-[var(--brand-accent)] selection:text-white">
@@ -48,10 +53,10 @@ export default function AdminLayout({
         {/* LOGO */}
         <div className="px-6 py-8 flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[var(--brand-primary)] to-[var(--brand-accent)] shadow-md flex items-center justify-center">
-            <span className="text-white font-bold text-sm tracking-widest">D</span>
+            <span className="text-white font-bold text-sm tracking-widest">{isStaff ? 'S' : 'D'}</span>
           </div>
           <span className="text-xl font-extrabold tracking-tight text-[var(--text-heading)]">
-            Admin<span className="text-[var(--brand-primary)]">.</span>
+            {isStaff ? 'Staff' : 'Admin'}<span className="text-[var(--brand-primary)]">.</span>
           </span>
         </div>
 
@@ -111,39 +116,31 @@ export default function AdminLayout({
       <div className="flex-1 flex flex-col overflow-hidden relative">
 
         {/* TOPBAR */}
-        <header className="bg-white/70 backdrop-blur-md border-b border-[var(--border-light)] px-10 py-5 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+        <header className="bg-white/70 backdrop-blur-md border-b border-[var(--border-light)] px-10 py-5 flex items-center justify-between sticky top-0 z-10 shadow-sm surface-light">
 
-          {/* SEARCH */}
-          <div className="w-full max-w-md relative group">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[var(--brand-primary)] transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            </div>
-            <input
-              placeholder="Search administration..."
-              className="
-                w-full pl-11 pr-4 py-3 rounded-2xl border border-[var(--border-light)]
-                bg-[var(--bg-surface)] focus:bg-white focus:outline-none focus:ring-2
-                focus:ring-[var(--brand-accent)]/30 focus:border-[var(--brand-primary)] 
-                transition-all duration-300 placeholder:text-gray-400 text-sm font-medium
-                shadow-inner drop-shadow-sm
-              "
-            />
-          </div>
+          {/* GLOBAL SEARCH */}
+          <AdminSearch />
 
           {/* PROFILE */}
           <div className="flex items-center gap-6 ml-6">
 
             {/* NOTIFICATIONS */}
-            <div className="relative cursor-pointer w-10 h-10 flex items-center justify-center rounded-full hover:bg-[var(--bg-surface)] transition-colors border border-transparent hover:border-[var(--border-light)]">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--text-main)]"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-              <span className="
-                absolute top-1 right-2
-                bg-[var(--brand-primary)] text-white text-[9px] font-bold
-                w-3.5 h-3.5 flex items-center justify-center
-                rounded-full shadow-sm ring-2 ring-white
-              ">
-                3
-              </span>
+            <div className="relative">
+              <div 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative cursor-pointer w-10 h-10 flex items-center justify-center rounded-full hover:bg-[var(--bg-surface)] transition-colors border border-transparent hover:border-[var(--border-light)]"
+              >
+                <Bell size={20} className="text-[var(--text-main)]" />
+                <span className="
+                  absolute top-1 right-2
+                  bg-[var(--brand-primary)] text-white text-[9px] font-bold
+                  w-3.5 h-3.5 flex items-center justify-center
+                  rounded-full shadow-sm ring-2 ring-white
+                ">
+                  3
+                </span>
+              </div>
+              {showNotifications && <NotificationPanel onClose={() => setShowNotifications(false)} />}
             </div>
 
             {/* USER */}
@@ -155,12 +152,12 @@ export default function AdminLayout({
                 text-white flex items-center justify-center
                 text-sm font-bold shadow-md ring-2 ring-[var(--brand-soft)]/30
               ">
-                {user?.name?.charAt(0) || "A"}
+                {user?.name?.charAt(0) || "U"}
               </div>
 
               <div className="text-sm leading-tight hidden md:block">
                 <p className="font-bold text-[var(--text-heading)]">
-                  {user?.name || "Adminstrator"}
+                  {user?.name || "Member"}
                 </p>
                 <p className="text-[var(--brand-accent)] font-semibold text-xs capitalize tracking-wide">
                   {user?.role} Access
@@ -174,7 +171,7 @@ export default function AdminLayout({
         </header>
 
         {/* CONTENT */}
-        <main className="p-8 lg:p-10 flex-1 overflow-y-auto">
+        <main className="p-8 lg:p-10 flex-1 overflow-y-auto custom-scrollbar">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>

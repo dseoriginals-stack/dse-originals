@@ -21,7 +21,7 @@ export const handleXenditWebhook = async (req, res) => {
       return res.status(403).json({ message: "Invalid token" })
     }
 
-    const orderId = event.external_id
+    const orderId = event.external_id || event.externalId
     const status = event.status
 
     if (!orderId) {
@@ -29,7 +29,12 @@ export const handleXenditWebhook = async (req, res) => {
     }
 
     const order = await prisma.order.findUnique({
-      where: { id: orderId }
+      where: { id: orderId },
+      include: {
+        items: true,
+        address: true,
+        user: true
+      }
     })
 
     if (!order) {
@@ -64,12 +69,8 @@ export const handleXenditWebhook = async (req, res) => {
 
       // ✅ EMAIL (outside transaction)
       try {
-        const user = order.userId
-          ? await prisma.user.findUnique({ where: { id: order.userId } })
-          : null
-
         await sendOrderPaidEmail(
-          user?.email || order.guestEmail,
+          order.user?.email || order.guestEmail,
           order
         )
       } catch (err) {

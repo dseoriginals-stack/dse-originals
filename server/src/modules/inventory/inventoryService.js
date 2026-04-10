@@ -7,34 +7,21 @@ RESERVE STOCK (VARIANT-BASED)
 */
 
 export async function reserveStock(variantId, quantity) {
-
   return await prisma.$transaction(async (tx) => {
-
-    // 🔒 LOCK ROW (IMPORTANT)
     const variant = await tx.productVariant.findUnique({
-      where: { id: variantId }
+      where: { id: variantId },
+      select: { id: true, stock: true }
     })
 
-    if (!variant) {
-      throw new Error("Product variant not found")
-    }
+    if (!variant) throw new Error("Product variant not found")
+    if (variant.stock < quantity) throw new Error("Insufficient stock")
 
-    if (variant.stock < quantity) {
-      throw new Error("Insufficient stock")
-    }
-
-    // ➖ decrement stock
     await tx.productVariant.update({
       where: { id: variantId },
-      data: {
-        stock: {
-          decrement: quantity
-        }
-      }
+      data: { stock: { decrement: quantity } }
     })
 
-    // 🧾 create reservation
-    const reservation = await tx.inventoryReservation.create({
+    return await tx.inventoryReservation.create({
       data: {
         variantId,
         quantity,
@@ -42,8 +29,49 @@ export async function reserveStock(variantId, quantity) {
         expiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 min
       }
     })
+  })
+}
 
-    return reservation
+/*
+================================
+RESERVE STOCK BATCH
+================================
+*/
+
+export async function reserveStockBatch(items, orderId) {
+  return await prisma.$transaction(async (tx) => {
+    const reservations = []
+
+    for (const item of items) {
+      const variant = await tx.productVariant.findUnique({
+        where: { id: item.variantId },
+        select: { id: true, stock: true, product: { select: { name: true } } }
+      })
+
+      if (!variant) throw new Error(`Product not found: ${item.variantId}`)
+      if (variant.stock < item.quantity) {
+        throw new Error(`Insufficient stock for ${variant.product.name}`)
+      }
+
+      await tx.productVariant.update({
+        where: { id: item.variantId },
+        data: { stock: { decrement: item.quantity } }
+      })
+
+      const reservation = await tx.inventoryReservation.create({
+        data: {
+          variantId: item.variantId,
+          orderId: orderId,
+          quantity: item.quantity,
+          status: "reserved",
+          expiresAt: new Date(Date.now() + 20 * 60 * 1000) // 20 min for checkout
+        }
+      })
+      
+      reservations.push(reservation)
+    }
+
+    return reservations
   })
 }
 

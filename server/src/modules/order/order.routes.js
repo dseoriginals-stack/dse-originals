@@ -16,6 +16,11 @@ router.get(
   controller.getMyOrders
 )
 
+router.get(
+  "/track",
+  controller.trackOrder
+)
+
 /* =============================
    CHECKOUT
 ============================= */

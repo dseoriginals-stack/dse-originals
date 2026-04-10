@@ -34,6 +34,16 @@ model User {
   @@index([email])
 }
 
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([email, token])
+}
+
 //////////////////////////////////////////////////////
 // ADDRESS
 //////////////////////////////////////////////////////
@@ -440,6 +450,7 @@ enum Role {
 
 enum OrderStatus {
   pending
+  accepted
   paid
   shipped
   delivered

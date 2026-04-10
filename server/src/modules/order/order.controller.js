@@ -6,6 +6,7 @@ import { canTransition } from "../../utils/orderState.js"
 import { sendShippedEmail } from "../../services/email.service.js"
 import {
   reserveStock,
+  reserveStockBatch,
   releaseReservation
 } from "../inventory/inventoryService.js"
 import { createOrderEvent } from "../../services/orderEvent.service.js"
@@ -82,13 +83,21 @@ export const createOrder = async (req, res, next) => {
 
         // If vId itself is still an object/array, drill down
         while (vId && typeof vId === "object") {
-          if (Array.isArray(vId)) vId = vId[0]
-          else vId = vId.variantId || vId.id || vId.productId || vId
+          if (Array.isArray(vId)) {
+            vId = vId[0]
+          } else {
+            const nextId = vId.variantId || vId.id || vId.productId
+            if (!nextId) {
+              vId = null // Force invalid if we hit a dead end
+              break
+            }
+            vId = nextId
+          }
         }
 
         if (!vId || typeof vId !== "string") {
           logger.error("Invalid item in order", { item })
-          throw new Error("Invalid item ID provided")
+          throw new Error(`Invalid item ID provided: ${JSON.stringify(item)}`)
         }
 
         const variant = await tx.productVariant.findUnique({
@@ -203,7 +212,7 @@ export const createOrder = async (req, res, next) => {
     ---------------------------
     */
 
-    await reserveStock(items, order.id)
+    await reserveStockBatch(order.items, order.id)
 
     /*
     ---------------------------
@@ -213,7 +222,7 @@ export const createOrder = async (req, res, next) => {
 
     const invoice = await createInvoice({
       external_id: order.id,
-      amount: Number(order.total),
+      amount: Number(order.totalAmount),
       payer_email: req.user?.email || guestEmail || "no-reply@dseoriginals.com",
       description: `DSE Order #${order.id}`,
     })
@@ -233,7 +242,7 @@ export const createOrder = async (req, res, next) => {
 
     return res.json({
       orderId: order.id,
-      invoiceUrl: invoice.invoice_url
+      invoiceUrl: invoice.invoiceUrl
     })
 
   } catch (err) {
@@ -461,7 +470,7 @@ export const generateInvoice = async (req, res, next) => {
 
     doc.text(`Order ID: ${order.id}`)
     doc.text(`Status: ${order.status}`)
-    doc.text(`Total: ₱${order.total}`)
+    doc.text(`Total: ₱${order.totalAmount}`)
     doc.moveDown()
 
     if (order.address) {
@@ -504,6 +513,61 @@ export const getMyOrders = async (req, res, next) => {
     })
 
     res.json(orders)
+  } catch (err) {
+    next(err)
+  }
+}
+
+/**
+ * Public tracking (Guest & Logged In)
+ * Requires Order ID and Guest Email
+ */
+export const trackOrder = async (req, res, next) => {
+  try {
+    const { id, email } = req.query
+
+    if (!id || !email) {
+      return res.status(400).json({ message: "Order ID and Email are required" })
+    }
+
+    const order = await prisma.order.findFirst({
+      where: {
+        id: id,
+        OR: [
+          { guestEmail: email },
+          { user: { email: email } }
+        ]
+      },
+      include: {
+        items: true,
+        address: true,
+        events: {
+          orderBy: { createdAt: "desc" }
+        }
+      }
+    })
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found with these details" })
+    }
+
+    // Return limited data for privacy
+    const safeData = {
+      id: order.id,
+      status: order.status,
+      total: order.totalAmount,
+      createdAt: order.createdAt,
+      items: order.items.map(i => ({
+        productName: i.productName,
+        quantity: i.quantity,
+        price: i.price
+      })),
+      events: order.events,
+      trackingNo: order.trackingNo
+    }
+
+    res.json(safeData)
+
   } catch (err) {
     next(err)
   }

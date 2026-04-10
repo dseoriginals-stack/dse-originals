@@ -481,3 +481,20 @@ TypeError: Cannot read properties of undefined (reading '0')
 [2026-04-08 17:01:30] [31merror[39m: Unhandled error
 [2026-04-08 17:10:06] [31merror[39m: Order creation failed
 [2026-04-08 17:10:06] [31merror[39m: Unhandled error
+[2026-04-10 09:45:44] [31merror[39m: Order creation failed
+[2026-04-10 09:46:27] [31merror[39m: Order creation failed
+[2026-04-10 09:46:51] [31merror[39m: Order creation failed
+[2026-04-10 09:47:09] [31merror[39m: Order creation failed
+[2026-04-10 09:47:25] [31merror[39m: Order creation failed
+[2026-04-10 09:48:17] [31merror[39m: Order creation failed
+[2026-04-10 09:48:40] [31merror[39m: Order creation failed
+[2026-04-10 09:52:33] [31merror[39m: Invalid item in order
+[2026-04-10 09:52:33] [31merror[39m: Order creation failed
+[2026-04-10 09:52:33] [31merror[39m: Unhandled error
+[2026-04-10 09:59:07] [31merror[39m: Order creation failed
+[2026-04-10 09:59:08] [31merror[39m: Unhandled error
+[2026-04-10 10:01:46] [31merror[39m: Order creation failed
+[2026-04-10 10:01:46] [31merror[39m: Unhandled error
+[2026-04-10 10:06:18] [31merror[39m: Invalid item in order
+[2026-04-10 10:06:18] [31merror[39m: Order creation failed
+[2026-04-10 10:06:18] [31merror[39m: Unhandled error

@@ -7,6 +7,7 @@ import { regions, provinces, cities } from "philippines"
 import { Truck, Store, CreditCard, Check, Package } from "lucide-react"
 import { getShippingRate, ShippingZone } from "@/lib/shipping"
 import PaymentModal from "@/components/PaymentModal"
+import toast from "react-hot-toast"
 
 /* ============================ TYPES ============================ */
 
@@ -76,7 +77,7 @@ export default function CheckoutPage() {
         items: itemsToCheckout.map(item => ({
           variantId: typeof item.variantId === "string" 
             ? item.variantId 
-            : ((item.variantId as any)?.id || (item.variantId as any)?.[0]?.variantId || ""),
+            : ((item.variantId as any)?.id || (item.variantId as any)?.variantId || (item.variantId as any)?.[0]?.variantId || (item.variantId as any)?.[0]?.id || ""),
           quantity:  item.quantity,
         })),
         deliveryMethod: delivery,
@@ -104,9 +105,12 @@ export default function CheckoutPage() {
 
       setPaymentUrl(data.invoiceUrl)
       setShowPayment(true)
+      toast.success("Order created! Redirecting to payment...")
 
     } catch (err: any) {
-      setError(err.message || "Checkout failed. Please try again.")
+      const msg = err.message || "Checkout failed. Please try again."
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }

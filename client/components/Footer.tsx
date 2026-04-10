@@ -14,6 +14,7 @@ export default function Footer() {
           <div className="flex flex-wrap justify-center md:justify-end items-center gap-4 md:gap-6 text-[10px] md:text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
             <Link href="/privacy" className="hover:text-[var(--brand-primary)] transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-[var(--brand-primary)] transition-colors">Terms of Service</Link>
+            <Link href="/track" className="hover:text-[var(--brand-primary)] transition-colors text-[var(--brand-primary)]">Track Order</Link>
           </div>
         </div>
 

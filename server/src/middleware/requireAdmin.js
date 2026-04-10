@@ -14,8 +14,10 @@ export default function requireAdmin(req, res, next) {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
 
-    if (decoded.role !== "ADMIN") {
-      return res.status(403).json({ message: "Admin access required" })
+    const role = decoded.role?.toUpperCase()
+
+    if (role !== "ADMIN" && role !== "STAFF") {
+      return res.status(403).json({ message: "Management access required" })
     }
 
     req.user = decoded

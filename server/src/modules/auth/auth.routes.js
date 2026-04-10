@@ -6,7 +6,7 @@ import prisma from "../../config/prisma.js"
 import authLimiter from "../../middleware/authRateLimiter.js"
 import { loginSchema, registerSchema } from "../../validators/auth.validator.js"
 import logger from "../../config/logger.js"
-import { sendPasswordResetEmail } from "../../config/email.js"
+import { sendPasswordResetEmail, sendVerificationEmail } from "../../config/email.js"
 import authenticate from "../../middleware/auth.middleware.js"
 
 const router = express.Router()
@@ -126,13 +126,111 @@ router.post("/register", authLimiter, async (req, res) => {
       },
     })
 
-    return await issueTokens(user, req, res)
+    // --- EMAIL VERIFICATION ---
+    const token = crypto.randomBytes(32).toString("hex")
+    await prisma.emailVerificationToken.create({
+      data: {
+        email: user.email,
+        token,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+      },
+    })
+
+    try {
+      await sendVerificationEmail(user.email, token)
+    } catch (emailErr) {
+      logger.error("Failed to send verification email", emailErr)
+    }
+
+    return res.json({
+      success: true,
+      message: "Registration successful! Please check your email to verify your account."
+    })
   } catch (err) {
     logger.error("REGISTER ERROR:", err)
 
     return res.status(500).json({
       message: "Registration failed",
     })
+  }
+})
+
+/* =============================
+   VERIFY EMAIL
+============================= */
+
+router.get("/verify-email", async (req, res) => {
+  const { token } = req.query
+
+  if (!token) {
+    return res.status(400).json({ message: "Token is required" })
+  }
+
+  try {
+    const verificationRecord = await prisma.emailVerificationToken.findUnique({
+      where: { token },
+    })
+
+    if (!verificationRecord || verificationRecord.expiresAt < new Date()) {
+      return res.status(400).json({ message: "Invalid or expired verification token" })
+    }
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { email: verificationRecord.email },
+        data: { emailVerified: true },
+      }),
+      prisma.emailVerificationToken.delete({
+        where: { id: verificationRecord.id },
+      }),
+    ])
+
+    return res.json({ success: true, message: "Email verified successfully! You can now log in." })
+  } catch (err) {
+    logger.error("VERIFY EMAIL ERROR:", err)
+    return res.status(500).json({ message: "Verification failed" })
+  }
+})
+
+/* =============================
+   RESEND VERIFICATION
+============================= */
+
+router.post("/resend-verification", authLimiter, async (req, res) => {
+  const { email } = req.body
+
+  if (!email) {
+    return res.status(400).json({ message: "Email is required" })
+  }
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } })
+
+    if (!user) {
+      return res.status(200).json({ success: true, message: "If an account exists, a new verification link has been sent." })
+    }
+
+    if (user.emailVerified) {
+      return res.status(400).json({ message: "Email is already verified" })
+    }
+
+    await prisma.emailVerificationToken.deleteMany({ where: { email } })
+
+    const token = crypto.randomBytes(32).toString("hex")
+    await prisma.emailVerificationToken.create({
+      data: {
+        email: user.email,
+        token,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    })
+
+    await sendVerificationEmail(user.email, token)
+
+    return res.json({ success: true, message: "Verification email resent!" })
+  } catch (err) {
+    logger.error("RESEND VERIFICATION ERROR:", err)
+    return res.status(500).json({ message: "Failed to resend verification email" })
   }
 })
 
@@ -162,6 +260,14 @@ router.post("/login", async (req, res) => {
     if (!user || !user.password) {
       return res.status(401).json({
         message: "Invalid credentials",
+      })
+    }
+
+    // CHECK VERIFICATION
+    if (!user.emailVerified) {
+      return res.status(403).json({
+        message: "Please verify your email before logging in.",
+        unverified: true,
       })
     }
 

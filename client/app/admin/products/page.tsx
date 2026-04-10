@@ -3,8 +3,25 @@
 export const dynamic = "force-dynamic"
 
 import { useEffect, useMemo, useState } from "react"
-import { api, API_URL } from "@/lib/api"
+import { api } from "@/lib/api"
 import imageCompression from "browser-image-compression"
+import { 
+  Plus, 
+  Search, 
+  Edit3, 
+  Trash2, 
+  Package, 
+  AlertTriangle, 
+  CheckCircle, 
+  Image as ImageIcon,
+  MoreVertical,
+  X,
+  Layers,
+  Archive,
+  QrCode
+} from "lucide-react"
+import toast from "react-hot-toast"
+import QRScanner from "@/components/admin/QRScanner"
 
 type Category = {
   id: string
@@ -18,18 +35,20 @@ type Product = {
   categoryId: string
   category: string
   image?: string | null
-  price: string
-  stock: string
+  price: number
+  stock: number
+  variants?: any[]
+  sku?: string
 }
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
-
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-
   const [editing, setEditing] = useState<Product | null>(null)
+  const [showModal, setShowModal] = useState(false)
+  const [showScanner, setShowScanner] = useState(false)
 
   const [form, setForm] = useState({
     name: "",
@@ -42,286 +61,344 @@ export default function AdminProducts() {
 
   const [preview, setPreview] = useState<string | null>(null)
   const [search, setSearch] = useState("")
-  const [error, setError] = useState("")
 
   useEffect(() => {
     fetchAll()
   }, [])
 
   async function fetchAll() {
-  try {
-    setLoading(true)
-
-    const [productRes, categoryRes] = await Promise.all([
-      api.get("/products"),
-      api.get("/categories")
-    ])
-
-    // ✅ FIX: your API returns raw data already
-    const productData = Array.isArray(productRes)
-      ? productRes
-      : productRes?.data || []
-
-    const categoryData = Array.isArray(categoryRes)
-      ? categoryRes
-      : categoryRes?.data || []
-
-    setCategories(categoryData)
+    try {
+      setLoading(true)
+      const [productRes, categoryRes] = await Promise.all([
+        api.get("/admin/products"),
+        api.get("/categories")
+      ])
+      
+      const productData = Array.isArray(productRes) ? productRes : productRes?.data || []
+      const categoryData = Array.isArray(categoryRes) ? categoryRes : categoryRes?.data || []
+      setCategories(categoryData)
 
       const mapped = productData.map((p: any) => {
-
-      const categoryId = p.categoryId || ""
-
-      const category = categoryData.find(
-        (c: any) => c.id === categoryId
-      )
-
-      return {
-        id: p.id,
-        name: p.name,
-        description: p.description || "",
-        categoryId,
-        category: category?.name || "Uncategorized",
-
-        // ✅ GUARANTEED IMAGE
-        image: p.image ?? null,
-
-        price: String(p.price || 0),
-        stock: "0"
-      }
-    })
-
-    setProducts(mapped)
-
-  } catch (err) {
-    console.error(err)
-    setProducts([])
-    setCategories([])
-  } finally {
-    setLoading(false)
+        const cat = categoryData.find((c: any) => c.id === p.categoryId)
+        const mainSku = p.variants?.[0]?.sku || ""
+        
+        return {
+          id: p.id,
+          name: p.name,
+          description: p.description || "",
+          categoryId: p.categoryId,
+          category: cat?.name || "Uncategorized",
+          image: p.image || null,
+          price: Number(p.price || 0),
+          stock: Number(p.stock || 0),
+          sku: mainSku,
+          variants: p.variants || []
+        }
+      })
+      setProducts(mapped)
+    } catch (err) {
+      console.error(err)
+      toast.error("Failed to sync inventory")
+    } finally {
+      setLoading(false)
+    }
   }
-}
+
+  const handleScan = (decodedText: string) => {
+    setShowScanner(false)
+    setSearch(decodedText)
+    
+    // Check if item exists
+    const found = products.find(p => 
+      p.sku?.toLowerCase() === decodedText.toLowerCase() || 
+      p.id?.toLowerCase() === decodedText.toLowerCase() ||
+      p.variants?.some(v => v.sku?.toLowerCase() === decodedText.toLowerCase())
+    )
+    
+    if (found) {
+      toast.success(`Product Detected: ${found.name}`)
+    } else {
+      toast.error("Product code not recognized in catalog")
+    }
+  }
 
   async function handleSubmit() {
-  try {
-    setSaving(true)
-    setError("")
+    try {
+      setSaving(true)
+      if (!form.name || !form.categoryId || !form.price || !form.stock) {
+        toast.error("All core fields are required")
+        return
+      }
 
-    if (!form.name || !form.categoryId || !form.price || !form.stock) {
-      setError("All fields are required")
-      return
+      const formData = new FormData()
+      formData.append("name", form.name)
+      formData.append("description", form.description)
+      formData.append("categoryId", form.categoryId)
+      formData.append("price", String(Number(form.price)))
+      formData.append("stock", String(Number(form.stock)))
+      if (form.image) formData.append("image", form.image)
+
+      if (editing) {
+        await api.put(`/products/${editing.id}`, formData)
+        toast.success("Product updated successfully")
+      } else {
+        await api.post("/products", formData)
+        toast.success("New product deployed")
+      }
+
+      closeModal()
+      fetchAll()
+    } catch (err: any) {
+      toast.error(err.message || "Operation failed")
+    } finally {
+      setSaving(false)
     }
-
-    const formData = new FormData()
-    formData.append("name", form.name)
-    formData.append("description", form.description)
-    formData.append("categoryId", form.categoryId)
-    formData.append("price", String(Number(form.price)))
-    formData.append("stock", String(Number(form.stock)))
-
-    if (form.image) {
-      formData.append("image", form.image)
-    }
-
-    // ✅ USE API WRAPPER
-    const data = await api.post("/products", formData)
-
-    console.log("UPLOAD RESPONSE:", data)
-
-    resetForm()
-    fetchAll()
-
-  } catch (err: any) {
-    console.error("SAVE ERROR:", err)
-    setError(err.message || "Save failed")
-  } finally {
-    setSaving(false)
-  }
-}
-
-  function resetForm() {
-    setEditing(null)
-    setPreview(null)
-    setForm({
-      name: "",
-      description: "",
-      categoryId: "",
-      price: "",
-      stock: "",
-      image: null
-    })
   }
 
   function handleEdit(product: Product) {
     setEditing(product)
-    setPreview(product.image || null)
-
     setForm({
       name: product.name,
       description: product.description,
       categoryId: product.categoryId,
-      price: product.price,
-      stock: product.stock,
+      price: String(product.price),
+      stock: String(product.stock),
       image: null
     })
+    setPreview(product.image || null)
+    setShowModal(true)
+  }
+
+  function closeModal() {
+    setEditing(null)
+    setShowModal(false)
+    setPreview(null)
+    setForm({ name: "", description: "", categoryId: "", price: "", stock: "", image: null })
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Delete product?")) return
-    await api.delete(`/products/${id}`)
-    fetchAll()
+    if (!confirm("Are you sure? This will remove the product permanently.")) return
+    try {
+      await api.delete(`/products/${id}`)
+      toast.success("Product archived")
+      fetchAll()
+    } catch (err) {
+      toast.error("Archive failed")
+    }
   }
 
   const filteredProducts = useMemo(() => {
-    return products.filter(p =>
-      p.name.toLowerCase().includes(search.toLowerCase())
+    return products.filter(p => 
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.sku?.toLowerCase().includes(search.toLowerCase()) ||
+      p.id?.toLowerCase().includes(search.toLowerCase())
     )
   }, [products, search])
 
-  if (loading) {
-    return (
-      <div className="py-20 flex justify-center items-center gap-3 text-[var(--text-muted)] font-medium">
-         <svg className="animate-spin h-6 w-6 text-[var(--brand-primary)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-         Synchronizing inventory...
-      </div>
-    )
-  }
+  const isInitialLoading = loading && products.length === 0
 
   return (
-    <div className="space-y-8">
-
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-extrabold text-[var(--text-heading)] tracking-tight">Inventory Management</h1>
-        <p className="text-[var(--text-muted)] font-medium">Add, edit, or remove products and categorizations from the global catalog.</p>
+    <div className="space-y-8 pb-20">
+      
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-3xl font-[1000] text-[var(--text-heading)] tracking-tighter">Inventory Console</h1>
+          <p className="text-[var(--text-muted)] text-sm font-bold uppercase tracking-wider mt-1">Catalog management & Stock Control</p>
+        </div>
+        <button 
+          onClick={() => setShowModal(true)}
+          className="btn-premium !py-3 !px-6 text-sm !font-black uppercase tracking-widest flex items-center gap-2 shadow-xl"
+        >
+          <Plus size={18} strokeWidth={3} /> Add Product
+        </button>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
-
-        {/* FORM */}
-        <div className="bg-white/80 backdrop-blur-md rounded-3xl border border-[var(--border-light)] p-8 shadow-sm h-fit">
-          <h2 className="text-xl font-bold text-[var(--text-heading)] mb-6">
-            {editing ? "Edit Product" : "Add New Product"}
-          </h2>
-
-          {error && <p className="text-red-500 text-sm font-semibold mb-4 bg-red-50 py-2 px-3 rounded-lg border border-red-100">{error}</p>}
-
-          <div className="space-y-4">
-            <input className="w-full px-4 py-3 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)]/30 focus:border-[var(--brand-primary)] transition placeholder:text-gray-400 font-medium text-sm" placeholder="Product Name"
-              value={form.name}
-              onChange={(e)=>setForm({...form,name:e.target.value})}
-            />
-
-            <textarea className="w-full px-4 py-3 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)]/30 focus:border-[var(--brand-primary)] transition placeholder:text-gray-400 font-medium text-sm min-h-[100px] resize-y" placeholder="Product Description"
-              value={form.description}
-              onChange={(e)=>setForm({...form,description:e.target.value})}
-            />
-
-            <select
-              className="w-full px-4 py-3 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)]/30 focus:border-[var(--brand-primary)] transition font-medium text-sm"
-              value={form.categoryId}
-              onChange={(e)=>setForm({...form,categoryId:e.target.value})}
-            >
-              <option value="">Select Category</option>
-              {loading && <option disabled>Loading categories...</option>}
-              {!loading && categories.length === 0 && (
-                <option disabled>No categories found</option>
-              )}
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </select>
-
-            <div className="grid grid-cols-2 gap-4">
-              <input type="number" className="w-full px-4 py-3 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)]/30 focus:border-[var(--brand-primary)] transition placeholder:text-gray-400 font-medium text-sm" placeholder="Price (₱)"
-                value={form.price}
-                onChange={(e)=>setForm({...form,price:e.target.value})}
-              />
-              <input type="number" className="w-full px-4 py-3 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)]/30 focus:border-[var(--brand-primary)] transition placeholder:text-gray-400 font-medium text-sm" placeholder="Stock Quantity"
-                value={form.stock}
-                onChange={(e)=>setForm({...form,stock:e.target.value})}
-              />
-            </div>
-
-            <div className="border-2 border-dashed border-[var(--border-light)] rounded-xl p-6 text-center hover:bg-[var(--bg-surface)] transition-colors cursor-pointer group relative overflow-hidden">
-              <input type="file"
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0]
-                  if (!file) return
-                  const compressed = await imageCompression(file, { maxSizeMB: 1, maxWidthOrHeight: 1200, useWebWorker: true })
-                  const finalFile = new File([compressed], file.name, { type: compressed.type })
-                  setForm((prev) => ({ ...prev, image: finalFile }))
-                  setPreview(URL.createObjectURL(finalFile))
-                }}  
-              />
-              <div className="flex flex-col items-center justify-center gap-2 pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400 group-hover:text-[var(--brand-primary)] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                <span className="text-sm font-semibold text-gray-500 group-hover:text-[var(--brand-primary)] transition-colors">Upload Product Image</span>
-              </div>
-            </div>
-
-            {preview && (
-              <div className="relative rounded-xl overflow-hidden shadow-sm h-32 w-fit border border-[var(--border-light)] group">
-                <img src={preview} className="h-full object-cover" />
-                <div onClick={()=> { setPreview(null); setForm(p => ({...p, image: null })) }} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center cursor-pointer text-white font-bold text-xs uppercase tracking-widest">Remove</div>
-              </div>
-            )}
-
-            <button
-              onClick={handleSubmit}
-              disabled={saving}
-              className="btn-premium w-full mt-2"
-            >
-              {saving ? "Saving Data..." : (editing ? "Update Target" : "Deploy Product")}
-            </button>
-          </div>
+      {/* FILTERS & SEARCH */}
+      <div className="bg-white rounded-[2rem] border border-[var(--border-light)] p-4 flex flex-col md:flex-row gap-4 shadow-sm">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <input 
+            placeholder="Search catalog by name..." 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-12 pr-4 py-4 bg-[var(--bg-surface)] border border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-[1.5rem] text-sm font-bold focus:outline-none transition-all shadow-inner"
+          />
         </div>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => setShowScanner(true)}
+            className="px-6 py-4 bg-white border border-[var(--border-light)] rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition shadow-sm flex items-center gap-2 text-[var(--brand-primary)]"
+          >
+            <QrCode size={18} /> Scan QR
+          </button>
+          <button className="px-6 py-4 bg-white border border-[var(--border-light)] rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition shadow-sm flex items-center gap-2">
+            <Layers size={14} /> Categories
+          </button>
+          <button className="px-6 py-4 bg-white border border-[var(--border-light)] rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition shadow-sm flex items-center gap-2">
+            <Archive size={14} /> Archived
+          </button>
+        </div>
+      </div>
 
-        {/* LIST */}
-        <div className="bg-white/80 backdrop-blur-md rounded-3xl border border-[var(--border-light)] p-8 shadow-sm flex flex-col max-h-[800px]">
-          
-          <div className="relative mb-6">
-             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-             </div>
-            <input className="w-full pl-11 pr-4 py-3 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)]/30 focus:border-[var(--brand-primary)] transition placeholder:text-gray-400 font-medium text-sm"
-              placeholder="Search catalog..."
-              value={search}
-              onChange={(e)=>setSearch(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-4 overflow-y-auto flex-1 pr-2 custom-scrollbar">
+      {/* PRODUCT GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {isInitialLoading ? (
+          Array(6).fill(0).map((_, i) => <SkeletonProductCard key={i} />)
+        ) : (
+          <>
             {filteredProducts.map(p => (
-              <div key={p.id} className="flex justify-between items-center bg-[var(--bg-surface)] border border-[var(--border-light)] p-4 rounded-2xl hover:border-[var(--brand-primary)]/30 transition-colors group">
-                <div className="flex gap-4 items-center">
-                  <div className="w-14 h-14 rounded-xl overflow-hidden border border-[var(--border-light)] shadow-sm shrink-0">
-                    <img src={p.image ? p.image : "/placeholder.png"} className="w-full h-full object-cover"/>
-                  </div>
-                  <div>
-                    <div className="font-bold text-[var(--text-heading)] leading-tight mb-1">{p.name}</div>
-                    <div className="text-xs font-semibold text-[var(--brand-accent)] uppercase tracking-wider">{p.category}</div>
-                  </div>
-                </div>
+              <ProductCard key={p.id} product={p} onEdit={() => handleEdit(p)} onDelete={() => handleDelete(p.id)} />
+            ))}
+            {!isInitialLoading && filteredProducts.length === 0 && (
+              <div className="col-span-full py-32 text-center text-[var(--text-muted)] italic font-bold">
+                No products match your current search criteria.
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
-                <div className="flex flex-col items-end gap-2 shrink-0 ml-4">
-                  <div className="text-sm font-bold text-[var(--brand-primary)]">
-                    ₱{Number(p.price).toLocaleString()}
-                  </div>
-                  <div className="flex gap-3 text-xs font-bold uppercase tracking-widest opacity-50 group-hover:opacity-100 transition-opacity">
-                    <button onClick={()=>handleEdit(p)} className="text-[var(--brand-primary)] hover:text-[#1a2c47]">Edit</button>
-                    <button onClick={()=>handleDelete(p.id)} className="text-red-500 hover:text-red-700">Drop</button>
-                  </div>
+      {/* MODALS */}
+      {showModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-fade-in">
+          <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/20 animate-scale-up">
+            <div className="bg-[var(--bg-surface)] px-10 py-8 border-b border-[var(--border-light)] flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-[1000] text-[var(--text-heading)] tracking-tighter">
+                  {editing ? 'Update Record' : 'Deploy Product'}
+                </h2>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand-primary)] mt-1">Catalog Integrity System</p>
+              </div>
+              <button onClick={closeModal} className="p-2 hover:bg-gray-200 rounded-full transition text-gray-400">
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="p-10 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                   <InputField label="Product Designation" value={form.name} onChange={(v)=>setForm({...form, name: v})} placeholder="e.g. Classic Marine Shirt" />
+                   <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">Composition Description</label>
+                      <textarea 
+                        value={form.description}
+                        onChange={(e)=>setForm({...form, description: e.target.value})}
+                        className="w-full px-5 py-4 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] text-sm font-bold min-h-[120px] transition-all"
+                        placeholder="Detail the product unique features..."
+                      />
+                   </div>
+                </div>
+                <div className="space-y-4">
+                   <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">Classification Group</label>
+                      <select 
+                        value={form.categoryId}
+                        onChange={(e)=>setForm({...form, categoryId: e.target.value})}
+                        className="w-full px-5 py-4 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] text-sm font-bold transition-all"
+                      >
+                        <option value="">Select Category</option>
+                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      </select>
+                   </div>
+                   <div className="grid grid-cols-2 gap-4">
+                      <InputField label="Market Value (₱)" value={form.price} onChange={(v)=>setForm({...form, price: v})} type="number" />
+                      <InputField label="Stock Units" value={form.stock} onChange={(v)=>setForm({...form, stock: v})} type="number" />
+                   </div>
+                   <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">Product Media</label>
+                      <div className="relative border-2 border-dashed border-[var(--border-light)] rounded-2xl p-6 text-center hover:bg-gray-50 transition min-h-[140px] flex flex-col items-center justify-center gap-2">
+                         <input 
+                           type="file" 
+                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                           onChange={async(e)=>{
+                             const f = e.target.files?.[0]; if(!f) return;
+                             const comp = await imageCompression(f, { maxSizeMB: 1, maxWidthOrHeight: 1200, useWebWorker: true });
+                             setForm({...form, image: new File([comp], f.name, {type: comp.type})});
+                             setPreview(URL.createObjectURL(comp));
+                           }}
+                         />
+                         {preview ? (
+                           <img src={preview} className="absolute inset-0 w-full h-full object-cover rounded-2xl" />
+                         ) : (
+                           <>
+                             <ImageIcon className="text-gray-300" size={32} />
+                             <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Drop visual asset here</span>
+                           </>
+                         )}
+                      </div>
+                   </div>
                 </div>
               </div>
-            ))}
-            {filteredProducts.length === 0 && (
-              <div className="text-center py-10 text-[var(--text-muted)] italic font-medium">No products match your search.</div>
-            )}
+            </div>
+
+            <div className="p-10 bg-[var(--bg-surface)] border-t border-[var(--border-light)] flex gap-4">
+              <button onClick={closeModal} className="flex-1 px-8 py-4 rounded-2xl border-2 border-[var(--border-light)] text-xs font-black uppercase tracking-widest hover:bg-white transition">Discard</button>
+              <button 
+                onClick={handleSubmit} 
+                className="flex-[2] btn-premium !py-4 shadow-xl text-sm font-black uppercase tracking-[0.1em]"
+                disabled={saving}
+              >
+                {saving ? 'Syncing...' : (editing ? 'Update Production' : 'Deploy to Catalog')}
+              </button>
+            </div>
           </div>
         </div>
+      )}
 
+      {showScanner && <QRScanner onScan={handleScan} onClose={() => setShowScanner(false)} />}
+    </div>
+  )
+}
+
+function ProductCard({ product, onEdit, onDelete }: { product: Product, onEdit: any, onDelete: any }) {
+  const isLowStock = product.stock > 0 && product.stock <= 5
+  const isOutOfStock = product.stock === 0
+  return (
+    <div className="bg-white rounded-[2rem] border border-[var(--border-light)] p-6 shadow-sm hover:shadow-xl transition-all duration-500 group relative">
+      <div className="absolute top-4 right-4 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+         <button onClick={onEdit} className="p-2 bg-white rounded-xl shadow-md border border-gray-100 text-[var(--brand-primary)] hover:bg-[var(--brand-primary)] hover:text-white transition"><Edit3 size={14}/></button>
+         <button onClick={onDelete} className="p-2 bg-white rounded-xl shadow-md border border-gray-100 text-red-500 hover:bg-red-500 hover:text-white transition"><Trash2 size={14}/></button>
+      </div>
+      <div className="w-full aspect-square rounded-[1.5rem] bg-[var(--bg-surface)] border border-gray-100 overflow-hidden relative mb-6">
+        {product.image ? (
+          <img src={product.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={product.name} />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-300"><ImageIcon size={48} /></div>
+        )}
+        {(isLowStock || isOutOfStock) && (
+           <div className={`absolute bottom-3 left-3 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1 shadow-lg ${isOutOfStock ? "bg-red-500 text-white" : "bg-amber-500 text-white"}`}>
+             <AlertTriangle size={10} /> {isOutOfStock ? "Zero Stock" : `Low: ${product.stock} left`}
+           </div>
+        )}
+      </div>
+      <div>
+        <div className="flex justify-between items-start mb-1">
+           <span className="text-[10px] font-black uppercase tracking-widest text-[var(--brand-accent)]">{product.category}</span>
+           <span className="text-sm font-[1000] text-[var(--brand-primary)]">₱{product.price.toLocaleString()}</span>
+        </div>
+        <h3 className="text-lg font-black text-[var(--text-heading)] leading-tight line-clamp-1 mb-4">{product.name}</h3>
+        <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+           <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${isOutOfStock ? 'bg-red-500' : 'bg-emerald-500'}`} />
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">{product.stock} in Inventory</span>
+           </div>
+           {product.stock > 0 && <span className="text-[10px] text-emerald-600 font-bold uppercase flex items-center gap-1"><CheckCircle size={10}/> Ready</span>}
+        </div>
       </div>
     </div>
   )
+}
+
+function InputField({ label, value, onChange, type = "text", placeholder }: any) {
+  return (
+    <div className="space-y-1">
+      <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">{label}</label>
+      <input type={type} value={value} onChange={(e)=>onChange(e.target.value)} className="w-full px-5 py-4 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] text-sm font-bold transition-all" placeholder={placeholder} />
+    </div>
+  )
+}
+
+function SkeletonProductCard() {
+  return <div className="bg-white rounded-[2rem] border border-gray-100 p-6 shadow-sm animate-pulse h-[350px]" />
 }

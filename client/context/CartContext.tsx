@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
+import toast from "react-hot-toast"
 
 import {
   createContext,
@@ -67,11 +68,14 @@ const CartContext = createContext<CartContextType | null>(null)
 
 /* ========================= */
 
-const getCartKey = (guestId: string | null) =>
-  guestId ? `dse_cart_${guestId}` : "dse_cart"
-
 const GUEST_STORAGE_KEY = "dse_guest_id"
+// Namespaced per guest so carts don't bleed between guests
+const getGuestCartKey = (guestId: string) => `dse_cart_guest_${guestId}`
+
 const MAX_QTY = 99
+
+// Track the last userId we loaded cart for — prevents stale merges
+const LAST_CART_USER_KEY = "dse_last_cart_user"
 
 /* ========================= */
 
@@ -81,43 +85,42 @@ export function CartProvider({
   children: React.ReactNode
 }) {
 
-  // ✅ FIX: moved inside component
   const { user } = useAuth()
 
   const [cart, setCart] = useState<CartItem[]>([])
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [guestId, setGuestId] = useState<string | null>(null)
   const [lastAddedVariantId, setLastAddedVariantId] = useState<string | null>(null)
-
-  const setCartItems = useCallback((items: CartItem[]) => {
-    setCart(items)
-    // Do NOT auto-select — cart starts with nothing selected
-  }, [])
-
+  const [isCartOpen, setIsCartOpen] = useState(false)
   const [animateCart, setAnimateCart] = useState(false)
 
   const animationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const storageDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Track which userId we've already initialized for — prevents double-merge
+  const initializedUserId = useRef<string | null | undefined>(undefined)
 
-  const [isCartOpen, setIsCartOpen] = useState(false)
+  const setCartItems = useCallback((items: CartItem[]) => {
+    setCart(items)
+  }, [])
 
   const openCart = () => setIsCartOpen(true)
   const closeCart = () => setIsCartOpen(false)
 
   /* =========================
-     INIT GUEST
+     INIT GUEST ID
+     Only runs once on mount.
+     Guest ID is stable per browser session.
   ========================= */
 
   useEffect(() => {
     try {
-      const storedGuest = localStorage.getItem(GUEST_STORAGE_KEY)
-
-      if (storedGuest) {
-        setGuestId(storedGuest)
+      const stored = localStorage.getItem(GUEST_STORAGE_KEY)
+      if (stored) {
+        setGuestId(stored)
       } else {
-        const newGuest = uuidv4()
-        localStorage.setItem(GUEST_STORAGE_KEY, newGuest)
-        setGuestId(newGuest)
+        const newId = uuidv4()
+        localStorage.setItem(GUEST_STORAGE_KEY, newId)
+        setGuestId(newId)
       }
     } catch {
       setGuestId(null)
@@ -125,26 +128,111 @@ export function CartProvider({
   }, [])
 
   /* =========================
-     LOAD CART
+     CART LOAD + MERGE (AUTHORITATIVE)
+
+     This single effect handles ALL cart initialization:
+     - Logged-in user → fetch from server
+     - Guest → load from localStorage
+     - Login event → clear state first, then optionally merge guest cart
+
+     Key rule: we track `initializedUserId` so we only merge once
+     per distinct login event. If the same user is already loaded,
+     we skip.
   ========================= */
 
   useEffect(() => {
-    if (user) {
-      api.get<{ items: CartItem[] }>("/cart")
-        .then(res => {
-          setCart(res.items || [])
-        })
-        .catch(() => setCart([]))
-    } else if (guestId) {
+    // Don't run until guestId is resolved
+    if (guestId === null) return
+
+    const currentUserId = user?.id ?? null
+    const previousUserId = initializedUserId.current
+
+    // Skip if nothing has changed (prevents redundant re-fetches)
+    if (previousUserId !== undefined && previousUserId === currentUserId) return
+
+    // Mark as initialized for this userId
+    initializedUserId.current = currentUserId
+
+    if (currentUserId) {
+      // ============================
+      // LOGGED-IN: fetch server cart
+      // ============================
+
+      // Clear local cart immediately so old/guest items don't flash
+      setCart([])
+      setSelectedItems([])
+
+      // Check if there's a guest cart to merge
+      const guestCartKey = getGuestCartKey(guestId)
+      let guestItems: CartItem[] = []
       try {
-        const key = getCartKey(guestId)
-        const stored = localStorage.getItem(key)
+        const raw = localStorage.getItem(guestCartKey)
+        if (raw) {
+          guestItems = JSON.parse(raw) as CartItem[]
+        }
+      } catch {
+        guestItems = []
+      }
 
-        if (!stored) return
+      const loadAndMerge = async () => {
+        try {
+          // First merge guest items into the server cart (if any)
+          if (guestItems.length > 0) {
+            for (const item of guestItems) {
+              try {
+                await api.post("/cart", {
+                  variantId: item.variantId,
+                  productId: item.productId,
+                  quantity: item.quantity,
+                })
+              } catch {
+                // Skip failed items silently
+              }
+            }
+            // Clear guest cart from localStorage after merge
+            localStorage.removeItem(guestCartKey)
+            // Generate a fresh guest ID so next logout gets a clean slate
+            const freshGuestId = uuidv4()
+            localStorage.setItem(GUEST_STORAGE_KEY, freshGuestId)
+            setGuestId(freshGuestId)
+          }
 
-        const parsed = JSON.parse(stored)
-        setCart(parsed)
-        // Do NOT auto-select on load — starts unselected
+          // Now fetch the authoritative server cart
+          const res = await api.get<{ items: CartItem[] }>("/cart")
+          setCart(res.items || [])
+        } catch {
+          setCart([])
+        }
+      }
+
+      loadAndMerge()
+
+    } else if (previousUserId !== undefined && previousUserId !== null) {
+      // ============================
+      // LOGOUT EVENT: clear everything
+      // ============================
+      setCart([])
+      setSelectedItems([])
+
+      // Generate fresh guest ID so the logged-out session is isolated
+      const freshGuestId = uuidv4()
+      try {
+        localStorage.setItem(GUEST_STORAGE_KEY, freshGuestId)
+      } catch {}
+      setGuestId(freshGuestId)
+
+    } else if (!currentUserId) {
+      // ============================
+      // GUEST: load from localStorage
+      // ============================
+      try {
+        const guestCartKey = getGuestCartKey(guestId)
+        const raw = localStorage.getItem(guestCartKey)
+        if (raw) {
+          setCart(JSON.parse(raw))
+        } else {
+          setCart([])
+        }
       } catch {
         setCart([])
       }
@@ -152,52 +240,19 @@ export function CartProvider({
   }, [user, guestId])
 
   /* =========================
-     MERGE GUEST CART
-  ========================= */
-
-  useEffect(() => {
-    if (!user || !guestId) return
-
-    const key = getCartKey(guestId)
-    const guestCart = localStorage.getItem(key)
-
-    if (!guestCart) return
-
-    const parsed = JSON.parse(guestCart)
-
-    const merge = async () => {
-      for (const item of parsed) {
-        await api.post("/cart", {
-          variantId: item.variantId,
-          productId: item.productId,
-          quantity: item.quantity
-        })
-      }
-
-      localStorage.removeItem(key)
-
-      const res = await api.get<{ items: CartItem[] }>("/cart")
-      setCart(res.items || [])
-    }
-
-    merge()
-  }, [user, guestId])
-
-  /* =========================
-     SAVE CART
+     PERSIST GUEST CART
+     Only saves when not logged in.
   ========================= */
 
   useEffect(() => {
     if (user) return
     if (!guestId) return
 
-    if (storageDebounce.current) {
-      clearTimeout(storageDebounce.current)
-    }
+    if (storageDebounce.current) clearTimeout(storageDebounce.current)
 
     storageDebounce.current = setTimeout(() => {
       try {
-        const key = getCartKey(guestId)
+        const key = getGuestCartKey(guestId)
         localStorage.setItem(key, JSON.stringify(cart))
       } catch {}
     }, 200)
@@ -209,12 +264,8 @@ export function CartProvider({
 
   useEffect(() => {
     return () => {
-      if (animationTimeout.current) {
-        clearTimeout(animationTimeout.current)
-      }
-      if (storageDebounce.current) {
-        clearTimeout(storageDebounce.current)
-      }
+      if (animationTimeout.current) clearTimeout(animationTimeout.current)
+      if (storageDebounce.current) clearTimeout(storageDebounce.current)
     }
   }, [])
 
@@ -224,14 +275,8 @@ export function CartProvider({
 
   const triggerCartAnimation = () => {
     setAnimateCart(true)
-
-    if (animationTimeout.current) {
-      clearTimeout(animationTimeout.current)
-    }
-
-    animationTimeout.current = setTimeout(() => {
-      setAnimateCart(false)
-    }, 300)
+    if (animationTimeout.current) clearTimeout(animationTimeout.current)
+    animationTimeout.current = setTimeout(() => setAnimateCart(false), 300)
   }
 
   /* =========================
@@ -244,38 +289,32 @@ export function CartProvider({
         await api.post("/cart", {
           variantId: item.variantId,
           productId: item.productId,
-          quantity: item.quantity
+          quantity: item.quantity,
         })
-
         const res = await api.get<{ items: CartItem[] }>("/cart")
         setCart(res.items || [])
+        toast.success(`"${item.name}" added to cart`)
       } catch (err) {
         console.error("Cart API error", err)
+        toast.error("Failed to add item to cart")
       }
     } else {
       setCart(prev => {
         const existing = prev.find(
-        p =>
-          p.variantId === item.variantId &&
-          p.productId === item.productId
-      )
-
+          p => p.variantId === item.variantId && p.productId === item.productId
+        )
         if (existing) {
           return prev.map(p =>
             p.variantId === item.variantId
-              ? {
-                  ...p,
-                  quantity: Math.min(p.quantity + item.quantity, MAX_QTY)
-                }
+              ? { ...p, quantity: Math.min(p.quantity + item.quantity, MAX_QTY) }
               : p
           )
         }
-
         return [...prev, item]
       })
+      toast.success(`"${item.name}" added to cart`)
     }
 
-    // Select ONLY this newly added item (deselect others)
     setSelectedItems([item.variantId])
     setLastAddedVariantId(item.variantId)
     triggerCartAnimation()
@@ -297,10 +336,7 @@ export function CartProvider({
       setCart(prev =>
         prev.map(item =>
           item.variantId === variantId
-            ? {
-                ...item,
-                quantity: Math.min(quantity, MAX_QTY)
-              }
+            ? { ...item, quantity: Math.min(quantity, MAX_QTY) }
             : item
         )
       )
@@ -318,17 +354,19 @@ export function CartProvider({
 
   const removeFromCart = useCallback(
     async (variantId: string) => {
-      setCart(prev =>
-        prev.filter(item => item.variantId !== variantId)
-      )
+      setCart(prev => prev.filter(item => item.variantId !== variantId))
       setSelectedItems(prev => prev.filter(id => id !== variantId))
 
       if (user) {
         try {
           await api.delete(`/cart/item/${variantId}`)
+          toast.success("Item removed from cart")
         } catch (err) {
           console.error("Failed to remove item from server cart", err)
+          toast.error("Failed to remove item")
         }
+      } else {
+        toast.success("Item removed")
       }
     },
     [user]
@@ -337,7 +375,7 @@ export function CartProvider({
   const clearCart = useCallback(async () => {
     setCart([])
     setSelectedItems([])
-    
+
     if (user) {
       try {
         await api.delete("/cart")
@@ -349,20 +387,13 @@ export function CartProvider({
 
   /* ========================= */
 
-  const cartCount = useMemo(() => {
-    return cart.reduce((acc, item) => acc + item.quantity, 0)
-  }, [cart])
-
-  const subtotal = useMemo(() => {
-    return cart.reduce((acc, item) => acc + item.price * item.quantity, 0)
-  }, [cart])
-
+  const cartCount = useMemo(() => cart.reduce((acc, item) => acc + item.quantity, 0), [cart])
+  const subtotal = useMemo(() => cart.reduce((acc, item) => acc + item.price * item.quantity, 0), [cart])
   const total = subtotal
   const isEmpty = cart.length === 0
 
   const toggleSelection = useCallback((variantId: string) => {
     setSelectedItems(prev =>
-      // If already selected → deselect (empty). If not → select ONLY this one.
       prev.includes(variantId) ? [] : [variantId]
     )
   }, [])
@@ -413,7 +444,7 @@ export function CartProvider({
         animateCart,
         isCartOpen,
         openCart,
-        closeCart
+        closeCart,
       }}
     >
       {children}
@@ -425,10 +456,6 @@ export function CartProvider({
 
 export const useCart = () => {
   const ctx = useContext(CartContext)
-
-  if (!ctx) {
-    throw new Error("useCart must be used within CartProvider")
-  }
-
+  if (!ctx) throw new Error("useCart must be used within CartProvider")
   return ctx
 }

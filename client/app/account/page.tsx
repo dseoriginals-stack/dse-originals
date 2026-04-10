@@ -1,346 +1,363 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { User, Package, Heart, Settings, LogOut } from "lucide-react"
+import { 
+  User, 
+  Package, 
+  Heart, 
+  Settings, 
+  LogOut, 
+  ChevronRight, 
+  TrendingUp, 
+  CreditCard, 
+  Truck,
+  Clock,
+  ArrowRight
+} from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
-import AuthModal from "@/components/AuthModal"
-import { orderService } from "@/lib/services/order"
+import { api } from "@/lib/api"
+import Link from "next/link"
 
 export default function AccountPage() {
   const { user, loading, logout } = useAuth()
-
   const [orders, setOrders] = useState<any[]>([])
-  const [ordersLoading, setOrdersLoading] = useState(false)
-
+  const [loadingOrders, setLoadingOrders] = useState(false)
+  const [activeTab, setActiveTab] = useState("overview")
   const [selectedOrder, setSelectedOrder] = useState<any>(null)
-  const [tracking, setTracking] = useState<any[]>([])
-  const [trackingLoading, setTrackingLoading] = useState(false)
 
-  const [open, setOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState("dashboard")
-
-  /* LOAD ORDERS */
   useEffect(() => {
-    if (!user) return
-
-    const loadOrders = async () => {
-      try {
-        setOrdersLoading(true)
-        const data = await orderService.getMyOrders()
-        setOrders(data)
-      } catch {
-        console.error("Orders fetch failed")
-      } finally {
-        setOrdersLoading(false)
-      }
+    if (user) {
+      fetchOrders()
     }
-
-    loadOrders()
   }, [user])
 
-  /* AUTO OPEN LOGIN */
-  useEffect(() => {
-    if (!user && !loading) setOpen(true)
-  }, [user, loading])
-
-  /* VIEW ORDER */
-  const handleViewOrder = async (order: any) => {
-    setSelectedOrder(order)
-
+  async function fetchOrders() {
     try {
-      setTrackingLoading(true)
-      const res = await orderService.getTracking(order.id)
-      setTracking(res.events || [])
-    } catch {
-      setTracking([])
+      setLoadingOrders(true)
+      const data = await api.get("/orders/my-orders") 
+      setOrders(data || [])
+    } catch (err) {
+      console.error("Failed to load orders")
     } finally {
-      setTrackingLoading(false)
+      setLoadingOrders(false)
     }
   }
 
-  if (loading) {
+  if (loading) return <div className="h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-[var(--brand-primary)] border-t-transparent rounded-full animate-spin"/></div>
+
+  if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
-        Loading your account...
+      <div className="min-h-screen bg-[var(--bg-main)] flex flex-col items-center justify-center p-6">
+        <div className="bg-white p-12 rounded-[3rem] shadow-2xl border border-[var(--border-light)] text-center max-w-lg w-full">
+           <div className="w-20 h-20 bg-[var(--bg-surface)] rounded-3xl flex items-center justify-center text-[var(--brand-primary)] mx-auto mb-6">
+             <User size={40} />
+           </div>
+           <h1 className="text-3xl font-[1000] text-[var(--text-heading)] mb-4 tracking-tighter">Your DSE Journey</h1>
+           <p className="text-[var(--text-muted)] font-bold mb-10 leading-relaxed">Sign in to unlock your order history, manage your shipments, and track your lucky points.</p>
+           <Link href="/login" className="btn-premium flex items-center justify-center !py-4 !px-10 shadow-xl w-full text-sm font-black uppercase tracking-widest">
+             Sign In to Dashboard
+           </Link>
+           <div className="mt-6 flex flex-col gap-3">
+              <Link href="/register" className="text-xs font-black uppercase text-[var(--brand-primary)] tracking-widest hover:underline">
+                Create new account
+              </Link>
+              <div className="h-px bg-gray-100 w-1/2 mx-auto my-2" />
+              <Link href="/track" className="text-xs font-bold text-[var(--text-muted)] hover:text-[var(--brand-primary)] flex items-center justify-center gap-1 transition">
+                 <Package size={14} /> Track Guest Order
+              </Link>
+           </div>
+        </div>
       </div>
     )
   }
 
+  const luckyPoints = user.luckyPoints || 0
+  const totalSpent = orders.reduce((acc, o) => acc + Number(o.total || 0), 0)
+
   return (
-    <div className="min-h-screen bg-[var(--bg-main)] px-4 py-10 md:py-16 md:px-10">
-      <div className="max-w-6xl mx-auto">
-
-        {/* HEADER */}
-        <div className="mb-12 flex items-center justify-between bg-[var(--bg-card)] border border-[var(--border-light)] px-8 py-6 rounded-[2rem] shadow-sm">
-          <div className="flex items-center gap-6">
-
-            {/* AVATAR */}
-            <div className="
-              w-16 h-16 rounded-full
-              bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-accent)]
-              text-white flex items-center justify-center text-2xl
-              font-extrabold shadow-lg border-4 border-white
-            ">
-              {(user?.name?.charAt(0) || user?.email?.charAt(0) || "?").toUpperCase()}
+    <div className="min-h-screen bg-[var(--bg-main)] pb-20">
+      
+      {/* HERO SECTION */}
+      <div className="bg-[var(--brand-primary)] pt-20 pb-40 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 relative z-10">
+          <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-[2rem] bg-white p-1 shadow-2xl border-4 border-white/20">
+               <div className="w-full h-full rounded-[1.8rem] bg-gradient-to-tr from-gray-100 to-white flex items-center justify-center text-[var(--brand-primary)] text-4xl font-[1000]">
+                  {user.name?.charAt(0) || user.email?.charAt(0)}
+               </div>
             </div>
-
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-heading)]">
-                {user ? `Welcome back, ${user.name || "User"}` : "Your Account"}
-              </h1>
-              <p className="text-[var(--text-muted)] font-semibold text-sm tracking-wide mt-1">
-                {user ? user.email : "Login to access your profile"}
-              </p>
+            <div className="text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start gap-3">
+                <h1 className="text-4xl md:text-5xl font-[1000] text-white tracking-tighter">Hello, {user.name?.split(' ')[0]}</h1>
+                <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase text-white tracking-widest border border-white/10">Member</span>
+              </div>
+              <p className="text-white/70 font-bold mt-2 text-sm md:text-base">{user.email}</p>
             </div>
           </div>
-
-          {user && (
-            <button
-              onClick={logout}
-              className="flex items-center gap-2 text-sm text-red-500 hover:opacity-70"
-            >
-              <LogOut size={16} />
-              Logout
-            </button>
-          )}
         </div>
-
-        {/* GUEST */}
-        {!user && (
-          <div className="bg-[var(--bg-card)] rounded-[2rem] border border-[var(--border-light)] shadow-md p-10 md:p-16 text-center max-w-2xl mx-auto mt-16">
-            <h2 className="text-3xl font-bold text-[var(--text-heading)] mb-4">
-              Welcome to DSEoriginals
-            </h2>
-            <p className="text-[var(--text-muted)] text-lg mb-10 max-w-sm mx-auto">
-              Login to manage your orders, access your wishlist, and configure your exclusive profile.
-            </p>
-            <button
-              onClick={() => setOpen(true)}
-              className="btn-premium !py-4 !px-12 text-lg shadow-xl"
-            >
-              Login / Register
-            </button>
-          </div>
-        )}
-
-        {/* DASHBOARD */}
-        {user && (
-          <div className="grid md:grid-cols-[260px_1fr] gap-8">
-
-            {/* SIDEBAR */}
-            <div className="bg-[var(--bg-card)] rounded-3xl shadow-sm border border-[var(--border-light)] p-5 h-fit sticky top-28 flex flex-col gap-2">
-              <SidebarItem icon={<User size={20} />} label="Overview" active={activeTab === "dashboard"} onClick={() => setActiveTab("dashboard")} />
-              <SidebarItem icon={<Package size={20} />} label="Order History" active={activeTab === "orders"} onClick={() => setActiveTab("orders")} />
-              <SidebarItem icon={<Heart size={20} />} label="My Wishlist" active={activeTab === "wishlist"} onClick={() => setActiveTab("wishlist")} />
-              <SidebarItem icon={<Settings size={20} />} label="Account Settings" active={activeTab === "settings"} onClick={() => setActiveTab("settings")} />
-            </div>
-
-            {/* CONTENT */}
-            <div className="bg-[var(--bg-card)] rounded-[2rem] shadow-sm border border-[var(--border-light)] p-8 md:p-10 min-h-[500px]">
-
-              {/* DASHBOARD */}
-              {activeTab === "dashboard" && (
-                <div className="animate-fade-in">
-                  <h3 className="text-2xl font-bold text-[var(--text-heading)] mb-8">Account Overview</h3>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <StatCard title="Orders" value={orders.length} />
-                    <StatCard title="Wishlist" value="0" />
-                    <StatCard title="Lucky Points" value={user.luckyPoints || 0} />
-                  </div>
-                </div>
-              )}
-
-              {/* ORDERS */}
-              {activeTab === "orders" && (
-                <div className="animate-fade-in">
-                  <h3 className="text-2xl font-bold text-[var(--text-heading)] mb-8">Order History</h3>
-
-                  {ordersLoading ? (
-                    <p className="text-[var(--text-muted)] animate-pulse">Loading amazing orders...</p>
-                  ) : orders.length === 0 ? (
-                    <EmptyState text="You don’t have any orders yet." />
-                  ) : (
-                    <div className="space-y-5">
-                      {orders.map((order) => (
-                        <div key={order.id} className="p-6 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center hover:shadow-md transition gap-4">
-                          <div>
-                            <p className="font-bold text-[var(--text-heading)] tracking-wide">Order #{order.id.slice(0, 8)}</p>
-                            <p className="text-sm font-semibold text-[var(--text-muted)] mt-1">
-                              {new Date(order.createdAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
-                            </p>
-                            <span className="mt-3 inline-block px-3 py-1 bg-[var(--brand-soft)]/20 text-[var(--brand-primary)] text-[10px] font-bold uppercase tracking-widest rounded-full">
-                              {order.status}
-                            </span>
-                          </div>
-
-                          <div className="text-left md:text-right w-full md:w-auto flex flex-row md:flex-col justify-between items-center md:items-end">
-                            <p className="font-extrabold text-xl text-[var(--brand-primary)]">₱{Number(order.total).toLocaleString()}</p>
-                            <button
-                              onClick={() => handleViewOrder(order)}
-                              className="text-sm font-bold text-[var(--brand-primary)] hover:text-white hover:bg-[var(--brand-primary)] transition-colors px-4 py-2 rounded-xl border border-[var(--brand-primary)] md:mt-3"
-                            >
-                              Track & Details
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* WISHLIST */}
-              {activeTab === "wishlist" && (
-                <EmptyState text="No saved products yet." />
-              )}
-
-              {/* SETTINGS */}
-              {activeTab === "settings" && (
-                <div className="space-y-4">
-                  <InfoRow label="Name" value={user.name || "-"} />
-                  <InfoRow label="Email" value={user.email} />
-                  <InfoRow label="Phone" value={user.phone || "-"} />
-                  <InfoRow
-                    label="Member Since"
-                    value={
-                      user.createdAt
-                        ? new Date(user.createdAt).toLocaleDateString()
-                        : "-"
-                    }
-                  />
-                </div>
-              )}
-
-            </div>
-          </div>
-        )}
-
       </div>
 
-      {/* MODALS */}
-      <AuthModal open={open} onClose={() => setOpen(false)} />
-
-      {selectedOrder && (
-        <OrderModal
-          order={selectedOrder}
-          tracking={tracking}
-          loading={trackingLoading}
-          onClose={() => setSelectedOrder(null)}
-        />
-      )}
-    </div>
-  )
-}
-
-/* COMPONENTS */
-
-function SidebarItem({ icon, label, active, onClick }: any) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-4 px-5 py-4 rounded-2xl text-base font-semibold w-full transition-all duration-300 ${
-        active ? "bg-[var(--brand-primary)] text-white shadow-md drop-shadow-sm translate-x-1" : "text-[var(--text-muted)] hover:bg-[var(--bg-main)] hover:text-[var(--brand-primary)]"
-      }`}
-    >
-      {icon}
-      {label}
-    </button>
-  )
-}
-
-function StatCard({ title, value }: any) {
-  return (
-    <div className="p-8 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-light)] shadow-sm hover:shadow-md transition flex flex-col items-center justify-center text-center">
-      <p className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-[0.2em]">{title}</p>
-      <h4 className="text-4xl md:text-5xl font-extrabold text-[var(--brand-primary)] mt-4">{value}</h4>
-    </div>
-  )
-}
-
-function InfoRow({ label, value }: any) {
-  return (
-    <div>
-      <p className="text-sm text-gray-500">{label}</p>
-      <p className="font-medium">{value}</p>
-    </div>
-  )
-}
-
-function EmptyState({ text }: any) {
-  return <div className="text-center py-16 text-gray-500">{text}</div>
-}
-
-function OrderModal({ order, tracking, loading, onClose }: any) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl p-6 animate-fadeIn">
-
-        <div className="flex justify-between mb-4">
-          <h3 className="font-semibold">Order #{order.id.slice(0, 8)}</h3>
-          <button onClick={onClose}>✕</button>
-        </div>
-
-        <div className="mb-4 text-sm text-gray-500">
-          {new Date(order.createdAt).toLocaleString()}
-        </div>
-
-        {/* ITEMS */}
-        <div className="space-y-2 mb-4">
-          {order.items?.map((item: any) => (
-            <div key={item.id} className="flex justify-between">
-              <span>{item.productName} × {item.quantity}</span>
-              <span>₱{item.price}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex justify-between font-semibold mb-6">
-          <span>Total</span>
-          <span>₱{Number(order.total).toFixed(2)}</span>
-        </div>
-
-        {/* TRACKING */}
-        <div className="mb-6">
-          <h4 className="font-medium mb-2">Tracking</h4>
-
-          {loading ? (
-            <p className="text-sm text-gray-500">Loading...</p>
-          ) : tracking.length === 0 ? (
-            <p className="text-sm text-gray-500">No tracking updates</p>
-          ) : (
-            <div className="space-y-3">
-              {tracking.map((event: any, i: number) => (
-                <div key={i} className="flex gap-3">
-                  <div className="w-2 h-2 bg-primary rounded-full mt-2" />
-                  <div>
-                    <p className="text-sm font-medium">{event.description}</p>
-                    <p className="text-xs text-gray-500">{event.date}</p>
-                  </div>
-                </div>
+      {/* MAIN CONTENT AREA */}
+      <div className="max-w-7xl mx-auto px-6 lg:px-10 -mt-24 relative z-20">
+        <div className="grid lg:grid-cols-[1fr_350px] gap-8">
+          
+          <div className="space-y-8">
+            {/* TABS NAVIGATION */}
+            <div className="bg-white/70 backdrop-blur-xl border border-white/50 rounded-full p-2 flex gap-1 shadow-sm overflow-x-auto no-scrollbar">
+              {[
+                { id: 'overview', label: 'Dashboard', icon: <TrendingUp size={16}/> },
+                { id: 'orders', label: 'My Orders', icon: <Package size={16}/> },
+                { id: 'settings', label: 'Profile Settings', icon: <Settings size={16}/> }
+              ].map(tab => (
+                <button 
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-full text-xs font-[1000] uppercase tracking-widest transition-all whitespace-nowrap ${
+                    activeTab === tab.id ? 'bg-[var(--brand-primary)] text-white shadow-lg' : 'text-gray-400 hover:text-[var(--brand-primary)]'
+                  }`}
+                >
+                  {tab.icon} {tab.label}
+                </button>
               ))}
             </div>
-          )}
+
+            {/* CONTENT VIEWS */}
+            <div className="bg-white rounded-[2.5rem] border border-[var(--border-light)] shadow-sm p-8 md:p-12 min-h-[500px]">
+               {activeTab === 'overview' && (
+                 <div className="animate-fade-in space-y-12">
+                   <div className="grid md:grid-cols-3 gap-6">
+                      <ProfileStat label="Total Expenditures" value={`₱${totalSpent.toLocaleString()}`} icon={<CreditCard size={20}/>} color="bg-blue-50 text-blue-500" />
+                      <ProfileStat label="Lucky Points" value={luckyPoints} icon={<Heart size={20}/>} color="bg-rose-50 text-rose-500" />
+                      <ProfileStat label="Active Shipments" value={orders.filter(o => o.status === 'shipped').length} icon={<Truck size={20}/>} color="bg-emerald-50 text-emerald-500" />
+                   </div>
+
+                   <div>
+                      <h3 className="text-xl font-black text-[var(--text-heading)] mb-6">Recent Activity</h3>
+                      {orders.length === 0 ? (
+                        <div className="p-10 bg-[var(--bg-surface)] rounded-[2rem] text-center italic text-gray-400 font-bold text-sm">No recent transactions found</div>
+                      ) : (
+                        <div className="space-y-4">
+                           {orders.slice(0, 3).map(o => (
+                             <OrderSummaryCard key={o.id} order={o} onClick={() => { setSelectedOrder(o); setActiveTab('orders'); }} />
+                           ))}
+                        </div>
+                      )}
+                   </div>
+                 </div>
+               )}
+
+               {activeTab === 'orders' && (
+                 <div className="animate-fade-in">
+                   <h3 className="text-2xl font-[1000] text-[var(--text-heading)] mb-8 tracking-tighter">Order History</h3>
+                   {loadingOrders ? (
+                     <div className="space-y-4">{Array(3).fill(0).map((_,i) => <div key={i} className="h-24 bg-gray-50 rounded-2xl animate-pulse" />)}</div>
+                   ) : orders.length === 0 ? (
+                     <div className="text-center py-20">
+                        <Package size={48} className="mx-auto text-gray-100 mb-4" />
+                        <p className="text-gray-400 font-bold italic">Your closet is currently empty. Start shopping now!</p>
+                     </div>
+                   ) : (
+                     <div className="space-y-6">
+                        {orders.map(o => (
+                           <OrderDetailedCard key={o.id} order={o} isSelected={selectedOrder?.id === o.id} onSelect={() => setSelectedOrder(o)} />
+                        ))}
+                     </div>
+                   )}
+                 </div>
+               )}
+
+               {activeTab === 'settings' && (
+                 <div className="animate-fade-in max-w-xl">
+                   <h3 className="text-2xl font-[1000] text-[var(--text-heading)] mb-8 tracking-tighter">Profile Integrity</h3>
+                   <div className="space-y-8">
+                      <div className="grid gap-6">
+                        <SettingsInput label="Full Full Name" value={user.name} disabled />
+                        <SettingsInput label="Email Verified Account" value={user.email} disabled />
+                        <SettingsInput label="Phone Connection" value={user.phone || "Not linked"} disabled />
+                      </div>
+                      <div className="pt-6 border-t border-gray-100">
+                         <p className="text-xs font-bold text-gray-400 mb-6 leading-relaxed uppercase tracking-widest text-center">To update your secure profile information, please contact our support desk for identity verification.</p>
+                         <button onClick={logout} className="w-full py-4 rounded-2xl bg-red-50 text-red-500 font-black uppercase text-xs tracking-widest hover:bg-red-500 hover:text-white transition shadow-sm border border-red-100">Sign Out of Session</button>
+                      </div>
+                   </div>
+                 </div>
+               )}
+            </div>
+          </div>
+
+          {/* SIDEBAR WIDGETS */}
+          <div className="space-y-8">
+            {/* TRACKING WIDGET */}
+            {selectedOrder ? (
+              <div className="bg-white rounded-[2.5rem] border border-[var(--border-light)] p-8 shadow-sm animate-fade-in animate-slide-up">
+                 <div className="flex justify-between items-start mb-6">
+                   <div>
+                     <h4 className="text-sm font-black text-[var(--text-heading)] uppercase tracking-widest">Tracking Info</h4>
+                     <p className="text-[10px] font-black text-[var(--brand-primary)] mt-1">ORDER #{selectedOrder.id.slice(0,8).toUpperCase()}</p>
+                   </div>
+                   <button onClick={() => setSelectedOrder(null)} className="p-2 hover:bg-gray-100 rounded-full transition"><X size={14}/></button>
+                 </div>
+
+                 <div className="space-y-6">
+                    <div className="flex items-center gap-4 p-4 bg-[var(--bg-surface)] rounded-2xl border border-gray-100">
+                       <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[var(--brand-primary)] shadow-sm"><Truck size={20}/></div>
+                       <div>
+                         <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1">Status</p>
+                         <p className="text-xs font-black text-[var(--text-heading)] uppercase">{selectedOrder.status} Flow</p>
+                       </div>
+                    </div>
+
+                    {selectedOrder.trackingNo && (
+                      <div className="space-y-4">
+                         <div className="p-4 bg-red-50 rounded-2xl border border-red-100">
+                            <p className="text-[10px] font-black uppercase text-red-400 tracking-widest mb-1">J&T Waybill ID</p>
+                            <p className="text-sm font-black text-red-600">{selectedOrder.trackingNo}</p>
+                         </div>
+                         <a 
+                           href={`https://www.jtexpress.ph/index/query/gzquery.html?bills=${selectedOrder.trackingNo}`} 
+                           target="_blank"
+                           className="w-full py-4 rounded-2xl bg-[var(--brand-primary)] text-white font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 shadow-lg hover:bg-[var(--brand-accent)] transition"
+                         >
+                           Open J&T Tracking <ArrowRight size={14}/>
+                         </a>
+                      </div>
+                    )}
+
+                    {!selectedOrder.trackingNo && (
+                      <div className="p-6 bg-gray-50 rounded-2xl text-center border border-dashed border-gray-200">
+                         <Clock size={20} className="mx-auto text-gray-300 mb-2" />
+                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Awaiting Logistics Sync</p>
+                         <p className="text-[9px] text-gray-400 mt-1 font-bold">Waybill will generate once the order is accepted by the warehouse.</p>
+                      </div>
+                    )}
+                 </div>
+              </div>
+            ) : (
+              <div className="bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-accent)] rounded-[2.5rem] p-10 text-white shadow-xl">
+                 <h4 className="text-xl font-[1000] mb-4 leading-tight">Elite Customer Loyalty</h4>
+                 <p className="text-white/70 text-sm font-bold leading-relaxed mb-10">Every peso spent brings you closer to exclusive maritime rewards and seasonal discounts.</p>
+                 <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center"><Heart size={24}/></div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-white/60">Balance</p>
+                      <p className="text-2xl font-[1000] text-white">{luckyPoints} Pts</p>
+                    </div>
+                 </div>
+              </div>
+            )}
+
+            <div className="bg-white rounded-[2.5rem] border border-[var(--border-light)] p-8 shadow-sm">
+                <h4 className="text-sm font-black text-[var(--text-heading)] uppercase tracking-widest mb-6 border-b border-gray-50 pb-4">Internal Support</h4>
+                <div className="space-y-4">
+                  <SupportLink label="Logistics Inquiries" />
+                  <SupportLink label="Payment Verification" />
+                  <SupportLink label="Data Privacy Policy" />
+                </div>
+            </div>
+          </div>
         </div>
-
-        {/* ACTIONS */}
-        <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-[var(--border-light)]">
-          <a
-            href={`${process.env.NEXT_PUBLIC_API_URL}/api/orders/${order.id}/invoice`}
-            target="_blank"
-            className="btn-premium flex-1 !p-3.5"
-          >
-            Download Official Invoice
-          </a>
-
-          <button
-            onClick={onClose}
-            className="btn-outline flex-1 !p-3.5"
-          >
-            Close Details
-          </button>
-        </div>
-
       </div>
     </div>
   )
 }
+
+function ProfileStat({ label, value, icon, color }: any) {
+  return (
+    <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-xl transition-all group">
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition ${color}`}>
+        {icon}
+      </div>
+      <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] mb-1">{label}</p>
+      <h3 className="text-xl font-[1000] text-[var(--text-heading)]">{value}</h3>
+    </div>
+  )
+}
+
+function OrderSummaryCard({ order, onClick }: any) {
+  return (
+    <div onClick={onClick} className="flex items-center justify-between p-5 bg-[var(--bg-surface)] hover:bg-white border border-transparent hover:border-gray-100 rounded-2xl transition cursor-pointer group">
+       <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-white border border-gray-50 flex items-center justify-center text-[var(--brand-primary)] shadow-sm font-black text-[10px]">
+            {order.status.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <p className="text-xs font-black text-[var(--text-heading)]">Reference #{order.id.slice(0,8).toUpperCase()}</p>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">{new Date(order.createdAt).toLocaleDateString()}</p>
+          </div>
+       </div>
+       <div className="text-right">
+          <p className="text-xs font-black text-[var(--brand-primary)]">₱{Number(order.total).toLocaleString()}</p>
+          <div className="flex items-center justify-end gap-1 mt-0.5">
+             <div className="w-1 h-1 rounded-full bg-emerald-500" />
+             <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">{order.status}</span>
+          </div>
+       </div>
+    </div>
+  )
+}
+
+function OrderDetailedCard({ order, isSelected, onSelect }: any) {
+  const statusColors: any = {
+    pending: 'bg-amber-100 text-amber-600',
+    accepted: 'bg-violet-100 text-violet-600',
+    shipped: 'bg-blue-100 text-blue-600',
+    delivered: 'bg-emerald-100 text-emerald-600'
+  }
+
+  return (
+    <div className={`p-6 rounded-[2rem] border transition-all ${isSelected ? 'bg-white border-[var(--brand-primary)] shadow-xl ring-4 ring-[var(--brand-primary)]/5' : 'bg-white border-gray-100 hover:border-gray-300'}`}>
+       <div className="flex flex-col md:flex-row justify-between gap-6">
+          <div className="flex-1">
+             <div className="flex items-center gap-3 mb-4">
+                <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest ${statusColors[order.status] || 'bg-gray-100 text-gray-500'}`}>
+                  {order.status}
+                </span>
+                <span className="text-[10px] font-bold text-gray-400">Placed on {new Date(order.createdAt).toLocaleString()}</span>
+             </div>
+             <h4 className="text-lg font-black text-[var(--text-heading)] mb-2">Order Reference: {order.id.toUpperCase()}</h4>
+             <div className="flex items-center gap-2 mt-4">
+                <div className="flex -space-x-2">
+                   <div className="w-8 h-8 rounded-full bg-gray-50 border-2 border-white flex items-center justify-center text-[10px] font-black text-gray-400">{order.items?.length || 0}</div>
+                </div>
+                <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Products in parcel</span>
+             </div>
+          </div>
+          <div className="flex flex-col items-start md:items-end justify-between">
+             <div className="text-left md:text-right">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Value</p>
+                <p className="text-2xl font-[1000] text-[var(--brand-primary)] tracking-tighter">₱{Number(order.total).toLocaleString()}</p>
+             </div>
+             <button 
+               onClick={onSelect}
+               className={`mt-6 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isSelected ? 'bg-[var(--brand-primary)] text-white shadow-lg' : 'bg-gray-50 text-[var(--brand-primary)] hover:bg-[var(--brand-primary)] hover:text-white'}`}
+             >
+                {isSelected ? 'Viewing Flow' : 'Trace Shipment'}
+             </button>
+          </div>
+       </div>
+    </div>
+  )
+}
+
+function SettingsInput({ label, value, disabled }: any) {
+  return (
+    <div className="space-y-2">
+       <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">{label}</label>
+       <div className={`px-5 py-4 rounded-xl border text-sm font-bold ${disabled ? 'bg-gray-50 border-gray-100 text-gray-500' : 'bg-white border-gray-200 text-[var(--text-heading)]'}`}>
+         {value}
+       </div>
+    </div>
+  )
+}
+
+function SupportLink({ label }: { label: string }) {
+  return (
+    <div className="flex items-center justify-between text-xs font-bold text-[var(--text-muted)] hover:text-[var(--brand-primary)] cursor-pointer group py-1">
+      <span>{label}</span>
+      <ChevronRight size={14} className="text-gray-200 group-hover:text-[var(--brand-primary)] transition" />
+    </div>
+  )
+}
+
+function X({ size }: { size: number }) { return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> }

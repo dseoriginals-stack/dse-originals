@@ -6,184 +6,300 @@ export const fetchCache = "force-no-store"
 import { useEffect, useState } from "react"
 import { api } from "@/lib/api"
 import { useAuth } from "@/context/AuthContext"
-import { Package, DollarSign, ShoppingCart, Users } from "lucide-react"
+import { 
+  Package, 
+  DollarSign, 
+  ShoppingCart, 
+  Users, 
+  TrendingUp, 
+  ArrowUpRight, 
+  Calendar,
+  MoreVertical,
+  Activity,
+  Box
+} from "lucide-react"
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer 
+} from 'recharts'
+import Image from "next/image"
+import Link from "next/link"
 
 type Stats = {
   totalOrders: number
   revenue: number
   totalProducts: number
-  totalCustomers?: number
+  totalCustomers: number
+  revenueChart: { date: string; amount: number }[]
+  topProducts: { id: string; name: string; sold: number; image?: string }[]
+  recentOrders: { id: string; total: number; status: string; createdAt: string; user: { name: string } }[]
 }
 
 export default function AdminDashboard() {
-  const { user, loading } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const [stats, setStats] = useState<Stats | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!user || user.role !== "admin") return
 
     async function load() {
       try {
+        setLoading(true)
         const data = await api.get<Stats>("/admin/stats")
         setStats(data)
       } catch (err) {
         console.error("Failed to load admin stats", err)
+      } finally {
+        setLoading(false)
       }
     }
 
     load()
   }, [user])
 
-  if (loading) {
-    return <p className="text-gray-500">Checking authentication...</p>
+  if (authLoading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <Activity className="animate-spin text-[var(--brand-primary)]" size={48} />
+      </div>
+    )
   }
 
-  if (!user) {
-    return <p className="text-gray-500">Not authenticated</p>
+  if (!user || user.role !== "admin") {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center text-center p-6 text-gray-500">
+        Checking authentication...
+      </div>
+    )
   }
 
-  if (user.role !== "admin") {
-    return <p className="text-gray-500">Access denied</p>
-  }
-
-  if (!stats) {
-    return <p className="text-gray-500">Loading dashboard...</p>
-  }
+  const isStatsLoading = loading && !stats
 
   return (
-    <div className="space-y-8 min-h-full pb-10">
+    <div className="space-y-8 min-h-full pb-10 max-w-[1600px] mx-auto">
 
-      {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[var(--border-light)] pb-6">
+      {/* HEADER SECTION */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl md:text-5xl font-extrabold text-[var(--text-heading)] tracking-tight">
-            Dashboard Overview
+          <h1 className="text-3xl md:text-4xl font-[900] text-[var(--text-heading)] tracking-tight">
+            System Overview
           </h1>
-          <p className="text-[var(--brand-accent)] font-semibold mt-2 tracking-wide uppercase text-xs">
-            Welcome back, Administrator {user.name?.split(" ")[0] || "Admin"}
-          </p>
+          <div className="flex items-center gap-2 mt-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-widest">
+              Live Store Analytics · {new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+            </span>
+          </div>
         </div>
-        <button className="btn-premium !py-3 !px-6 text-sm shadow-md md:self-end">
-          Generate Full Report
-        </button>
+        
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-[var(--border-light)] rounded-xl text-xs font-bold text-[var(--text-heading)] hover:bg-gray-50 transition shadow-sm">
+            <Calendar size={14} />
+            Last 30 Days
+          </button>
+          <button className="btn-premium !py-3 !px-6 text-sm shadow-xl font-bold rounded-xl flex items-center gap-2">
+            <TrendingUp size={16} />
+            Export Data
+          </button>
+        </div>
       </div>
 
-      {/* STATS */}
-      <div className="grid md:grid-cols-4 gap-6">
-
-        <StatCard
-          title="Total Orders"
-          value={stats.totalOrders}
-          icon={<ShoppingCart size={18} />}
-        />
-
-        <StatCard
-          title="Revenue"
-          value={`₱${Number(stats.revenue).toLocaleString()}`}
-          icon={<DollarSign size={18} />}
-        />
-
-        <StatCard
-          title="Products"
-          value={stats.totalProducts}
-          icon={<Package size={18} />}
-        />
-
-        <StatCard
-          title="Customers"
-          value={stats.totalCustomers || 0}
-          icon={<Users size={18} />}
-        />
-
+      {/* PRIMARY STATS CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {isStatsLoading ? (
+          Array(4).fill(0).map((_, i) => <SkeletonCard key={i} />)
+        ) : (
+          <>
+            <StatCard 
+              title="Gross Revenue" 
+              value={`₱${Number(stats?.revenue).toLocaleString()}`} 
+              icon={<DollarSign size={20} />} 
+              trend="+12.5%" 
+              positive={true}
+            />
+            <StatCard 
+              title="Total Orders" 
+              value={stats?.totalOrders || 0} 
+              icon={<ShoppingCart size={20} />} 
+              trend="+8.2%" 
+              positive={true}
+            />
+            <StatCard 
+              title="Total Customers" 
+              value={stats?.totalCustomers || 0} 
+              icon={<Users size={20} />} 
+              trend="+4.1%" 
+              positive={true}
+            />
+            <StatCard 
+              title="Active Products" 
+              value={stats?.totalProducts || 0} 
+              icon={<Package size={20} />} 
+              trend="Stable" 
+              positive={null}
+            />
+          </>
+        )}
       </div>
 
-      {/* MAIN GRID */}
-      <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
-
-        {/* RECENT ORDERS */}
-        <div className="lg:col-span-2 bg-white/80 backdrop-blur-md rounded-3xl border border-[var(--border-light)] p-8 shadow-sm">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="font-bold text-xl text-[var(--text-heading)]">Recent Activity</h2>
-            <button className="text-xs font-bold uppercase tracking-widest text-[var(--brand-primary)] hover:text-[var(--brand-accent)] transition">
-              View All
-            </button>
+      {/* ANALYTICS CHARTS SECTION */}
+      <div className="grid lg:grid-cols-3 gap-8">
+        
+        {/* REVENUE CHART */}
+        <div className="lg:col-span-2 bg-white rounded-[2rem] border border-[var(--border-light)] p-8 shadow-sm">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h2 className="text-xl font-extrabold text-[var(--text-heading)]">Revenue Growth</h2>
+              <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mt-1">Cash Inflow performance</p>
+            </div>
           </div>
-
-          <div className="space-y-4">
-            <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] border-b border-[var(--border-light)] pb-3">
-              <span>Order ID</span>
-              <span>Status</span>
-            </div>
-
-            {/* STATIC FOR NOW — CONNECT NEXT */}
-            <div className="flex justify-between items-center bg-[var(--bg-surface)] p-3 rounded-xl border border-[var(--border-light)]">
-              <span className="font-semibold text-sm">#DSE-1234</span>
-              <span className="text-xs font-bold text-yellow-600 bg-yellow-100/50 border border-yellow-200 px-3 py-1 rounded-full uppercase tracking-wider shadow-inner">Processing</span>
-            </div>
-
-            <div className="flex justify-between items-center bg-[var(--bg-surface)] p-3 rounded-xl border border-[var(--border-light)]">
-              <span className="font-semibold text-sm">#DSE-1233</span>
-              <span className="text-xs font-bold text-emerald-600 bg-emerald-100/50 border border-emerald-200 px-3 py-1 rounded-full uppercase tracking-wider shadow-inner">Completed</span>
-            </div>
-
+          
+          <div className="h-[350px] w-full">
+            {isStatsLoading ? (
+              <div className="w-full h-full bg-gray-50 rounded-3xl animate-pulse" />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={stats?.revenueChart} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--brand-primary)" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="var(--brand-primary)" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="date" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }} 
+                    dy={10}
+                    tickFormatter={(val) => new Date(val).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }} 
+                    tickFormatter={(val) => `₱${val >= 1000 ? val/1000 + 'k' : val}`}
+                  />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', padding: '12px 16px' }}
+                  />
+                  <Area type="monotone" dataKey="amount" stroke="var(--brand-primary)" strokeWidth={4} fillOpacity={1} fill="url(#colorAmount)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
-        {/* SIDE PANEL */}
-        <div className="space-y-6 md:space-y-8">
-
-          {/* QUICK ACTIONS */}
-          <div className="bg-white/80 backdrop-blur-md rounded-3xl border border-[var(--border-light)] p-8 shadow-sm">
-            <h3 className="font-bold text-xl text-[var(--text-heading)] mb-6">Quick Actions</h3>
-
-            <div className="space-y-3">
-              <button className="w-full text-left p-4 rounded-xl border border-[var(--border-light)] bg-transparent hover:bg-[var(--brand-soft)]/20 hover:border-[var(--brand-primary)] transition-all font-semibold text-sm flex items-center justify-between group">
-                Add New Product
-                <span className="text-[var(--brand-primary)] opacity-50 group-hover:opacity-100 transition-opacity">→</span>
-              </button>
-              <button className="w-full text-left p-4 rounded-xl border border-[var(--border-light)] bg-transparent hover:bg-[var(--brand-soft)]/20 hover:border-[var(--brand-primary)] transition-all font-semibold text-sm flex items-center justify-between group">
-                Review Active Orders
-                <span className="text-[var(--brand-primary)] opacity-50 group-hover:opacity-100 transition-opacity">→</span>
-              </button>
-              <button className="w-full text-left p-4 rounded-xl border border-[var(--border-light)] bg-transparent hover:bg-[var(--brand-soft)]/20 hover:border-[var(--brand-primary)] transition-all font-semibold text-sm flex items-center justify-between group">
-                Customer Management
-                <span className="text-[var(--brand-primary)] opacity-50 group-hover:opacity-100 transition-opacity">→</span>
-              </button>
-            </div>
+        {/* TOP SELLING PRODUCTS */}
+        <div className="bg-white rounded-[2rem] border border-[var(--border-light)] p-8 shadow-sm">
+          <h2 className="text-xl font-extrabold text-[var(--text-heading)] mb-6">Top Sellers</h2>
+          
+          <div className="space-y-6">
+            {isStatsLoading ? (
+              Array(3).fill(0).map((_, i) => (
+                <div key={i} className="flex gap-4 items-center">
+                  <div className="w-14 h-14 bg-gray-100 rounded-2xl animate-pulse" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-100 rounded-lg w-3/4 animate-pulse" />
+                    <div className="h-2 bg-gray-50 rounded-lg w-1/2 animate-pulse" />
+                  </div>
+                </div>
+              ))
+            ) : (
+              stats?.topProducts?.map((product, i) => (
+                <div key={product.id || i} className="flex items-center gap-4 group cursor-pointer">
+                  <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 overflow-hidden flex-shrink-0 relative">
+                    {product.image ? (
+                      <Image src={product.image} alt={product.name} fill className="object-cover group-hover:scale-110 transition-transform" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300"><Box size={24} /></div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-sm text-[var(--text-heading)] line-clamp-1 group-hover:text-[var(--brand-primary)] transition">{product.name}</h4>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[var(--text-muted)] text-[10px] uppercase font-black">{product.sold} Units Sold</span>
+                    </div>
+                  </div>
+                  <div className="text-xs font-black text-[var(--brand-primary)]">#{i+1}</div>
+                </div>
+              ))
+            )}
           </div>
+        </div>
+      </div>
 
-          {/* MINI STATS */}
-          <div className="bg-gradient-to-tr from-[var(--brand-primary)] to-[var(--brand-accent)] rounded-3xl text-white p-8 shadow-lg relative overflow-hidden">
-             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl translate-x-10 -translate-y-10"></div>
-            <h3 className="font-bold text-xl mb-2 relative z-10">Performance Goal</h3>
-            <p className="text-white/80 text-sm font-medium relative z-10 leading-relaxed">
-              Revenue is growing 15% faster this month. You're on track to hit the quarterly target! 🚀
-            </p>
+      {/* RECENT ORDERS TABLE SECTION */}
+      <div className="bg-white rounded-[2rem] border border-[var(--border-light)] overflow-hidden shadow-sm">
+        <div className="p-8 border-b border-[var(--border-light)] flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-black text-[var(--text-heading)] leading-none">Recent Orders</h2>
           </div>
-
+          <Link href="/admin/orders" className="btn-outline !py-3 !px-6 text-xs !font-black uppercase tracking-widest">
+            Manage All
+          </Link>
         </div>
 
+        <div className="overflow-x-auto">
+          {isStatsLoading ? (
+             <div className="p-8 space-y-4">
+                {Array(5).fill(0).map((_, i) => <div key={i} className="h-10 bg-gray-50 rounded-xl animate-pulse w-full" />)}
+             </div>
+          ) : (
+            <table className="w-full">
+              <thead className="bg-[var(--bg-surface)]">
+                <tr className="text-left text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                  <th className="px-8 py-4">Order ID</th>
+                  <th className="px-8 py-4">Customer</th>
+                  <th className="px-8 py-4">Value</th>
+                  <th className="px-8 py-4">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border-light)]">
+                {stats?.recentOrders?.map((order) => (
+                  <tr key={order.id} className="hover:bg-gray-50/50 transition">
+                    <td className="px-8 py-6 font-black text-sm text-[var(--brand-primary)]">#{order.id.slice(0, 8).toUpperCase()}</td>
+                    <td className="px-8 py-6 font-bold text-[var(--text-heading)] text-sm">{order.user?.name || "Guest"}</td>
+                    <td className="px-8 py-6 font-black text-sm text-[var(--text-heading)]">₱{Number(order.total).toLocaleString()}</td>
+                    <td className="px-8 py-6">
+                      <span className="px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest bg-gray-50 text-gray-500 border border-gray-100 uppercase">{order.status}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
 
     </div>
   )
 }
 
-/* STAT CARD */
-
-function StatCard({ title, value, icon }: any) {
+function StatCard({ title, value, icon, trend, positive }: any) {
   return (
-    <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-[var(--border-light)] shadow-sm hover:shadow-lg transition-all duration-300 group">
-
-      <div className="flex justify-between items-center mb-4">
-        <p className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">{title}</p>
-        <div className="w-10 h-10 rounded-2xl bg-[var(--bg-surface)] flex items-center justify-center text-[var(--brand-primary)] border border-gray-100 shadow-inner group-hover:scale-110 transition-transform">{icon}</div>
+    <div className="bg-white p-7 rounded-3xl border border-[var(--border-light)] shadow-sm hover:shadow-xl transition-all group">
+      <div className="flex justify-between items-start mb-4">
+        <div className="w-12 h-12 rounded-2xl bg-[var(--bg-surface)] flex items-center justify-center text-[var(--brand-primary)] border border-gray-100 group-hover:scale-110 transition">{icon}</div>
+        {trend && (
+          <div className={`text-[10px] font-black px-2 py-1 rounded-lg ${positive ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-50'}`}>{trend}</div>
+        )}
       </div>
-
-      <h3 className="text-3xl font-black text-[var(--brand-primary)] drop-shadow-sm">
-        {value}
-      </h3>
-
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[var(--text-muted)] mb-1">{title}</p>
+        <h3 className="text-3xl font-[1000] text-[var(--text-heading)] tracking-tighter">{value}</h3>
+      </div>
     </div>
   )
+}
+
+function SkeletonCard() {
+  return <div className="bg-white p-7 rounded-3xl border border-gray-100 shadow-sm animate-pulse h-[140px]" />
 }

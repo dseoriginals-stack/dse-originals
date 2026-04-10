@@ -14,13 +14,13 @@ export async function createInvoice({
 }) {
   const invoice = await Invoice.createInvoice({
     data: {
-      external_id,
-      amount,
-      payer_email,
-      description,
+      externalId: external_id,
+      amount: amount,
+      payerEmail: payer_email,
+      description: description,
       currency: "PHP",
-      success_redirect_url: `${process.env.CLIENT_URL}/order-success/${external_id}`,
-      failure_redirect_url: `${process.env.CLIENT_URL}/checkout`,
+      successRedirectUrl: `${process.env.FRONTEND_URL}/order-success/${external_id}`,
+      failureRedirectUrl: `${process.env.FRONTEND_URL}/checkout`,
     },
   })
 

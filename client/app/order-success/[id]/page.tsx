@@ -71,10 +71,10 @@ export default function SuccessPage() {
           </Link>
 
           <Link
-            href={`/orders/${id}`}
-            className="border px-6 py-3 rounded-xl"
+            href={`/track?id=${id}`}
+            className="border px-6 py-3 rounded-xl hover:bg-slate-50 transition-colors"
           >
-            View Order
+            Track My Order
           </Link>
 
         </div>

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react"
 import { api } from "@/lib/api"
+import toast from "react-hot-toast"
 
 type User = {
   id: string
@@ -13,11 +14,17 @@ type User = {
   phone?: string
 }
 
+type AuthResult = {
+  success: boolean
+  message?: string
+  unverified?: boolean
+}
+
 type AuthContextType = {
   user: User | null
   loading: boolean
-  login: (email: string, password: string) => Promise<boolean>
-  register: (name: string, email: string, password: string) => Promise<boolean>
+  login: (email: string, password: string) => Promise<AuthResult>
+  register: (name: string, email: string, password: string) => Promise<AuthResult>
   logout: () => Promise<void>
   refresh: () => Promise<void>
   updateUser: (data: Partial<User>) => void
@@ -56,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /*
   -----------------------------
-  INITIAL LOAD (FIXED)
+  INITIAL LOAD
   -----------------------------
   */
   useEffect(() => {
@@ -71,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (
     email: string,
     password: string
-  ): Promise<boolean> => {
+  ): Promise<AuthResult> => {
     try {
       const res = await api.post<{ user: User }>("/auth/login", {
         email,
@@ -79,15 +86,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       setUser(res.user)
-
-      // Sync state globally
       await refresh()
 
-      return true
+      toast.success("Logged in successfully!")
+      return { success: true }
     } catch (err: any) {
-      console.error("Login failed:", err.message)
+      const message = err?.message || "Invalid email or password."
+      const isUnverified = message.toLowerCase().includes("verify")
       setUser(null)
-      return false
+      return { success: false, message, unverified: isUnverified }
     }
   }
 
@@ -100,24 +107,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     name: string,
     email: string,
     password: string
-  ): Promise<boolean> => {
+  ): Promise<AuthResult> => {
     try {
-      const res = await api.post<{ user: User }>("/auth/register", {
+      await api.post<{ user: User }>("/auth/register", {
         name,
         email: email.trim().toLowerCase(),
         password: password.trim(),
       })
 
-      setUser(res.user)
-
-      await refresh()
-
-      return true
+      // Don't auto-login — redirect to login with success banner
+      return { success: true }
     } catch (err: any) {
-      console.error("Register failed:", err.message)
-      return false
+      const message = err?.message || "Registration failed. Please try again."
+      return { success: false, message }
     }
   }
+
   /*
   -----------------------------
   LOGOUT
@@ -130,6 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.warn("Logout request failed")
     } finally {
       setUser(null)
+      toast.success("Logged out")
     }
   }
 
