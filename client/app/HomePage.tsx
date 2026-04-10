@@ -39,8 +39,8 @@ export default function HomePage({ initialProducts }: Props) {
     return () => clearInterval(interval)
   }, [])
 
-  const featured = useMemo(() => products.slice(0, 6), [products])
-  const bestsellers = useMemo(() => products.slice(0, 8), [products])
+  const featured = useMemo(() => products.filter(p => !p.isBestseller).slice(0, 6), [products])
+  const bestsellers = useMemo(() => products.filter(p => p.isBestseller), [products])
 
   return (
     <main className="w-full">

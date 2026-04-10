@@ -78,8 +78,8 @@ export default function CategoryFilter() {
         </button>
 
         {categories.map(cat => {
-
           const isActive = activeCategory === cat.slug
+          const displayName = cat.slug === "dsecollection" ? "DSE Collection" : cat.name
 
           return (
             <button
@@ -92,7 +92,7 @@ export default function CategoryFilter() {
                   : "bg-white text-slate-600 border-[var(--border-light)] hover:bg-slate-100"}
               `}
             >
-              {cat.name}
+              {displayName}
             </button>
           )
         })}

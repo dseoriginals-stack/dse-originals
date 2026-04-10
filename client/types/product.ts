@@ -18,6 +18,8 @@ export type ProductFull = {
   name: string
   slug: string
   description?: string
+  status?: string
+  isBestseller?: boolean
 
   images: ProductImage[]
   variants: ProductVariant[]
@@ -30,4 +32,5 @@ export type ProductCardType = {
   slug: string
   image: string
   variantId: string
+  isBestseller?: boolean
 }

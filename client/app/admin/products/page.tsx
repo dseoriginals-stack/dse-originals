@@ -37,6 +37,7 @@ type Product = {
   image?: string | null
   price: number
   stock: number
+  isBestseller: boolean
   variants?: any[]
   sku?: string
 }
@@ -56,6 +57,7 @@ export default function AdminProducts() {
     categoryId: "",
     price: "",
     stock: "",
+    isBestseller: false,
     image: null as File | null
   })
 
@@ -91,6 +93,7 @@ export default function AdminProducts() {
           image: p.image || null,
           price: Number(p.price || 0),
           stock: Number(p.stock || 0),
+          isBestseller: !!p.isBestseller,
           sku: mainSku,
           variants: p.variants || []
         }
@@ -136,6 +139,7 @@ export default function AdminProducts() {
       formData.append("categoryId", form.categoryId)
       formData.append("price", String(Number(form.price)))
       formData.append("stock", String(Number(form.stock)))
+      formData.append("isBestseller", String(form.isBestseller))
       if (form.image) formData.append("image", form.image)
 
       if (editing) {
@@ -163,6 +167,7 @@ export default function AdminProducts() {
       categoryId: product.categoryId,
       price: String(product.price),
       stock: String(product.stock),
+      isBestseller: product.isBestseller,
       image: null
     })
     setPreview(product.image || null)
@@ -173,7 +178,7 @@ export default function AdminProducts() {
     setEditing(null)
     setShowModal(false)
     setPreview(null)
-    setForm({ name: "", description: "", categoryId: "", price: "", stock: "", image: null })
+    setForm({ name: "", description: "", categoryId: "", price: "", stock: "", isBestseller: false, image: null })
   }
 
   async function handleDelete(id: string) {
@@ -301,6 +306,16 @@ export default function AdminProducts() {
                         {categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
                       </select>
                    </div>
+                   <div className="flex items-center gap-2 py-2 px-1">
+                      <input 
+                        type="checkbox" 
+                        id="isBestseller"
+                        checked={form.isBestseller}
+                        onChange={(e) => setForm({...form, isBestseller: e.target.checked})}
+                        className="w-5 h-5 rounded border-[var(--border-light)] text-[var(--brand-primary)] focus:ring-[var(--brand-primary)] cursor-pointer"
+                      />
+                      <label htmlFor="isBestseller" className="text-xs font-bold text-[var(--text-heading)] cursor-pointer uppercase tracking-wider">Mark as Best Seller</label>
+                   </div>
                    <div className="grid grid-cols-2 gap-4">
                       <InputField label="Market Value (₱)" value={form.price} onChange={(v: string)=>setForm({...form, price: v})} type="number" />
                       <InputField label="Stock Units" value={form.stock} onChange={(v: string)=>setForm({...form, stock: v})} type="number" />
@@ -369,6 +384,11 @@ function ProductCard({ product, onEdit, onDelete }: { product: Product, onEdit: 
         {(isLowStock || isOutOfStock) && (
            <div className={`absolute bottom-3 left-3 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1 shadow-lg ${isOutOfStock ? "bg-red-500 text-white" : "bg-amber-500 text-white"}`}>
              <AlertTriangle size={10} /> {isOutOfStock ? "Zero Stock" : `Low: ${product.stock} left`}
+           </div>
+        )}
+        {product.isBestseller && (
+           <div className="absolute top-4 left-4 z-10 bg-amber-400 text-[#274C77] px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg flex items-center gap-1">
+             <CheckCircle size={10} /> Best Seller
            </div>
         )}
       </div>

@@ -43,7 +43,8 @@ const productSchema = z.object({
   description: z.string().optional(),
   price: z.coerce.number().positive(),
   categoryId: z.string(),
-  stock: z.coerce.number().int().nonnegative()
+  stock: z.coerce.number().int().nonnegative(),
+  isBestseller: z.coerce.boolean().optional().default(false)
 })
 
 /* ================================
@@ -123,6 +124,7 @@ export const createProduct = async (req, res, next) => {
         slug,
         description,
         status: "active",
+        isBestseller: validation.data.isBestseller,
 
         category: {
           connect: { id: category.id }
@@ -232,6 +234,7 @@ export const getProducts = async (req, res) => {
             take: 1,
             select: { url: true }
           },
+          isBestseller: true,
 
           variants: {
             take: 1,
@@ -261,6 +264,7 @@ export const getProducts = async (req, res) => {
         price: p.variants.length > 0
           ? Number(p.variants[0].price)
           : 0,
+        isBestseller: p.isBestseller,
           
         variantId: p.variants.length > 0
           ? p.variants[0].id
@@ -448,6 +452,7 @@ export const updateProduct = async (req, res, next) => {
       data: {
         name,
         description,
+        isBestseller: req.body.isBestseller === 'true' || req.body.isBestseller === true,
 
         ...(categoryId && {
           category: {
