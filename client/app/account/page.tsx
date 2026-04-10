@@ -12,14 +12,24 @@ import {
   CreditCard, 
   Truck,
   Clock,
-  ArrowRight
+  ArrowRight,
+  ShieldCheck,
+  Search,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Loader2,
+  AlertCircle,
+  CheckCircle2
 } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
 import Link from "next/link"
+import { motion, AnimatePresence } from "framer-motion"
 
 export default function AccountPage() {
-  const { user, loading, logout } = useAuth()
+  const { user, loading, logout, login, register } = useAuth()
   const [orders, setOrders] = useState<any[]>([])
   const [loadingOrders, setLoadingOrders] = useState(false)
   const [activeTab, setActiveTab] = useState("overview")
@@ -43,68 +53,58 @@ export default function AccountPage() {
     }
   }
 
-  if (loading) return <div className="h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-[var(--brand-primary)] border-t-transparent rounded-full animate-spin"/></div>
+  if (loading) return (
+    <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-[var(--brand-primary)] border-t-transparent rounded-full animate-spin"/>
+    </div>
+  )
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-[var(--bg-main)] flex flex-col items-center justify-center p-6">
-        <div className="bg-white p-12 rounded-[3rem] shadow-2xl border border-[var(--border-light)] text-center max-w-lg w-full">
-           <div className="w-20 h-20 bg-[var(--bg-surface)] rounded-3xl flex items-center justify-center text-[var(--brand-primary)] mx-auto mb-6">
-             <User size={40} />
-           </div>
-           <h1 className="text-3xl font-[1000] text-[var(--text-heading)] mb-4 tracking-tighter">Your DSE Journey</h1>
-           <p className="text-[var(--text-muted)] font-bold mb-10 leading-relaxed">Sign in to unlock your order history, manage your shipments, and track your lucky points.</p>
-           <Link href="/login" className="btn-premium flex items-center justify-center !py-4 !px-10 shadow-xl w-full text-sm font-black uppercase tracking-widest">
-             Sign In to Dashboard
-           </Link>
-           <div className="mt-6 flex flex-col gap-3">
-              <Link href="/register" className="text-xs font-black uppercase text-[var(--brand-primary)] tracking-widest hover:underline">
-                Create new account
-              </Link>
-              <div className="h-px bg-gray-100 w-1/2 mx-auto my-2" />
-              <Link href="/track" className="text-xs font-bold text-[var(--text-muted)] hover:text-[var(--brand-primary)] flex items-center justify-center gap-1 transition">
-                 <Package size={14} /> Track Guest Order
-              </Link>
-           </div>
-        </div>
-      </div>
-    )
+    return <GuestPortal login={login} register={register} />
   }
 
-  const luckyPoints = user.luckyPoints || 0
-  const totalSpent = orders.reduce((acc, o) => acc + Number(o.total || 0), 0)
+  const totalSpent = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0)
+  const luckyPoints = Math.floor(totalSpent / 100)
 
   return (
-    <div className="min-h-screen bg-[var(--bg-main)] pb-20">
-      
-      {/* HERO SECTION */}
-      <div className="bg-[var(--brand-primary)] pt-20 pb-40 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
-        <div className="max-w-7xl mx-auto px-6 lg:px-10 relative z-10">
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="w-24 h-24 md:w-32 md:h-32 rounded-[2rem] bg-white p-1 shadow-2xl border-4 border-white/20">
-               <div className="w-full h-full rounded-[1.8rem] bg-gradient-to-tr from-gray-100 to-white flex items-center justify-center text-[var(--brand-primary)] text-4xl font-[1000]">
-                  {user.name?.charAt(0) || user.email?.charAt(0)}
-               </div>
-            </div>
-            <div className="text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start gap-3">
-                <h1 className="text-4xl md:text-5xl font-[1000] text-white tracking-tighter">Hello, {user.name?.split(' ')[0]}</h1>
-                <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase text-white tracking-widest border border-white/10">Member</span>
+    <div className="min-h-screen bg-[var(--bg-main)] pb-24">
+      {/* HEADER SECTION */}
+      <div className="bg-white border-b border-[var(--border-light)] pt-12 pb-16 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-1/3 h-full bg-[var(--brand-soft)]/5 skew-x-12 translate-x-32" />
+        <div className="container max-w-7xl mx-auto px-6 relative z-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+            <div className="flex items-center gap-6">
+              <div className="w-24 h-24 bg-[var(--brand-primary)] rounded-[2rem] flex items-center justify-center text-white text-3xl font-black shadow-2xl shadow-[var(--brand-primary)]/20">
+                {user.name?.[0].toUpperCase()}
               </div>
-              <p className="text-white/70 font-bold mt-2 text-sm md:text-base">{user.email}</p>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand-primary)] opacity-60">DSE Originals Elite</span>
+                  <ShieldCheck size={14} className="text-[var(--brand-primary)]" />
+                </div>
+                <h1 className="text-4xl font-[1000] text-[var(--text-heading)] tracking-tighter leading-none">
+                  Hello, {user.name?.split(' ')[0]}
+                </h1>
+                <p className="text-[var(--text-muted)] font-bold mt-2 flex items-center gap-2">
+                  <Mail size={14}/> {user.email}
+                </p>
+              </div>
             </div>
+            
+            <button 
+              onClick={logout}
+              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white border-2 border-slate-100 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-red-500 hover:border-red-50 transition-all shadow-sm"
+            >
+              <LogOut size={16}/> Terminate Session
+            </button>
           </div>
         </div>
       </div>
 
-      {/* MAIN CONTENT AREA */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 -mt-24 relative z-20">
-        <div className="grid lg:grid-cols-[1fr_350px] gap-8">
-          
-          <div className="space-y-8">
-            {/* TABS NAVIGATION */}
-            <div className="bg-white/70 backdrop-blur-xl border border-white/50 rounded-full p-2 flex gap-1 shadow-sm overflow-x-auto no-scrollbar">
+      <div className="container max-w-7xl mx-auto px-6 -mt-8">
+         <div className="grid lg:grid-cols-4 gap-8">
+            {/* SIDEBAR NAVIGATION */}
+            <div className="lg:col-span-1 space-y-2 flex flex-row lg:flex-col overflow-x-auto pb-4 lg:pb-0 custom-scrollbar gap-2">
               {[
                 { id: 'overview', label: 'Dashboard', icon: <TrendingUp size={16}/> },
                 { id: 'orders', label: 'My Orders', icon: <Package size={16}/> },
@@ -123,7 +123,7 @@ export default function AccountPage() {
             </div>
 
             {/* CONTENT VIEWS */}
-            <div className="bg-white rounded-[2.5rem] border border-[var(--border-light)] shadow-sm p-8 md:p-12 min-h-[500px]">
+            <div className="lg:col-span-3 bg-white rounded-[2.5rem] border border-[var(--border-light)] shadow-sm p-8 md:p-12 min-h-[500px]">
                {activeTab === 'overview' && (
                  <div className="animate-fade-in space-y-12">
                    <div className="grid md:grid-cols-3 gap-6">
@@ -150,214 +150,499 @@ export default function AccountPage() {
                {activeTab === 'orders' && (
                  <div className="animate-fade-in">
                    <h3 className="text-2xl font-[1000] text-[var(--text-heading)] mb-8 tracking-tighter">Order History</h3>
-                    {loadingOrders ? (
+                   {loadingOrders ? (
                       <div className="space-y-4">{Array(3).fill(0).map((_, i: number) => <div key={i} className="h-24 bg-gray-50 rounded-2xl animate-pulse" />)}</div>
                     ) : orders.length === 0 ? (
-                     <div className="text-center py-20">
-                        <Package size={48} className="mx-auto text-gray-100 mb-4" />
-                        <p className="text-gray-400 font-bold italic">Your closet is currently empty. Start shopping now!</p>
-                     </div>
-                   ) : (
-                     <div className="space-y-6">
+                      <div className="text-center py-20">
+                         <Package size={48} className="mx-auto text-gray-100 mb-4" />
+                         <p className="text-gray-400 font-bold italic">Your closet is currently empty. Start shopping now!</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
                         {orders.map((o: any) => (
                            <OrderDetailedCard key={o.id} order={o} isSelected={selectedOrder?.id === o.id} onSelect={() => setSelectedOrder(o)} />
                         ))}
-                     </div>
-                   )}
+                      </div>
+                    )}
                  </div>
                )}
 
                {activeTab === 'settings' && (
                  <div className="animate-fade-in max-w-xl">
-                   <h3 className="text-2xl font-[1000] text-[var(--text-heading)] mb-8 tracking-tighter">Profile Integrity</h3>
-                   <div className="space-y-8">
-                      <div className="grid gap-6">
-                        <SettingsInput label="Full Full Name" value={user.name} disabled />
-                        <SettingsInput label="Email Verified Account" value={user.email} disabled />
-                        <SettingsInput label="Phone Connection" value={user.phone || "Not linked"} disabled />
+                   <h3 className="text-2xl font-[1000] text-[var(--text-heading)] mb-2 tracking-tighter">Account Integrity</h3>
+                   <p className="text-[var(--text-muted)] text-sm font-bold mb-10 uppercase tracking-wider">Maintain your profile credentials</p>
+                   
+                   <div className="space-y-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-[1000] uppercase tracking-widest text-gray-400 ml-1">Full Identity</label>
+                        <input defaultValue={user.name} className="w-full px-6 py-4 bg-[var(--bg-surface)] border-2 border-transparent focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all" />
                       </div>
-                      <div className="pt-6 border-t border-gray-100">
-                         <p className="text-xs font-bold text-gray-400 mb-6 leading-relaxed uppercase tracking-widest text-center">To update your secure profile information, please contact our support desk for identity verification.</p>
-                         <button onClick={logout} className="w-full py-4 rounded-2xl bg-red-50 text-red-500 font-black uppercase text-xs tracking-widest hover:bg-red-500 hover:text-white transition shadow-sm border border-red-100">Sign Out of Session</button>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-[1000] uppercase tracking-widest text-gray-400 ml-1">Verified Email</label>
+                        <input defaultValue={user.email} disabled className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl font-bold text-gray-400 cursor-not-allowed" />
                       </div>
                    </div>
                  </div>
                )}
             </div>
+         </div>
+      </div>
+    </div>
+  )
+}
+
+/* ============================
+GUEST PORTAL COMPONENT
+============================ */
+
+function GuestPortal({ login, register }: any) {
+  const [tab, setTab] = useState<"login" | "register" | "track">("login")
+
+  return (
+    <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center p-6 py-20">
+      <div className="w-full max-w-5xl grid md:grid-cols-12 bg-white rounded-[3.5rem] shadow-2xl overflow-hidden border border-[var(--border-light)] relative">
+        
+        {/* LEFT DECORATIVE PANEL */}
+        <div className="hidden md:flex md:col-span-5 bg-[#274C77] p-12 text-white flex-col justify-between relative overflow-hidden">
+           <div className="absolute top-[-50px] left-[-30px] w-64 h-64 bg-white/10 rounded-full blur-[80px]" />
+           <div className="absolute bottom-[-30px] right-[-30px] w-48 h-48 bg-[var(--brand-accent)]/20 rounded-full blur-[60px]" />
+           
+           <div className="relative z-10">
+             <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mb-10 backdrop-blur-md border border-white/20 shadow-xl">
+               <User className="text-white" size={32} />
+             </div>
+             <h2 className="text-4xl font-[1000] tracking-tighter mb-4 leading-none">The DSE<br/>Elite Circle</h2>
+             <p className="text-white/60 text-sm font-bold leading-relaxed mb-8">Access your exclusive order history, manage premium shipments, and accumulate lucky points on every successful order.</p>
+             
+             <div className="space-y-4">
+                {[
+                  { icon: <TrendingUp size={16}/>, text: "Automated Profit Analytics" },
+                  { icon: <Truck size={16}/>, text: "Live Logistics Deep-Links" },
+                  { icon: <Heart size={16}/>, text: "Loyalty Appreciation Points" }
+                ].map((f, i) => (
+                  <div key={i} className="flex items-center gap-3 text-xs font-bold text-white/80">
+                    <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">{f.icon}</div>
+                    {f.text}
+                  </div>
+                ))}
+             </div>
+           </div>
+
+           <div className="relative z-10 pt-10 border-t border-white/10 text-[10px] font-black uppercase tracking-[0.3em] text-white/40">
+              Identity Management v2.0
+           </div>
+        </div>
+
+        {/* RIGHT CONTENT PANEL */}
+        <div className="col-span-12 md:col-span-7 flex flex-col p-10 md:p-16">
+          <div className="flex bg-[var(--bg-surface)] p-2 rounded-2xl mb-12 gap-1 overflow-x-auto scrollbar-hide">
+             {[
+               { id: "login", label: "Sign In", icon: <Lock size={14}/> },
+               { id: "register", label: "Create Account", icon: <User size={14}/> },
+               { id: "track", label: "Guest Track", icon: <Truck size={14}/> }
+             ].map((t: any) => (
+               <button 
+                 key={t.id}
+                 onClick={() => setTab(t.id)}
+                 className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-1 ${
+                   tab === t.id ? 'bg-white text-[var(--brand-primary)] shadow-sm' : 'text-gray-400 hover:bg-white/50'
+                 }`}
+               >
+                 {t.icon} {t.label}
+               </button>
+             ))}
           </div>
 
-          {/* SIDEBAR WIDGETS */}
-          <div className="space-y-8">
-            {/* TRACKING WIDGET */}
-            {selectedOrder ? (
-              <div className="bg-white rounded-[2.5rem] border border-[var(--border-light)] p-8 shadow-sm animate-fade-in animate-slide-up">
-                 <div className="flex justify-between items-start mb-6">
-                   <div>
-                     <h4 className="text-sm font-black text-[var(--text-heading)] uppercase tracking-widest">Tracking Info</h4>
-                     <p className="text-[10px] font-black text-[var(--brand-primary)] mt-1">ORDER #{selectedOrder.id.slice(0,8).toUpperCase()}</p>
-                   </div>
-                   <button onClick={() => setSelectedOrder(null)} className="p-2 hover:bg-gray-100 rounded-full transition"><X size={14}/></button>
-                 </div>
-
-                 <div className="space-y-6">
-                    <div className="flex items-center gap-4 p-4 bg-[var(--bg-surface)] rounded-2xl border border-gray-100">
-                       <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[var(--brand-primary)] shadow-sm"><Truck size={20}/></div>
-                       <div>
-                         <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1">Status</p>
-                         <p className="text-xs font-black text-[var(--text-heading)] uppercase">{selectedOrder.status} Flow</p>
-                       </div>
-                    </div>
-
-                    {selectedOrder.trackingNo && (
-                      <div className="space-y-4">
-                         <div className="p-4 bg-red-50 rounded-2xl border border-red-100">
-                            <p className="text-[10px] font-black uppercase text-red-400 tracking-widest mb-1">J&T Waybill ID</p>
-                            <p className="text-sm font-black text-red-600">{selectedOrder.trackingNo}</p>
-                         </div>
-                         <a 
-                           href={`https://www.jtexpress.ph/index/query/gzquery.html?bills=${selectedOrder.trackingNo}`} 
-                           target="_blank"
-                           className="w-full py-4 rounded-2xl bg-[var(--brand-primary)] text-white font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 shadow-lg hover:bg-[var(--brand-accent)] transition"
-                         >
-                           Open J&T Tracking <ArrowRight size={14}/>
-                         </a>
-                      </div>
-                    )}
-
-                    {!selectedOrder.trackingNo && (
-                      <div className="p-6 bg-gray-50 rounded-2xl text-center border border-dashed border-gray-200">
-                         <Clock size={20} className="mx-auto text-gray-300 mb-2" />
-                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Awaiting Logistics Sync</p>
-                         <p className="text-[9px] text-gray-400 mt-1 font-bold">Waybill will generate once the order is accepted by the warehouse.</p>
-                      </div>
-                    )}
-                 </div>
-              </div>
-            ) : (
-              <div className="bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-accent)] rounded-[2.5rem] p-10 text-white shadow-xl">
-                 <h4 className="text-xl font-[1000] mb-4 leading-tight">Elite Customer Loyalty</h4>
-                 <p className="text-white/70 text-sm font-bold leading-relaxed mb-10">Every peso spent brings you closer to exclusive maritime rewards and seasonal discounts.</p>
-                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center"><Heart size={24}/></div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-white/60">Balance</p>
-                      <p className="text-2xl font-[1000] text-white">{luckyPoints} Pts</p>
-                    </div>
-                 </div>
-              </div>
-            )}
-
-            <div className="bg-white rounded-[2.5rem] border border-[var(--border-light)] p-8 shadow-sm">
-                <h4 className="text-sm font-black text-[var(--text-heading)] uppercase tracking-widest mb-6 border-b border-gray-50 pb-4">Internal Support</h4>
-                <div className="space-y-4">
-                  <SupportLink label="Logistics Inquiries" />
-                  <SupportLink label="Payment Verification" />
-                  <SupportLink label="Data Privacy Policy" />
-                </div>
-            </div>
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={tab}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3, ease: "circOut" }}
+              className="flex-1 flex flex-col"
+            >
+              {tab === 'login' && <AccountLoginForm login={login} />}
+              {tab === 'register' && <AccountRegisterForm register={register} setTab={setTab} />}
+              {tab === 'track' && <AccountGuestTrack />}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </div>
   )
 }
 
-function ProfileStat({ label, value, icon, color }: any) {
-  return (
-    <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-xl transition-all group">
-      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition ${color}`}>
-        {icon}
-      </div>
-      <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] mb-1">{label}</p>
-      <h3 className="text-xl font-[1000] text-[var(--text-heading)]">{value}</h3>
-    </div>
-  )
-}
+/* LOGIN FORM */
+function AccountLoginForm({ login }: any) {
+  const [form, setForm] = useState({ email: "", password: "" })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [showPass, setShowPass] = useState(false)
 
-function OrderSummaryCard({ order, onClick }: any) {
-  return (
-    <div onClick={onClick} className="flex items-center justify-between p-5 bg-[var(--bg-surface)] hover:bg-white border border-transparent hover:border-gray-100 rounded-2xl transition cursor-pointer group">
-       <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-white border border-gray-50 flex items-center justify-center text-[var(--brand-primary)] shadow-sm font-black text-[10px]">
-            {order.status.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <p className="text-xs font-black text-[var(--text-heading)]">Reference #{order.id.slice(0,8).toUpperCase()}</p>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">{new Date(order.createdAt).toLocaleDateString()}</p>
-          </div>
-       </div>
-       <div className="text-right">
-          <p className="text-xs font-black text-[var(--brand-primary)]">₱{Number(order.total).toLocaleString()}</p>
-          <div className="flex items-center justify-end gap-1 mt-0.5">
-             <div className="w-1 h-1 rounded-full bg-emerald-500" />
-             <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">{order.status}</span>
-          </div>
-       </div>
-    </div>
-  )
-}
-
-function OrderDetailedCard({ order, isSelected, onSelect }: any) {
-  const statusColors: any = {
-    pending: 'bg-amber-100 text-amber-600',
-    accepted: 'bg-violet-100 text-violet-600',
-    shipped: 'bg-blue-100 text-blue-600',
-    delivered: 'bg-emerald-100 text-emerald-600'
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await login(form.email, form.password)
+      if (!res.success) setError(res.message)
+    } catch {
+      setError("Network or server error")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
-    <div className={`p-6 rounded-[2rem] border transition-all ${isSelected ? 'bg-white border-[var(--brand-primary)] shadow-xl ring-4 ring-[var(--brand-primary)]/5' : 'bg-white border-gray-100 hover:border-gray-300'}`}>
-       <div className="flex flex-col md:flex-row justify-between gap-6">
-          <div className="flex-1">
-             <div className="flex items-center gap-3 mb-4">
-                <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest ${statusColors[order.status] || 'bg-gray-100 text-gray-500'}`}>
-                  {order.status}
-                </span>
-                <span className="text-[10px] font-bold text-gray-400">Placed on {new Date(order.createdAt).toLocaleString()}</span>
-             </div>
-             <h4 className="text-lg font-black text-[var(--text-heading)] mb-2">Order Reference: {order.id.toUpperCase()}</h4>
-             <div className="flex items-center gap-2 mt-4">
-                <div className="flex -space-x-2">
-                   <div className="w-8 h-8 rounded-full bg-gray-50 border-2 border-white flex items-center justify-center text-[10px] font-black text-gray-400">{order.items?.length || 0}</div>
+    <div className="flex-1 flex flex-col">
+      <h3 className="text-3xl font-[1000] text-[var(--text-heading)] mb-2 tracking-tighter leading-none">Sign into Dashboard</h3>
+      <p className="text-[var(--text-muted)] text-sm font-bold uppercase tracking-wider mb-10">Access your DSE profile</p>
+
+      {error && <div className="p-4 bg-red-50 text-red-500 rounded-2xl text-xs font-bold mb-6 flex items-center gap-2 border border-red-100 animate-shake">
+        <AlertCircle size={16}/> {error}
+      </div>}
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Identity (Email)</label>
+          <div className="relative">
+            <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+            <input 
+              type="email" required value={form.email} onChange={e => setForm({...form, email: e.target.value})}
+              className="w-full pl-14 pr-6 py-4 bg-[var(--bg-surface)] border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-3xl font-bold transition-all outline-none" 
+              placeholder="name@exclusive.com"
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Security Credentials</label>
+          <div className="relative">
+            <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+            <input 
+              type={showPass ? "text" : "password"} required value={form.password} onChange={e => setForm({...form, password: e.target.value})}
+              className="w-full pl-14 pr-16 py-4 bg-[var(--bg-surface)] border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-3xl font-bold transition-all outline-none" 
+              placeholder="••••••••"
+            />
+            <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 hover:text-[var(--brand-primary)] transition">
+              {showPass ? <EyeOff size={18}/> : <Eye size={18}/>}
+            </button>
+          </div>
+        </div>
+        
+        <button disabled={loading} className="btn-premium w-full !py-5 shadow-2xl !rounded-3xl !font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2">
+          {loading ? <Loader2 className="animate-spin" size={18}/> : <>Initialize Entry <ArrowRight size={18}/></>}
+        </button>
+      </form>
+    </div>
+  )
+}
+
+/* REGISTER FORM */
+function AccountRegisterForm({ register, setTab }: any) {
+  const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (form.password !== form.confirm) return setError("Passwords do not match")
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await register(form.name, form.email, form.password)
+      if (res.success) {
+        setSuccess(true)
+        setTimeout(() => setTab('login'), 3000)
+      } else {
+        setError(res.message)
+      }
+    } catch {
+      setError("Server unreachable")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (success) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center text-center">
+        <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-6 shadow-inner">
+           <CheckCircle2 size={40} />
+        </div>
+        <h3 className="text-3xl font-[1000] text-[var(--text-heading)] mb-4 tracking-tighter">Identity Verified</h3>
+        <p className="text-[var(--text-muted)] font-bold mb-6">Welcome to the elite rank. Redirecting to access terminal...</p>
+        <div className="w-10 h-1 border-2 border-emerald-500/20 rounded-full overflow-hidden">
+          <motion.div initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ duration: 3 }} className="h-full bg-emerald-500" />
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex-1 flex flex-col">
+      <h3 className="text-3xl font-[1000] text-[var(--text-heading)] mb-2 tracking-tighter leading-none">Elite Enrollment</h3>
+      <p className="text-[var(--text-muted)] text-sm font-bold uppercase tracking-wider mb-8">Join the DSE Originals collective</p>
+
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <label className="text-[10px] font-black uppercase text-gray-400">Full Name</label>
+          <input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full px-5 py-3.5 bg-[var(--bg-surface)] border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold transition-all outline-none text-sm" />
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] font-black uppercase text-gray-400">Email Address</label>
+          <input required type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="w-full px-5 py-3.5 bg-[var(--bg-surface)] border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold transition-all outline-none text-sm" />
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] font-black uppercase text-gray-400">Security Password</label>
+          <input required type="password" value={form.password} onChange={e => setForm({...form, password: e.target.value})} className="w-full px-5 py-3.5 bg-[var(--bg-surface)] border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold transition-all outline-none text-sm" />
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] font-black uppercase text-gray-400">Verify Password</label>
+          <input required type="password" value={form.confirm} onChange={e => setForm({...form, confirm: e.target.value})} className="w-full px-5 py-3.5 bg-[var(--bg-surface)] border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold transition-all outline-none text-sm" />
+        </div>
+        
+        {error && <div className="col-span-full py-2 text-[10px] font-black uppercase text-red-500 tracking-widest">{error}</div>}
+
+        <button disabled={loading} className="col-span-full btn-premium !py-4 shadow-xl !rounded-2xl !font-black uppercase tracking-widest mt-4">
+          {loading ? "Verifying..." : "Confirm Enrollment"}
+        </button>
+      </form>
+    </div>
+  )
+}
+
+/* TRACK FORM */
+function AccountGuestTrack() {
+  const [id, setId] = useState("")
+  const [email, setEmail] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [order, setOrder] = useState<any>(null)
+  const [error, setError] = useState("")
+
+  const handleTrack = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+    try {
+      const res = await api.get(`/orders/track?id=${id}&email=${email}`)
+      setOrder(res)
+    } catch {
+      setError("No record found matching these credentials.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (order) {
+    return (
+      <div className="flex-1 space-y-6">
+        <div className="flex items-center justify-between">
+           <h3 className="text-xl font-black text-[var(--text-heading)]">Shipment: {order.status.toUpperCase()}</h3>
+           <button onClick={() => setOrder(null)} className="text-[10px] font-black uppercase text-[var(--brand-primary)]">Close Result</button>
+        </div>
+        <div className="bg-[var(--bg-surface)] p-6 rounded-3xl border border-[var(--border-light)]">
+           <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-[var(--brand-primary)] shadow-sm">
+                <Truck size={24}/>
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">J&T Logistics Pin</p>
+                <p className="font-mono font-black text-[var(--brand-primary)]">{order.trackingNo || 'Preparing Manifest'}</p>
+              </div>
+           </div>
+           
+           <div className="space-y-4 pt-4 border-t border-white">
+              {order.trackingNo && (
+                <a 
+                  href={`https://www.jtexpress.ph/index/query/gzquery.html?bills=${order.trackingNo}`}
+                  target="_blank"
+                  className="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 group shadow-sm"
+                >
+                  <span className="text-xs font-black uppercase tracking-widest group-hover:text-[var(--brand-primary)] transition">J&T Live Portal</span>
+                  <ArrowRight size={14} className="text-gray-300 group-hover:translate-x-1 transition" />
+                </a>
+              )}
+              <Link href={`/track?id=${order.id}&email=${encodeURIComponent(email)}`} className="block text-center text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-[var(--brand-primary)] transition">View Full Logistics Map</Link>
+           </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex-1 flex flex-col">
+      <h3 className="text-3xl font-[1000] text-[var(--text-heading)] mb-2 tracking-tighter leading-none">Guest Retrieval</h3>
+      <p className="text-[var(--text-muted)] text-sm font-bold uppercase tracking-wider mb-8">Access logistics without an identity profile</p>
+
+      <form onSubmit={handleTrack} className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Reference ID</label>
+          <div className="relative">
+             <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+             <input required placeholder="ord-XXXXXX" value={id} onChange={e => setId(e.target.value)} className="w-full pl-14 pr-6 py-4 bg-[var(--bg-surface)] border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-3xl font-bold transition-all outline-none text-sm" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Verification Email</label>
+          <div className="relative">
+             <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+             <input required type="email" placeholder="email@used.com" value={email} onChange={e => setEmail(e.target.value)} className="w-full pl-14 pr-6 py-4 bg-[var(--bg-surface)] border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-3xl font-bold transition-all outline-none text-sm" />
+          </div>
+        </div>
+        
+        {error && <div className="p-4 bg-red-50 text-red-500 rounded-2xl text-[10px] font-black uppercase text-center tracking-widest">{error}</div>}
+
+        <button disabled={loading} className="btn-premium w-full !py-4 shadow-xl !rounded-[2rem] !font-black uppercase tracking-widest mt-4">
+          {loading ? "querying..." : "Access Data Hub"}
+        </button>
+      </form>
+    </div>
+  )
+}
+
+/* SUB-COMPONENTS */
+
+function ProfileStat({ label, value, icon, color }: any) {
+  return (
+    <div className="p-8 rounded-[2rem] border border-[var(--border-light)] bg-white shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-500">
+      <div className={`w-12 h-12 ${color} rounded-2xl flex items-center justify-center mb-6 shadow-md`}>
+        {icon}
+      </div>
+      <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] mb-1 opacity-60">{label}</p>
+      <p className="text-2xl font-[1000] text-[var(--text-heading)] tracking-tighter">{value}</p>
+    </div>
+  )
+}
+
+function OrderSummaryCard({ order, onClick }: { order: any, onClick: () => void }) {
+  const statusColors: any = {
+    pending: 'bg-amber-50 text-amber-600',
+    paid: 'bg-emerald-50 text-emerald-600',
+    shipped: 'bg-blue-50 text-blue-600',
+    delivered: 'bg-slate-900 text-white'
+  }
+
+  return (
+    <div 
+      onClick={onClick}
+      className="p-5 bg-[var(--bg-surface)] rounded-[1.5rem] border border-[var(--border-light)] flex items-center justify-between hover:bg-white hover:shadow-lg hover:border-[var(--brand-primary)] cursor-pointer transition-all duration-300"
+    >
+      <div className="flex items-center gap-4">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${statusColors[order.status] || 'bg-gray-100 text-gray-400'}`}>
+          <Package size={20}/>
+        </div>
+        <div>
+          <h4 className="font-black text-sm text-[var(--text-heading)]">Order #{order.id.slice(-6).toUpperCase()}</h4>
+          <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{new Date(order.createdAt).toLocaleDateString()} • {order.items.length} items</p>
+        </div>
+      </div>
+      <div className="text-right">
+        <p className="font-black text-sm text-[var(--brand-primary)] mb-1">₱{order.totalAmount.toLocaleString()}</p>
+        <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${statusColors[order.status] || 'bg-gray-100 text-gray-400'}`}>
+          {order.status}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function OrderDetailedCard({ order, isSelected, onSelect }: { order: any, isSelected: boolean, onSelect: () => void }) {
+  const statusColors: any = {
+    pending: 'bg-amber-500',
+    paid: 'bg-emerald-500',
+    shipped: 'bg-blue-500',
+    delivered: 'bg-slate-900'
+  }
+
+  return (
+    <div className={`rounded-3xl border transition-all duration-500 overflow-hidden ${isSelected ? 'border-[var(--brand-primary)] shadow-2xl scale-[1.01]' : 'border-[var(--border-light)] bg-white shadow-sm'}`}>
+      <div onClick={onSelect} className="p-6 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-300">
+             <Package size={28}/>
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+               <span className="font-black text-lg text-[var(--text-heading)]">Order #{order.id.slice(-6).toUpperCase()}</span>
+               <span className={`w-2 h-2 rounded-full ${statusColors[order.status] || 'bg-gray-400'} animate-pulse`} />
+            </div>
+            <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
+               <Clock size={12}/> {new Date(order.createdAt).toLocaleDateString()} • {order.items.length} items dispatched
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-6">
+           <div className="text-right hidden md:block">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Logistics Reference</p>
+              <p className="font-mono font-bold text-sm text-[var(--text-heading)] bg-gray-50 px-3 py-1 rounded-lg">{order.trackingNo || 'Pending Fulfillment'}</p>
+           </div>
+           <div className="text-right">
+              <p className="text-xl font-[1000] text-[var(--brand-primary)] tabular-nums">₱{order.totalAmount.toLocaleString()}</p>
+              <button className="text-[10px] font-black uppercase tracking-widest text-[var(--brand-accent)] flex items-center gap-1 hover:underline ml-auto">
+                 View Breakdown <ChevronRight size={10}/>
+              </button>
+           </div>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {isSelected && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="border-t border-[var(--border-light)] bg-[var(--bg-surface)] p-8"
+          >
+             <div className="grid md:grid-cols-2 gap-10">
+                <div>
+                   <h5 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
+                      <Truck size={14}/> Logistics Terminal
+                   </h5>
+                   <div className="space-y-4">
+                      <div className="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
+                         <div className="absolute top-0 right-0 p-4 opacity-5"><Truck size={40}/></div>
+                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Tracking Pin (J&T Express)</p>
+                         <p className="text-lg font-black text-[var(--brand-primary)] font-mono">{order.trackingNo || 'Manifesting Package...'}</p>
+                         {order.trackingNo && (
+                           <a 
+                             href={`https://www.jtexpress.ph/index/query/gzquery.html?bills=${order.trackingNo}`}
+                             target="_blank"
+                             className="mt-4 flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-blue-600 hover:underline"
+                           >
+                             J&T Live Tracking Portal <ArrowRight size={12}/>
+                           </a>
+                         )}
+                      </div>
+                      
+                      <Link href={`/track?id=${order.id}`} className="block text-center p-4 rounded-xl border-2 border-dashed border-gray-200 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] transition-all">
+                        Access Deep Logistics Map
+                      </Link>
+                   </div>
                 </div>
-                <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Products in parcel</span>
+
+                <div>
+                   <h5 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
+                      <Package size={14}/> Itemized Manifest
+                   </h5>
+                   <div className="space-y-3">
+                      {order.items.map((item: any, i: number) => (
+                        <div key={i} className="flex justify-between items-center text-sm font-bold border-b border-gray-100/50 pb-2">
+                           <span className="text-[var(--text-heading)]">{item.productName} <span className="text-gray-300 mx-2">×</span> {item.quantity}</span>
+                           <span className="text-[var(--brand-primary)]">₱{(item.price * item.quantity).toLocaleString()}</span>
+                        </div>
+                      ))}
+                      <div className="flex justify-between items-center pt-2">
+                         <span className="text-xs font-black uppercase text-gray-400">Total Transaction</span>
+                         <span className="text-lg font-black text-[var(--text-heading)]">₱{order.totalAmount.toLocaleString()}</span>
+                      </div>
+                   </div>
+                </div>
              </div>
-          </div>
-          <div className="flex flex-col items-start md:items-end justify-between">
-             <div className="text-left md:text-right">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Value</p>
-                <p className="text-2xl font-[1000] text-[var(--brand-primary)] tracking-tighter">₱{Number(order.total).toLocaleString()}</p>
-             </div>
-             <button 
-               onClick={onSelect}
-               className={`mt-6 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isSelected ? 'bg-[var(--brand-primary)] text-white shadow-lg' : 'bg-gray-50 text-[var(--brand-primary)] hover:bg-[var(--brand-primary)] hover:text-white'}`}
-             >
-                {isSelected ? 'Viewing Flow' : 'Trace Shipment'}
-             </button>
-          </div>
-       </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
-
-function SettingsInput({ label, value, disabled }: any) {
-  return (
-    <div className="space-y-2">
-       <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">{label}</label>
-       <div className={`px-5 py-4 rounded-xl border text-sm font-bold ${disabled ? 'bg-gray-50 border-gray-100 text-gray-500' : 'bg-white border-gray-200 text-[var(--text-heading)]'}`}>
-         {value}
-       </div>
-    </div>
-  )
-}
-
-function SupportLink({ label }: { label: string }) {
-  return (
-    <div className="flex items-center justify-between text-xs font-bold text-[var(--text-muted)] hover:text-[var(--brand-primary)] cursor-pointer group py-1">
-      <span>{label}</span>
-      <ChevronRight size={14} className="text-gray-200 group-hover:text-[var(--brand-primary)] transition" />
-    </div>
-  )
-}
-
-function X({ size }: { size: number }) { return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> }

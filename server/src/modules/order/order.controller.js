@@ -366,17 +366,18 @@ export const updateOrderStatus = async (req, res, next) => {
 
     await createOrderEvent(id, status, `Order → ${status}`)
 
-    if (status === "shipped") {
+    if (status === "shipped" || (trackingNo && trackingNo !== order.trackingNo)) {
 
       const fullOrder = await prisma.order.findUnique({
         where: { id },
         include: { items: true, user: true }
       })
 
-      await sendShippedEmail(
-        fullOrder.user?.email || fullOrder.guestEmail,
-        fullOrder
-      )
+      // Use a graceful subject if it's just a tracking update vs full ship
+      const toEmail = fullOrder.user?.email || fullOrder.guestEmail
+      if (toEmail) {
+        await sendShippedEmail(toEmail, fullOrder)
+      }
     }
 
     res.json(updated)
