@@ -278,12 +278,12 @@ export default function AdminProducts() {
             <div className="p-10 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                   <InputField label="Product Designation" value={form.name} onChange={(v)=>setForm({...form, name: v})} placeholder="e.g. Classic Marine Shirt" />
+                   <InputField label="Product Designation" value={form.name} onChange={(v: string)=>setForm({...form, name: v})} placeholder="e.g. Classic Marine Shirt" />
                    <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">Composition Description</label>
                       <textarea 
                         value={form.description}
-                        onChange={(e)=>setForm({...form, description: e.target.value})}
+                        onChange={(e: any)=>setForm({...form, description: e.target.value})}
                         className="w-full px-5 py-4 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] text-sm font-bold min-h-[120px] transition-all"
                         placeholder="Detail the product unique features..."
                       />
@@ -294,16 +294,16 @@ export default function AdminProducts() {
                       <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">Classification Group</label>
                       <select 
                         value={form.categoryId}
-                        onChange={(e)=>setForm({...form, categoryId: e.target.value})}
+                        onChange={(e: any)=>setForm({...form, categoryId: e.target.value})}
                         className="w-full px-5 py-4 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] text-sm font-bold transition-all"
                       >
                         <option value="">Select Category</option>
-                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        {categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
                       </select>
                    </div>
                    <div className="grid grid-cols-2 gap-4">
-                      <InputField label="Market Value (₱)" value={form.price} onChange={(v)=>setForm({...form, price: v})} type="number" />
-                      <InputField label="Stock Units" value={form.stock} onChange={(v)=>setForm({...form, stock: v})} type="number" />
+                      <InputField label="Market Value (₱)" value={form.price} onChange={(v: string)=>setForm({...form, price: v})} type="number" />
+                      <InputField label="Stock Units" value={form.stock} onChange={(v: string)=>setForm({...form, stock: v})} type="number" />
                    </div>
                    <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">Product Media</label>
@@ -311,7 +311,7 @@ export default function AdminProducts() {
                          <input 
                            type="file" 
                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
-                           onChange={async(e)=>{
+                           onChange={async(e: any)=>{
                              const f = e.target.files?.[0]; if(!f) return;
                              const comp = await imageCompression(f, { maxSizeMB: 1, maxWidthOrHeight: 1200, useWebWorker: true });
                              setForm({...form, image: new File([comp], f.name, {type: comp.type})});
@@ -394,7 +394,7 @@ function InputField({ label, value, onChange, type = "text", placeholder }: any)
   return (
     <div className="space-y-1">
       <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">{label}</label>
-      <input type={type} value={value} onChange={(e)=>onChange(e.target.value)} className="w-full px-5 py-4 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] text-sm font-bold transition-all" placeholder={placeholder} />
+      <input type={type} value={value} onChange={(e: any)=>onChange(e.target.value)} className="w-full px-5 py-4 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] text-sm font-bold transition-all" placeholder={placeholder} />
     </div>
   )
 }
