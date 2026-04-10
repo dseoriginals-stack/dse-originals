@@ -109,7 +109,7 @@ export default function AccountPage() {
                 { id: 'overview', label: 'Dashboard', icon: <TrendingUp size={16}/> },
                 { id: 'orders', label: 'My Orders', icon: <Package size={16}/> },
                 { id: 'settings', label: 'Profile Settings', icon: <Settings size={16}/> }
-              ].map(tab => (
+              ].map((tab: any) => (
                 <button 
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
@@ -129,7 +129,7 @@ export default function AccountPage() {
                    <div className="grid md:grid-cols-3 gap-6">
                       <ProfileStat label="Total Expenditures" value={`₱${totalSpent.toLocaleString()}`} icon={<CreditCard size={20}/>} color="bg-blue-50 text-blue-500" />
                       <ProfileStat label="Lucky Points" value={luckyPoints} icon={<Heart size={20}/>} color="bg-rose-50 text-rose-500" />
-                      <ProfileStat label="Active Shipments" value={orders.filter(o => o.status === 'shipped').length} icon={<Truck size={20}/>} color="bg-emerald-50 text-emerald-500" />
+                      <ProfileStat label="Active Shipments" value={orders.filter((o: any) => o.status === 'shipped').length} icon={<Truck size={20}/>} color="bg-emerald-50 text-emerald-500" />
                    </div>
 
                    <div>
@@ -138,7 +138,7 @@ export default function AccountPage() {
                         <div className="p-10 bg-[var(--bg-surface)] rounded-[2rem] text-center italic text-gray-400 font-bold text-sm">No recent transactions found</div>
                       ) : (
                         <div className="space-y-4">
-                           {orders.slice(0, 3).map(o => (
+                           {orders.slice(0, 3).map((o: any) => (
                              <OrderSummaryCard key={o.id} order={o} onClick={() => { setSelectedOrder(o); setActiveTab('orders'); }} />
                            ))}
                         </div>
@@ -150,16 +150,16 @@ export default function AccountPage() {
                {activeTab === 'orders' && (
                  <div className="animate-fade-in">
                    <h3 className="text-2xl font-[1000] text-[var(--text-heading)] mb-8 tracking-tighter">Order History</h3>
-                   {loadingOrders ? (
-                     <div className="space-y-4">{Array(3).fill(0).map((_,i) => <div key={i} className="h-24 bg-gray-50 rounded-2xl animate-pulse" />)}</div>
-                   ) : orders.length === 0 ? (
+                    {loadingOrders ? (
+                      <div className="space-y-4">{Array(3).fill(0).map((_, i: number) => <div key={i} className="h-24 bg-gray-50 rounded-2xl animate-pulse" />)}</div>
+                    ) : orders.length === 0 ? (
                      <div className="text-center py-20">
                         <Package size={48} className="mx-auto text-gray-100 mb-4" />
                         <p className="text-gray-400 font-bold italic">Your closet is currently empty. Start shopping now!</p>
                      </div>
                    ) : (
                      <div className="space-y-6">
-                        {orders.map(o => (
+                        {orders.map((o: any) => (
                            <OrderDetailedCard key={o.id} order={o} isSelected={selectedOrder?.id === o.id} onSelect={() => setSelectedOrder(o)} />
                         ))}
                      </div>

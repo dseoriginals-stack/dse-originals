@@ -159,7 +159,7 @@ export default function AdminOrders() {
                       expanded={expandedOrder === order.id}
                       onExpand={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
                       trackingValue={trackingInputs[order.id] ?? order.trackingNo ?? ""}
-                      onTrackingChange={(val) => setTrackingInputs(p => ({ ...p, [order.id]: val }))}
+                      onTrackingChange={(val: string) => setTrackingInputs(p => ({ ...p, [order.id]: val }))}
                       onUpdateStatus={updateStatus}
                     />
                   ))}
