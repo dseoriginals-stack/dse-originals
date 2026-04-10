@@ -19,8 +19,10 @@ model User {
   address       String?
   phone         String?
   role          Role     @default(customer)
-  luckyPoints   Int      @default(0)
-  emailVerified Boolean  @default(false)
+  luckyPoints    Int          @default(0)
+  lifetimePoints Int          @default(0)
+  tier           LoyaltyTier  @default(Faith)
+  emailVerified  Boolean      @default(false)
   createdAt     DateTime @default(now())
 
   carts         Cart[]
@@ -213,6 +215,8 @@ model Order {
 
   totalAmount    Decimal   @db.Decimal(10, 2)
   shippingFee    Decimal   @default(0)
+  pointsUsed     Int       @default(0)
+  pointsDiscount Decimal   @default(0) @db.Decimal(10, 2)
   deliveryMethod String
   pickupTime     DateTime?
 
@@ -484,4 +488,10 @@ enum ProductStatus {
   active
   draft
   archived
+}
+
+enum LoyaltyTier {
+  Faith
+  Hope
+  Love
 }

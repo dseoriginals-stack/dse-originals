@@ -29,7 +29,8 @@ export const createOrder = async (req, res, next) => {
       guestName,
       clientOrderId,
       deliveryMethod = "delivery",
-      shippingFee = 0
+      shippingFee = 0,
+      pointsToUse = 0
     } = req.body
 
     const userId = req.user?.id || null
@@ -120,7 +121,26 @@ export const createOrder = async (req, res, next) => {
         })
       }
 
-      const totalAmount = subtotal + Number(shippingFee)
+      let pointsDiscount = 0
+      if (userId && pointsToUse > 0) {
+        const user = await tx.user.findUnique({ where: { id: userId } })
+        if (!user || user.luckyPoints < pointsToUse) {
+          throw new Error("Insufficient loyalty points")
+        }
+
+        // 1 point = ₱1 discount
+        // Limit discount to subtotal
+        pointsDiscount = Math.min(Number(pointsToUse), subtotal)
+
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            luckyPoints: { decrement: Math.floor(pointsDiscount) }
+          }
+        })
+      }
+
+      const totalAmount = subtotal + Number(shippingFee) - pointsDiscount
 
       return tx.order.create({
         data: {
@@ -129,6 +149,8 @@ export const createOrder = async (req, res, next) => {
           guestName: userId ? null : guestName,
           totalAmount,
           shippingFee: Number(shippingFee),
+          pointsUsed: userId ? Math.floor(pointsDiscount) : 0,
+          pointsDiscount: pointsDiscount,
           deliveryMethod,
           clientOrderId,
           status: "pending",

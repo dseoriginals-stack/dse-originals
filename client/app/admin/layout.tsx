@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic"
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, BarChart3, Package, ShoppingCart, Users, LogOut, MessageSquare, Bell } from "lucide-react"
+import { LayoutDashboard, BarChart3, Package, ShoppingCart, Users, LogOut, MessageSquare, Bell, Menu, X } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 import { useEffect, useState } from "react"
 import NotificationPanel from "@/components/admin/NotificationPanel"
@@ -28,6 +28,7 @@ export default function AdminLayout({
   const router = useRouter()
   const { user, loading, logout } = useAuth()
   const [showNotifications, setShowNotifications] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   /* =========================
      FIX: ROLE ACCESS (ADMIN & STAFF)
@@ -45,19 +46,37 @@ export default function AdminLayout({
   const isStaff = user.role === 'staff'
 
   return (
-    <div className="flex min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-sans selection:bg-[var(--brand-accent)] selection:text-white">
+    <div className="flex min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-sans selection:bg-[var(--brand-accent)] selection:text-white relative">
+
+      {/* MOBILE OVERLAY */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
       {/* ================= SIDEBAR ================= */}
-      <aside className="w-64 bg-white/70 backdrop-blur-xl border-r border-[var(--border-light)] flex flex-col shadow-[4px_0_24px_rgba(39,76,119,0.03)] z-20">
+      <aside className={`
+        fixed inset-y-0 left-0 w-64 bg-white/70 backdrop-blur-xl border-r border-[var(--border-light)] 
+        flex flex-col shadow-[4px_0_24px_rgba(39,76,119,0.03)] z-40 transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-auto
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+      `}>
 
         {/* LOGO */}
-        <div className="px-6 py-8 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[var(--brand-primary)] to-[var(--brand-accent)] shadow-md flex items-center justify-center">
-            <span className="text-white font-bold text-sm tracking-widest">{isStaff ? 'S' : 'D'}</span>
+        <div className="px-6 py-8 flex items-center justify-between lg:justify-start gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[var(--brand-primary)] to-[var(--brand-accent)] shadow-md flex items-center justify-center">
+              <span className="text-white font-bold text-sm tracking-widest">{isStaff ? 'S' : 'D'}</span>
+            </div>
+            <span className="text-xl font-extrabold tracking-tight text-[var(--text-heading)]">
+              {isStaff ? 'Staff' : 'Admin'}<span className="text-[var(--brand-primary)]">.</span>
+            </span>
           </div>
-          <span className="text-xl font-extrabold tracking-tight text-[var(--text-heading)]">
-            {isStaff ? 'Staff' : 'Admin'}<span className="text-[var(--brand-primary)]">.</span>
-          </span>
+
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-2 text-[var(--text-muted)]">
+            <X size={20} />
+          </button>
         </div>
 
         {/* NAV */}
@@ -71,6 +90,7 @@ export default function AdminLayout({
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => setSidebarOpen(false)}
                 className={`
                   flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-300
                   ${active
@@ -116,10 +136,20 @@ export default function AdminLayout({
       <div className="flex-1 flex flex-col overflow-hidden relative">
 
         {/* TOPBAR */}
-        <header className="bg-white/70 backdrop-blur-md border-b border-[var(--border-light)] px-10 py-5 flex items-center justify-between sticky top-0 z-10 shadow-sm surface-light">
+        <header className="bg-white/70 backdrop-blur-md border-b border-[var(--border-light)] px-4 md:px-10 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm surface-light">
 
-          {/* GLOBAL SEARCH */}
-          <AdminSearch />
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-[var(--border-light)] text-[var(--text-heading)]"
+            >
+              <Menu size={20} />
+            </button>
+            <div className="hidden sm:block">
+              {/* GLOBAL SEARCH */}
+              <AdminSearch />
+            </div>
+          </div>
 
           {/* PROFILE */}
           <div className="flex items-center gap-6 ml-6">
@@ -171,7 +201,7 @@ export default function AdminLayout({
         </header>
 
         {/* CONTENT */}
-        <main className="p-8 lg:p-10 flex-1 overflow-y-auto custom-scrollbar">
+        <main className="p-4 md:p-8 lg:p-10 flex-1 overflow-y-auto custom-scrollbar">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>

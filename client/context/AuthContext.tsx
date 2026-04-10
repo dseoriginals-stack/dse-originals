@@ -9,6 +9,8 @@ type User = {
   email: string
   role: string
   luckyPoints?: number
+  lifetimePoints?: number
+  tier?: "Faith" | "Hope" | "Love"
   createdAt?: string
   name?: string
   phone?: string
@@ -92,30 +94,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { success: true }
     } catch (err: any) {
       const message = err?.message || "Invalid email or password."
-      const isUnverified = message.toLowerCase().includes("verify")
       setUser(null)
-      return { success: false, message, unverified: isUnverified }
+      return { success: false, message }
     }
   }
 
-  /*
-  -----------------------------
-  REGISTER
-  -----------------------------
-  */
   const register = async (
     name: string,
     email: string,
     password: string
   ): Promise<AuthResult> => {
     try {
-      await api.post<{ user: User }>("/auth/register", {
+      const res = await api.post<{ user: User }>("/auth/register", {
         name,
         email: email.trim().toLowerCase(),
         password: password.trim(),
       })
 
-      // Don't auto-login — redirect to login with success banner
+      setUser(res.user)
+      await refresh()
+
+      toast.success("Welcome! Account created successfully.")
       return { success: true }
     } catch (err: any) {
       const message = err?.message || "Registration failed. Please try again."

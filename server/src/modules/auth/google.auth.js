@@ -9,26 +9,26 @@ passport.use(new GoogleStrategy({
   callbackURL: "/api/auth/google/callback"
 
 },
-async (accessToken, refreshToken, profile, done) => {
+  async (accessToken, refreshToken, profile, done) => {
 
-  const email = profile.emails[0].value
+    const email = profile.emails[0].value
 
-  let user = await prisma.user.findUnique({
-    where: { email }
-  })
-
-  if (!user) {
-
-    user = await prisma.user.create({
-      data: {
-        email,
-        password: "oauth",
-        emailVerified: true
-      }
+    let user = await prisma.user.findUnique({
+      where: { email }
     })
 
-  }
+    if (!user) {
 
-  return done(null, user)
+      user = await prisma.user.create({
+        data: {
+          email,
+          password: "oauth",
+          emailVerified: true
+        }
+      })
 
-}))
+    }
+
+    return done(null, user)
+
+  }))

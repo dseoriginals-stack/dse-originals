@@ -2,6 +2,7 @@ import express from "express"
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import crypto from "crypto"
+import passport from "passport"
 import prisma from "../../config/prisma.js"
 import authLimiter from "../../middleware/authRateLimiter.js"
 import { loginSchema, registerSchema } from "../../validators/auth.validator.js"
@@ -44,7 +45,7 @@ const generateRefreshToken = (user) => {
    ISSUE TOKENS
 ============================= */
 
-async function issueTokens(user, req, res) {
+async function issueTokens(user, req, res, isOAuth = false) {
   const accessToken = generateAccessToken(user)
   const refreshToken = generateRefreshToken(user)
 
@@ -76,6 +77,10 @@ async function issueTokens(user, req, res) {
     sameSite: isProd ? "none" : "lax",
     path: "/",
   })
+
+  if (isOAuth) {
+    return res.redirect(`${process.env.CLIENT_URL}/account?auth=success`);
+  }
 
   return res.json({
     user: {
@@ -123,29 +128,12 @@ router.post("/register", authLimiter, async (req, res) => {
         password: hashedPassword,
         role: "customer",
         luckyPoints: 0,
+        emailVerified: true // Set to true by default now
       },
     })
 
-    // --- EMAIL VERIFICATION ---
-    const token = crypto.randomBytes(32).toString("hex")
-    await prisma.emailVerificationToken.create({
-      data: {
-        email: user.email,
-        token,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-      },
-    })
-
-    try {
-      await sendVerificationEmail(user.email, token)
-    } catch (emailErr) {
-      logger.error("Failed to send verification email", emailErr)
-    }
-
-    return res.json({
-      success: true,
-      message: "Registration successful! Please check your email to verify your account."
-    })
+    // Automatically log them in after registration
+    return await issueTokens(user, req, res)
   } catch (err) {
     logger.error("REGISTER ERROR:", err)
 
@@ -155,84 +143,7 @@ router.post("/register", authLimiter, async (req, res) => {
   }
 })
 
-/* =============================
-   VERIFY EMAIL
-============================= */
 
-router.get("/verify-email", async (req, res) => {
-  const { token } = req.query
-
-  if (!token) {
-    return res.status(400).json({ message: "Token is required" })
-  }
-
-  try {
-    const verificationRecord = await prisma.emailVerificationToken.findUnique({
-      where: { token },
-    })
-
-    if (!verificationRecord || verificationRecord.expiresAt < new Date()) {
-      return res.status(400).json({ message: "Invalid or expired verification token" })
-    }
-
-    await prisma.$transaction([
-      prisma.user.update({
-        where: { email: verificationRecord.email },
-        data: { emailVerified: true },
-      }),
-      prisma.emailVerificationToken.delete({
-        where: { id: verificationRecord.id },
-      }),
-    ])
-
-    return res.json({ success: true, message: "Email verified successfully! You can now log in." })
-  } catch (err) {
-    logger.error("VERIFY EMAIL ERROR:", err)
-    return res.status(500).json({ message: "Verification failed" })
-  }
-})
-
-/* =============================
-   RESEND VERIFICATION
-============================= */
-
-router.post("/resend-verification", authLimiter, async (req, res) => {
-  const { email } = req.body
-
-  if (!email) {
-    return res.status(400).json({ message: "Email is required" })
-  }
-
-  try {
-    const user = await prisma.user.findUnique({ where: { email } })
-
-    if (!user) {
-      return res.status(200).json({ success: true, message: "If an account exists, a new verification link has been sent." })
-    }
-
-    if (user.emailVerified) {
-      return res.status(400).json({ message: "Email is already verified" })
-    }
-
-    await prisma.emailVerificationToken.deleteMany({ where: { email } })
-
-    const token = crypto.randomBytes(32).toString("hex")
-    await prisma.emailVerificationToken.create({
-      data: {
-        email: user.email,
-        token,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      },
-    })
-
-    await sendVerificationEmail(user.email, token)
-
-    return res.json({ success: true, message: "Verification email resent!" })
-  } catch (err) {
-    logger.error("RESEND VERIFICATION ERROR:", err)
-    return res.status(500).json({ message: "Failed to resend verification email" })
-  }
-})
 
 /* =============================
    LOGIN
@@ -263,14 +174,6 @@ router.post("/login", async (req, res) => {
       })
     }
 
-    // CHECK VERIFICATION
-    if (!user.emailVerified) {
-      return res.status(403).json({
-        message: "Please verify your email before logging in.",
-        unverified: true,
-      })
-    }
-
     const isMatch = await bcrypt.compare(password, user.password)
 
     if (!isMatch) {
@@ -288,6 +191,38 @@ router.post("/login", async (req, res) => {
     })
   }
 })
+
+/* =============================
+   GOOGLE OAUTH
+============================= */
+
+router.get("/google", passport.authenticate("google", {
+  scope: ["profile", "email"],
+  session: false
+}))
+
+router.get("/google/callback",
+  passport.authenticate("google", { session: false, failureRedirect: `${process.env.CLIENT_URL}/account?error=oauth_failed` }),
+  async (req, res) => {
+    return await issueTokens(req.user, req, res, true)
+  }
+)
+
+/* =============================
+   FACEBOOK OAUTH
+============================= */
+
+router.get("/facebook", passport.authenticate("facebook", {
+  scope: ["email"],
+  session: false
+}))
+
+router.get("/facebook/callback",
+  passport.authenticate("facebook", { session: false, failureRedirect: `${process.env.CLIENT_URL}/account?error=oauth_failed` }),
+  async (req, res) => {
+    return await issueTokens(req.user, req, res, true)
+  }
+)
 
 /* =============================
    LOGOUT

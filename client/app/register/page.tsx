@@ -105,6 +105,8 @@ export default function RegisterPage() {
       }
 
       setSuccess(true)
+      // Note: AuthContext now handles setting the user and toast
+      router.replace("/")
     } catch {
       setError("Something went wrong. Please try again.")
       setLoading(false)
@@ -115,30 +117,6 @@ export default function RegisterPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--bg-main)]">
         <Loader2 className="animate-spin text-[var(--brand-primary)]" size={36} />
-      </div>
-    )
-  }
-
-  if (success) {
-    return (
-      <div className="min-h-screen bg-[var(--bg-main)] flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-md bg-white rounded-[2rem] border border-[var(--border-light)] shadow-2xl p-8 md:p-10 text-center">
-          <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-            <Mail size={40} />
-          </div>
-          <h2 className="text-3xl font-extrabold text-[var(--text-heading)] mb-4 tracking-tight">Verify your email</h2>
-          <p className="text-[var(--text-muted)] mb-8 leading-relaxed">
-            We&apos;ve sent a verification link to <span className="font-bold text-[var(--text-heading)]">{form.email}</span>. Please check your inbox and click the link to activate your account.
-          </p>
-          <div className="space-y-4">
-             <Link href="/login" className="btn-premium w-full !py-4 shadow-lg !rounded-xl text-base !font-bold">
-               Back to Login
-             </Link>
-             <p className="text-xs text-[var(--text-muted)]">
-               Didn&apos;t receive it? Check your spam folder or contact support.
-             </p>
-          </div>
-        </div>
       </div>
     )
   }
@@ -214,6 +192,29 @@ export default function RegisterPage() {
                 Sign in here
               </Link>
             </p>
+          </div>
+
+          {/* Google Register */}
+          <div className="mb-6">
+            <button
+              type="button"
+              onClick={() => {
+                window.location.href = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/auth/google`
+              }}
+              className="w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-xl border-2 border-[var(--border-light)] bg-white hover:bg-gray-50 transition-all font-bold text-[var(--text-heading)]"
+            >
+              <Image src="/google-icon.svg" alt="Google" width={20} height={20} />
+              Continue with Google
+            </button>
+          </div>
+
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-[var(--border-light)]"></div>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-[var(--bg-main)] px-4 text-[var(--text-muted)] font-bold tracking-widest">Or create account with</span>
+            </div>
           </div>
 
           {/* Global Error */}

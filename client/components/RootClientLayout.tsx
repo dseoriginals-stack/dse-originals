@@ -35,9 +35,9 @@ export default function RootClientLayout({
           <Toaster 
             position="top-right"
             containerStyle={{
-              top: 80,
+              top: 100,
               right: 20,
-              left: 20
+              zIndex: 99999
             }}
             gutter={12}
             toastOptions={{

@@ -65,110 +65,109 @@ export default function ProductModal({
       <div
         onClick={(e) => e.stopPropagation()}
         className="
-          bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden relative
+          bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden relative
           animate-in fade-in zoom-in-95 duration-200
+          flex flex-col md:grid md:grid-cols-2 max-h-[95vh] md:max-h-none overflow-y-auto
         "
       >
 
         {/* CLOSE */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 bg-white/80 rounded-full p-2 hover:bg-white"
+          className="absolute right-4 top-4 z-10 bg-white/80 rounded-full p-2 hover:bg-white shadow-sm"
         >
           <X size={18} />
         </button>
 
-        <div className="grid md:grid-cols-2">
+        {/* IMAGE */}
+        <div className="relative h-[250px] sm:h-[350px] md:h-auto min-h-[400px] bg-gray-50 flex-shrink-0">
+          <Image
+            src={imageUrl}
+            alt={product.name}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 50vw"
+          />
+        </div>
 
-          {/* IMAGE */}
-          <div className="relative h-[300px] md:h-full bg-gray-50">
-            <Image
-              src={imageUrl}
-              alt={product.name}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
+        {/* CONTENT */}
+        <div className="p-6 md:p-8 flex flex-col gap-5 bg-white">
+
+          {/* TITLE */}
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
+            {product.name}
+          </h2>
+
+          {/* PRICE */}
+          <div className="text-xl font-bold text-[var(--brand-primary)]">
+            ₱{Number(product.price).toLocaleString()}
           </div>
 
-          {/* CONTENT */}
-          <div className="p-6 md:p-8 flex flex-col gap-5">
+          {/* DESCRIPTION (placeholder for now) */}
+          <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+            Experience the highest quality with this premium product, designed exactly with your aesthetic and practical needs in mind.
+          </p>
 
-            {/* TITLE */}
-            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
-              {product.name}
-            </h2>
+          {/* QUANTITY */}
+          <div>
+            <p className="text-sm text-gray-500 mb-2">Quantity</p>
 
-            {/* PRICE */}
-            <div className="text-xl font-bold text-[var(--brand-primary)]">
-              ₱{Number(product.price).toLocaleString()}
-            </div>
-
-            {/* DESCRIPTION (placeholder for now) */}
-            <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-              Experience the highest quality with this premium product, designed exactly with your aesthetic and practical needs in mind.
-            </p>
-
-            {/* QUANTITY */}
-            <div>
-              <p className="text-sm text-gray-500 mb-2">Quantity</p>
-
-              <div className="flex items-center border rounded-xl w-fit">
-                <button
-                  onClick={() => setQty((q) => Math.max(1, q - 1))}
-                  className="px-4 py-2"
-                >
-                  −
-                </button>
-
-                <span className="px-5">{qty}</span>
-
-                <button
-                  onClick={() => setQty((q) => q + 1)}
-                  className="px-4 py-2"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* INFO */}
-            <div className="bg-[var(--brand-soft)]/20 text-[var(--brand-primary)] text-sm px-4 py-3 rounded-lg border border-[var(--brand-accent)]/20 font-medium">
-              Free shipping available on this item
-            </div>
-
-            {/* ACTIONS */}
-            <div className="flex flex-col sm:flex-row gap-3 mt-auto pt-4 border-t border-[var(--border-light)]">
+            <div className="flex items-center border rounded-xl w-fit">
               <button
-                onClick={handleAdd}
-                disabled={loading}
-                className="btn-premium flex-1 !py-3.5 !rounded-xl text-base shadow-sm"
+                onClick={() => setQty((q) => Math.max(1, q - 1))}
+                className="px-4 py-2 hover:bg-gray-100 transition-colors"
               >
-                {added ? (
-                  <>
-                    <Check size={18} /> Added
-                  </>
-                ) : loading ? (
-                  "Adding..."
-                ) : (
-                  <>
-                     <ShoppingBag size={18} /> Add to Cart
-                  </>
-                )}
+                −
               </button>
 
-              <Link
-                href={`/products/${product.slug}`}
-                onClick={onClose}
-                className="btn-outline flex-1 flex justify-center items-center gap-2 !py-3.5 !rounded-xl !border-[var(--brand-primary)] !text-[var(--brand-primary)] hover:!bg-[var(--brand-primary)] hover:!text-white shadow-sm"
-              >
-                View Full Details <ArrowRight size={16} />
-              </Link>
-            </div>
+              <span className="px-5 font-bold">{qty}</span>
 
+              <button
+                onClick={() => setQty((q) => q + 1)}
+                className="px-4 py-2 hover:bg-gray-100 transition-colors"
+              >
+                +
+              </button>
+            </div>
           </div>
+
+          {/* INFO */}
+          <div className="bg-[var(--brand-soft)]/20 text-[var(--brand-primary)] text-sm px-4 py-3 rounded-lg border border-[var(--brand-accent)]/20 font-medium">
+            Free shipping available on this item
+          </div>
+
+          {/* ACTIONS */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-auto pt-4 border-t border-[var(--border-light)] pb-2">
+            <button
+              onClick={handleAdd}
+              disabled={loading}
+              className="btn-premium flex-1 !py-3.5 !rounded-xl text-base shadow-sm"
+            >
+              {added ? (
+                <>
+                  <Check size={18} /> Added
+                </>
+              ) : loading ? (
+                "Adding..."
+              ) : (
+                <>
+                  <ShoppingBag size={18} /> Add to Cart
+                </>
+              )}
+            </button>
+
+            <Link
+              href={`/products/${product.slug}`}
+              onClick={onClose}
+              className="btn-outline flex-1 flex justify-center items-center gap-2 !py-3.5 !rounded-xl !border-[var(--brand-primary)] !text-[var(--brand-primary)] hover:!bg-[var(--brand-primary)] hover:!text-white shadow-sm transition-all"
+            >
+              View Full Details <ArrowRight size={16} />
+            </Link>
+          </div>
+
         </div>
       </div>
     </div>
+
   )
 }

@@ -67,10 +67,10 @@ export const handleXenditWebhook = async (req, res) => {
 
     if (event.status === "PAID") {
 
-      if (Number(event.amount) !== Number(order.total)) {
+      if (Number(event.amount) !== Number(order.totalAmount)) {
         logger.warn("Amount mismatch", {
           orderId,
-          expected: order.total,
+          expected: order.totalAmount,
           received: event.amount
         })
         return res.status(400).json({ message: "Amount mismatch" })
@@ -132,14 +132,31 @@ export const handleXenditWebhook = async (req, res) => {
         LOYALTY POINTS
         */
         if (updated.userId) {
-          const points = Math.floor(updated.total / 100)
+          // 1 point for every 100 spent (of the original subtotal? or final payed?)
+          // Let's use total paid for simplicity
+          const pointsEarned = Math.floor(Number(updated.totalAmount) / 100)
 
-          await tx.user.update({
-            where: { id: updated.userId },
-            data: {
-              luckyPoints: { increment: points }
-            }
-          })
+          if (pointsEarned > 0) {
+            const user = await tx.user.findUnique({
+              where: { id: updated.userId }
+            })
+
+            const newLifetimePoints = user.lifetimePoints + pointsEarned
+            
+            // Determine Tier
+            let tier = "Faith"
+            if (newLifetimePoints >= 1000) tier = "Love"
+            else if (newLifetimePoints >= 500) tier = "Hope"
+
+            await tx.user.update({
+              where: { id: updated.userId },
+              data: {
+                luckyPoints: { increment: pointsEarned },
+                lifetimePoints: { increment: pointsEarned },
+                tier: tier
+              }
+            })
+          }
         }
 
       })
@@ -167,6 +184,16 @@ export const handleXenditWebhook = async (req, res) => {
           where: { id: orderId },
           data: { status: "cancelled" }
         })
+
+        // REFUND POINTS
+        if (order.userId && order.pointsUsed > 0) {
+          await tx.user.update({
+            where: { id: order.userId },
+            data: {
+              luckyPoints: { increment: order.pointsUsed }
+            }
+          })
+        }
 
         await tx.inventoryReservation.updateMany({
           where: {

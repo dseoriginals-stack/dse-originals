@@ -250,27 +250,7 @@ export default function CartPage() {
 
       </div>
 
-      {/* MOBILE STICKY CHECKOUT */}
-      <div className="fixed bottom-0 left-0 right-0 glass-header border-t p-4 md:hidden pb-safe z-50">
-        <div className="flex items-center justify-between mb-4 px-2">
-          <div className="flex flex-col">
-             <span className="text-[10px] font-bold text-[var(--text-muted)] tracking-widest uppercase">Est. Total</span>
-             <span className="font-bold text-2xl text-[var(--brand-primary)]">
-               ₱{selectedSubtotal.toLocaleString()}
-             </span>
-          </div>
-          <span className="text-xs font-semibold text-[var(--text-main)] bg-[var(--bg-main)] px-3 py-1 rounded-full shadow-inner">
-            {selectedCount} items
-          </span>
-        </div>
 
-        <Link
-          href={selectedCount > 0 ? "/checkout" : "#"}
-          className={`btn-premium block w-full text-center !py-3.5 ${selectedCount === 0 && 'opacity-50 pointer-events-none'}`}
-        >
-          {selectedCount > 0 ? "Proceed to Checkout" : "Select items first"}
-        </Link>
-      </div>
 
     </div>
   )
