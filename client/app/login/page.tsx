@@ -8,7 +8,21 @@ import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
 
+import { Suspense } from "react"
+
 export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-main)]">
+        <Loader2 className="animate-spin text-[var(--brand-primary)]" size={36} />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
+  )
+}
+
+function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { login, user, loading: authLoading } = useAuth()

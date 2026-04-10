@@ -7,7 +7,21 @@ import { CheckCircle, AlertCircle, Loader2, Mail } from "lucide-react"
 import { api } from "@/lib/api"
 import toast from "react-hot-toast"
 
+import { Suspense } from "react"
+
 export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={
+       <div className="min-h-screen bg-[var(--bg-main)] flex flex-col items-center justify-center p-4">
+         <Loader2 className="animate-spin text-[var(--brand-primary)]" size={48} />
+       </div>
+    }>
+      <VerifyEmailContent />
+    </Suspense>
+  )
+}
+
+function VerifyEmailContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const token = searchParams.get("token")
