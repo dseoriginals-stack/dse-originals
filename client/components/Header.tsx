@@ -254,25 +254,25 @@ export default function Header() {
               className="absolute top-16 left-4 w-72 bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-[var(--border-light)] overflow-hidden"
             >
               <div className="p-6">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 px-1">
-                  Corporate Profile
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand-primary)]/40 mb-6 px-1">
+                  DSE Originals
                 </p>
 
                 <div className="flex flex-col">
                   <MobileMenuItem 
-                    icon={<div className="text-orange-500"><Menu size={18} /></div>} 
+                    icon={<div className="text-[var(--brand-primary)]"><Menu size={18} /></div>} 
                     label="Products" 
                     href="/products" 
                     onClick={() => setMenuOpen(false)} 
                   />
                   <MobileMenuItem 
-                    icon={<div className="text-orange-500"><ImageItem size={18} /></div>} 
+                    icon={<div className="text-[var(--brand-primary)]"><ImageItem size={18} /></div>} 
                     label="Stories" 
                     href="/stories" 
                     onClick={() => setMenuOpen(false)} 
                   />
                   <MobileMenuItem 
-                    icon={<div className="text-orange-500"><Heart size={18} /></div>} 
+                    icon={<div className="text-[var(--brand-primary)]"><Heart size={18} /></div>} 
                     label="Donate" 
                     href="/donate" 
                     onClick={() => setMenuOpen(false)} 
@@ -281,7 +281,7 @@ export default function Header() {
                   <div className="h-[1px] bg-gray-50 my-2"></div>
                   
                   <MobileMenuItem 
-                    icon={<div className="text-orange-500"><User size={18} /></div>} 
+                    icon={<div className="text-[var(--brand-primary)]"><User size={18} /></div>} 
                     label="My Account" 
                     href="/account" 
                     onClick={() => setMenuOpen(false)} 
@@ -318,7 +318,7 @@ function MobileMenuItem({ icon, label, href, onClick }: any) {
       </div>
       <span className="text-sm font-black text-[#274C77] tracking-tight">{label}</span>
       <span className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-        <ArrowRight size={14} className="text-orange-500" />
+        <ArrowRight size={14} className="text-[var(--brand-primary)]" />
       </span>
     </Link>
   )
