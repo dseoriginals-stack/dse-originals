@@ -105,7 +105,7 @@ export default function AccountPage() {
         </div>
       </div>
 
-      <div className="container max-w-7xl mx-auto px-6 -mt-8">
+      <div className="container max-w-7xl mx-auto px-6 py-8">
         <div className="grid lg:grid-cols-4 gap-8">
           {/* SIDEBAR NAVIGATION */}
           <div className="lg:col-span-1 space-y-2 flex flex-row lg:flex-col overflow-x-auto pb-4 lg:pb-0 custom-scrollbar gap-2">
