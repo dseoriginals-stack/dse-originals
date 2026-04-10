@@ -113,21 +113,23 @@ export default function Header() {
 
               {/* ACCOUNT */}
               <div className="relative" ref={mobileDropdownRef}>
-                <button
-                  onClick={() => setMobileDropdownOpen((prev) => !prev)}
-                  className="text-white hover:text-white/80 transition-colors"
-                >
-                  {user ? (
-                    <div className="w-8 h-8 rounded-full bg-white text-[#274C77] flex items-center justify-center text-sm font-semibold shadow-[0_4px_10px_rgba(255,255,255,0.2)]">
+                {user ? (
+                  <button
+                    onClick={() => setMobileDropdownOpen((prev) => !prev)}
+                    className="text-white hover:text-white/80 transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-white text-[#274C77] flex items-center justify-center text-sm font-semibold shadow-[0_4px_10px_rgba(255,255,255,0.2)] font-black">
                       {user.name?.charAt(0) || user.email.charAt(0)}
                     </div>
-                  ) : (
+                  </button>
+                ) : (
+                  <Link href="/account" className="text-white hover:text-white/80 transition-colors">
                     <User size={20} />
-                  )}
-                </button>
+                  </Link>
+                )}
 
                 <AnimatePresence>
-                  {mobileDropdownOpen && (
+                  {user && mobileDropdownOpen && (
                     <div className="absolute right-0 mt-3 z-50 animate-fade-up">
                       <AccountDropdown close={() => setMobileDropdownOpen(false)} />
                     </div>
@@ -186,21 +188,23 @@ export default function Header() {
 
               {/* ACCOUNT */}
               <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setDropdownOpen((prev) => !prev)}
-                  className="text-white transition hover:text-white/80 active:scale-95 group"
-                >
-                  {user ? (
-                    <div className="w-9 h-9 rounded-full bg-white text-[#274C77] flex items-center justify-center text-sm font-semibold shadow-[0_4px_15px_rgba(255,255,255,0.3)] group-hover:scale-110 transition-transform">
+                {user ? (
+                  <button
+                    onClick={() => setDropdownOpen((prev) => !prev)}
+                    className="text-white transition hover:text-white/80 active:scale-95 group"
+                  >
+                    <div className="w-9 h-9 rounded-full bg-white text-[#274C77] flex items-center justify-center text-sm font-semibold shadow-[0_4px_15px_rgba(255,255,255,0.3)] group-hover:scale-110 transition-transform font-black">
                       {user.name?.charAt(0) || user.email.charAt(0)}
                     </div>
-                  ) : (
+                  </button>
+                ) : (
+                  <Link href="/account" className="text-white transition hover:text-white/80 active:scale-95 group">
                     <User size={20} className="group-hover:scale-110 transition-transform" />
-                  )}
-                </button>
+                  </Link>
+                )}
 
                 <AnimatePresence>
-                  {dropdownOpen && (
+                  {user && dropdownOpen && (
                     <div className="absolute right-0 mt-4 z-50 animate-fade-up">
                       <AccountDropdown close={() => setDropdownOpen(false)} />
                     </div>
