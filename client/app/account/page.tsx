@@ -28,7 +28,8 @@ import {
   Trash2,
   Edit,
   Home,
-  Briefcase
+  Briefcase,
+  Facebook
 } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
@@ -531,17 +532,29 @@ function AccountLoginForm({ login, oauthError }: any) {
         <AlertCircle size={16} /> {error}
       </div>}
 
-      <div className="mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <button
           onClick={() => {
             window.location.href = `${process.env.NEXT_PUBLIC_API_URL || "https://dse-originals.onrender.com"}/api/auth/google`
           }}
-          className="w-full flex items-center justify-center gap-3 px-4 py-4 md:py-5 rounded-3xl bg-[var(--brand-primary)] hover:bg-[#1B3B60] text-white shadow-xl shadow-[#274C77]/20 transition-all font-[900] text-sm md:text-base uppercase tracking-widest group"
+          className="flex items-center justify-center gap-3 px-4 py-4 rounded-3xl bg-white border-2 border-gray-100 hover:border-[var(--brand-primary)] hover:bg-gray-50 text-[var(--text-heading)] shadow-sm transition-all font-[900] text-xs uppercase tracking-widest group"
         >
-          <div className="bg-white p-2 rounded-xl group-hover:scale-110 transition-transform">
-            <Image src="/google-icon.svg" alt="Google" width={20} height={20} />
+          <div className="bg-white p-1.5 rounded-lg group-hover:scale-110 transition-transform">
+            <Image src="/google-icon.svg" alt="Google" width={18} height={18} />
           </div>
-          Continue with Google
+          Google
+        </button>
+
+        <button
+          onClick={() => {
+            window.location.href = `${process.env.NEXT_PUBLIC_API_URL || "https://dse-originals.onrender.com"}/api/auth/facebook`
+          }}
+          className="flex items-center justify-center gap-3 px-4 py-4 rounded-3xl bg-[#1877F2] hover:bg-[#166fe5] text-white shadow-lg shadow-[#1877F2]/20 transition-all font-[900] text-xs uppercase tracking-widest group"
+        >
+          <div className="bg-white/10 p-1.5 rounded-lg group-hover:scale-110 transition-transform">
+            <Facebook size={18} fill="currentColor" />
+          </div>
+          Facebook
         </button>
       </div>
 

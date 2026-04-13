@@ -99,8 +99,21 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
             where: { email }
           })
 
+          const fullName = profile.displayName || `${profile.name?.givenName || ""} ${profile.name?.familyName || ""}`.trim() || email.split("@")[0]
+
           if (!user) {
-            return done(new Error("no_account"), null)
+            // Auto create account
+            user = await prisma.user.create({
+              data: {
+                email,
+                name: fullName,
+                provider: "facebook",
+                emailVerified: true,
+                role: "customer",
+                luckyPoints: 0
+              }
+            })
+            logger.info(`Auto-created user from Facebook: ${email}`)
           }
 
           return done(null, user)
