@@ -37,6 +37,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 
             user = await prisma.user.create({
               data: {
+                name: profile.displayName || email.split("@")[0],
                 email,
                 password: "oauth",
                 role: "customer",
@@ -81,7 +82,7 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
         clientID: process.env.FACEBOOK_CLIENT_ID,
         clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
         callbackURL: "/api/auth/facebook/callback",
-        profileFields: ["id", "emails", "name"]
+        profileFields: ["id", "emails", "name", "displayName"]
       },
 
       async (accessToken, refreshToken, profile, done) => {
@@ -102,6 +103,7 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
 
             user = await prisma.user.create({
               data: {
+                name: profile.displayName || profile.name?.givenName || email.split("@")[0],
                 email,
                 password: "oauth",
                 role: "customer",
