@@ -278,6 +278,15 @@ export default function Header() {
                     onClick={() => setMenuOpen(false)}
                   />
 
+                  {user?.role === "admin" && (
+                    <MobileMenuItem
+                      icon={<div className="text-[var(--brand-primary)]"><ShieldCheck size={18} /></div>}
+                      label="Admin Panel"
+                      href="/admin"
+                      onClick={() => setMenuOpen(false)}
+                    />
+                  )}
+
                   <div className="h-[1px] bg-gray-50 my-2"></div>
 
                   <MobileMenuItem
