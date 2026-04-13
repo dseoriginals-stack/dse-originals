@@ -137,9 +137,9 @@ router.post("/login", async (req, res) => {
       })
     }
 
-    if (user.provider === "google" || user.provider === "facebook") {
+    if (user.provider === "google") {
       return res.status(400).json({
-        message: `This account uses ${user.provider === 'google' ? 'Google' : 'Facebook'} login. Please click the social login button above.`,
+        message: "This account uses Google login. Please click 'Continue with Google'.",
       })
     }
 
