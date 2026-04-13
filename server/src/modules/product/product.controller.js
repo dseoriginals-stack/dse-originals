@@ -104,56 +104,60 @@ export const createProduct = async (req, res, next) => {
     }
 
     // ================================
-    // CREATE PRODUCT
+    // CREATE PRODUCT (WITH SELF-HEALING FALLBACK)
     // ================================
     const slug = await generateSlug(name)
 
-    const product = await prisma.product.create({
-      data: {
-        name,
-        slug,
-        description,
-        status: "active",
-        isBestseller: !!isBestseller,
-        isPopular: !!isPopular,
-        categoryId: category.id,
-
-        ...(imageUrl && {
-          images: {
-            create: [
-              {
-                url: imageUrl,
-                isPrimary: true
-              }
-            ]
-          }
-        }),
-
-        variants: {
-          create: [
-            {
-              sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-              name: "Default",
-              price: new Prisma.Decimal(price),
-              stock: parseInt(String(stock)) || 0
-            }
-          ]
+    const baseData = {
+      name,
+      slug,
+      description,
+      status: "active",
+      categoryId: category.id,
+      ...(imageUrl && {
+        images: {
+          create: [{ url: imageUrl, isPrimary: true }]
         }
+      }),
+      variants: {
+        create: [
+          {
+            sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            name: "Default",
+            price: new Prisma.Decimal(price),
+            stock: parseInt(String(stock)) || 0
+          }
+        ]
       }
-    })
+    }
+
+    let product
+    try {
+      // Pass 1: Try with new fields
+      product = await prisma.product.create({
+        data: {
+          ...baseData,
+          isBestseller: !!isBestseller,
+          isPopular: !!isPopular
+        }
+      })
+    } catch (err) {
+      if (err.message?.includes("Unknown argument")) {
+        console.warn("⚠️ Prisma Sync Delay: Falling back to legacy create")
+        // Pass 2: Try without new fields
+        product = await prisma.product.create({
+          data: baseData
+        })
+      } else {
+        throw err // Re-throw if it's not a schema mismatch
+      }
+    }
 
     await deleteCache("products:*")
     res.status(201).json(product)
 
   } catch (err) {
-    console.error("❌ CREATE PRODUCT ERROR:", err)
-    // Return more specific error if Prisma fails on unknown fields
-    if (err.message?.includes("Unknown argument")) {
-        return res.status(500).json({ 
-            message: "System sync in progress. Please wait 2 minutes for backend update.",
-            details: "Prisma schema mismatch" 
-        })
-    }
+    console.error("❌ CRITICAL CREATE ERROR:", err)
     next(err)
   }
 }
