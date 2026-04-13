@@ -131,7 +131,7 @@ export default function CheckoutPage() {
         </h1>
 
         {/* STEP INDICATOR */}
-        <div className="flex items-center mb-8">
+        <div className="flex items-center mb-8 px-2">
           {steps.map((label, i) => {
             const num = (i + 1) as Step
             const done = step > num
@@ -139,18 +139,18 @@ export default function CheckoutPage() {
             return (
               <div key={label} className="flex items-center flex-1 last:flex-none">
                 <div className="flex flex-col items-center">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all ${done ? "bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white"
+                  <div className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-[10px] md:text-sm font-bold border-2 transition-all ${done ? "bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white"
                     : active ? "border-[var(--brand-primary)] text-[var(--brand-primary)] bg-white"
                       : "border-gray-200 text-gray-400 bg-white"
                     }`}>
-                    {done ? <Check size={14} /> : num}
+                    {done ? <Check className="w-3 h-3 md:w-[14px] md:h-[14px]" /> : num}
                   </div>
-                  <span className={`text-[10px] font-bold mt-1 tracking-wider uppercase ${active ? "text-[var(--brand-primary)]" : "text-[var(--text-muted)]"}`}>
+                  <span className={`text-[8px] md:text-[10px] font-black mt-1.5 tracking-wider uppercase ${active ? "text-[var(--brand-primary)]" : "text-[var(--text-muted)]"}`}>
                     {label}
                   </span>
                 </div>
                 {i < steps.length - 1 && (
-                  <div className={`flex-1 h-[2px] mx-2 mb-4 rounded transition-all ${step > num ? "bg-[var(--brand-primary)]" : "bg-gray-200"}`} />
+                  <div className={`flex-1 h-[2px] mx-1 md:mx-2 mb-4 rounded transition-all ${step > num ? "bg-[var(--brand-primary)]" : "bg-gray-200"}`} />
                 )}
               </div>
             )
@@ -220,7 +220,7 @@ export default function CheckoutPage() {
               <Card title={delivery === "delivery" ? "2. Shipping Details" : "2. Contact & Pickup Info"}>
                 {error && <ErrorBox message={error} />}
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Input label="Full Name *" value={form.name} onChange={v => setForm(p => ({ ...p, name: v }))} />
                   <Input label="Phone *" value={form.phone} onChange={v => setForm(p => ({ ...p, phone: v }))} />
                 </div>
