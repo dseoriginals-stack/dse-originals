@@ -122,6 +122,7 @@ model Product {
   status ProductStatus @default(active)
 
   isBestseller Boolean @default(false)
+  isPopular    Boolean @default(false)
 
   metaTitle       String?
   metaDescription String?

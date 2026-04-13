@@ -38,6 +38,7 @@ type Product = {
   price: number
   stock: number
   isBestseller: boolean
+  isPopular: boolean
   variants?: any[]
   sku?: string
 }
@@ -58,6 +59,7 @@ export default function AdminProducts() {
     price: "",
     stock: "",
     isBestseller: false,
+    isPopular: false,
     image: null as File | null
   })
 
@@ -94,6 +96,7 @@ export default function AdminProducts() {
           price: Number(p.price || 0),
           stock: Number(p.stock || 0),
           isBestseller: !!p.isBestseller,
+          isPopular: !!p.isPopular,
           sku: mainSku,
           variants: p.variants || []
         }
@@ -140,6 +143,7 @@ export default function AdminProducts() {
       formData.append("price", String(Number(form.price)))
       formData.append("stock", String(Number(form.stock)))
       formData.append("isBestseller", String(form.isBestseller))
+      formData.append("isPopular", String(form.isPopular))
       if (form.image) formData.append("image", form.image)
 
       if (editing) {
@@ -168,6 +172,7 @@ export default function AdminProducts() {
       price: String(product.price),
       stock: String(product.stock),
       isBestseller: product.isBestseller,
+      isPopular: product.isPopular,
       image: null
     })
     setPreview(product.image || null)
@@ -178,7 +183,7 @@ export default function AdminProducts() {
     setEditing(null)
     setShowModal(false)
     setPreview(null)
-    setForm({ name: "", description: "", categoryId: "", price: "", stock: "", isBestseller: false, image: null })
+    setForm({ name: "", description: "", categoryId: "", price: "", stock: "", isBestseller: false, isPopular: false, image: null })
   }
 
   async function handleDelete(id: string) {
@@ -247,7 +252,7 @@ export default function AdminProducts() {
       </div>
 
       {/* PRODUCT GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
         {isInitialLoading ? (
           Array(6).fill(0).map((_, i) => <SkeletonProductCard key={i} />)
         ) : (
@@ -306,15 +311,28 @@ export default function AdminProducts() {
                         {categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
                       </select>
                    </div>
-                   <div className="flex items-center gap-2 py-2 px-1">
-                      <input 
-                        type="checkbox" 
-                        id="isBestseller"
-                        checked={form.isBestseller}
-                        onChange={(e) => setForm({...form, isBestseller: e.target.checked})}
-                        className="w-5 h-5 rounded border-[var(--border-light)] text-[var(--brand-primary)] focus:ring-[var(--brand-primary)] cursor-pointer"
-                      />
-                      <label htmlFor="isBestseller" className="text-xs font-bold text-[var(--text-heading)] cursor-pointer uppercase tracking-wider">Mark as Best Seller</label>
+                   <div className="flex flex-wrap gap-4 py-2 px-1">
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" 
+                          id="isBestseller"
+                          checked={form.isBestseller}
+                          onChange={(e) => setForm({...form, isBestseller: e.target.checked})}
+                          className="w-5 h-5 rounded border-[var(--border-light)] text-[var(--brand-primary)] focus:ring-[var(--brand-primary)] cursor-pointer"
+                        />
+                        <label htmlFor="isBestseller" className="text-xs font-bold text-[var(--text-heading)] cursor-pointer uppercase tracking-wider">Best Seller</label>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" 
+                          id="isPopular"
+                          checked={form.isPopular}
+                          onChange={(e) => setForm({...form, isPopular: e.target.checked})}
+                          className="w-5 h-5 rounded border-[var(--border-light)] text-[var(--brand-primary)] focus:ring-[var(--brand-primary)] cursor-pointer"
+                        />
+                        <label htmlFor="isPopular" className="text-xs font-bold text-[var(--text-heading)] cursor-pointer uppercase tracking-wider">Popular</label>
+                      </div>
                    </div>
                    <div className="grid grid-cols-2 gap-4">
                       <InputField label="Market Value (₱)" value={form.price} onChange={(v: string)=>setForm({...form, price: v})} type="number" />
@@ -370,40 +388,49 @@ function ProductCard({ product, onEdit, onDelete }: { product: Product, onEdit: 
   const isLowStock = product.stock > 0 && product.stock <= 5
   const isOutOfStock = product.stock === 0
   return (
-    <div className="bg-white rounded-[2rem] border border-[var(--border-light)] p-6 shadow-sm hover:shadow-xl transition-all duration-500 group relative">
-      <div className="absolute top-4 right-4 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-         <button onClick={onEdit} className="p-2 bg-white rounded-xl shadow-md border border-gray-100 text-[var(--brand-primary)] hover:bg-[var(--brand-primary)] hover:text-white transition"><Edit3 size={14}/></button>
-         <button onClick={onDelete} className="p-2 bg-white rounded-xl shadow-md border border-gray-100 text-red-500 hover:bg-red-500 hover:text-white transition"><Trash2 size={14}/></button>
+    <div className="bg-white rounded-3xl border border-[var(--border-light)] p-3 shadow-sm hover:shadow-lg transition-all duration-300 group relative flex flex-col h-full">
+      <div className="absolute top-3 right-3 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+         <button onClick={onEdit} className="p-1.5 bg-white rounded-lg shadow-md border border-gray-100 text-[var(--brand-primary)] hover:bg-[var(--brand-primary)] hover:text-white transition"><Edit3 size={12}/></button>
+         <button onClick={onDelete} className="p-1.5 bg-white rounded-lg shadow-md border border-gray-100 text-red-500 hover:bg-red-500 hover:text-white transition"><Trash2 size={12}/></button>
       </div>
-      <div className="w-full aspect-square rounded-[1.5rem] bg-[var(--bg-surface)] border border-gray-100 overflow-hidden relative mb-6">
+      <div className="w-full aspect-square rounded-2xl bg-[var(--bg-surface)] border border-gray-100 overflow-hidden relative mb-3">
         {product.image ? (
-          <img src={product.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={product.name} />
+          <img src={product.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={product.name} />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-300"><ImageIcon size={48} /></div>
+          <div className="w-full h-full flex items-center justify-center text-gray-300"><ImageIcon size={24} /></div>
         )}
+        
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
+          {product.isBestseller && (
+            <div className="bg-amber-400 text-[#274C77] px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tight shadow-sm flex items-center gap-0.5">
+              <CheckCircle size={8} /> Best Seller
+            </div>
+          )}
+          {product.isPopular && (
+            <div className="bg-[var(--brand-soft)] text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tight shadow-sm flex items-center gap-0.5">
+              <Plus size={8} /> Popular
+            </div>
+          )}
+        </div>
+
         {(isLowStock || isOutOfStock) && (
-           <div className={`absolute bottom-3 left-3 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1 shadow-lg ${isOutOfStock ? "bg-red-500 text-white" : "bg-amber-500 text-white"}`}>
-             <AlertTriangle size={10} /> {isOutOfStock ? "Zero Stock" : `Low: ${product.stock} left`}
-           </div>
-        )}
-        {product.isBestseller && (
-           <div className="absolute top-4 left-4 z-10 bg-amber-400 text-[#274C77] px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg flex items-center gap-1">
-             <CheckCircle size={10} /> Best Seller
+           <div className={`absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tight flex items-center gap-0.5 shadow-md ${isOutOfStock ? "bg-red-500 text-white" : "bg-amber-500 text-white"}`}>
+             <AlertTriangle size={8} /> {isOutOfStock ? "Zero Stock" : `Low: ${product.stock}`}
            </div>
         )}
       </div>
-      <div>
-        <div className="flex justify-between items-start mb-1">
-           <span className="text-[10px] font-black uppercase tracking-widest text-[var(--brand-accent)]">{product.category}</span>
-           <span className="text-sm font-[1000] text-[var(--brand-primary)]">₱{product.price.toLocaleString()}</span>
+      <div className="flex flex-col flex-1">
+        <div className="flex justify-between items-start mb-0.5">
+           <span className="text-[8px] font-black uppercase tracking-widest text-[var(--brand-accent)]">{product.category}</span>
+           <span className="text-xs font-black text-[var(--brand-primary)]">₱{product.price.toLocaleString()}</span>
         </div>
-        <h3 className="text-lg font-black text-[var(--text-heading)] leading-tight line-clamp-1 mb-4">{product.name}</h3>
-        <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-           <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${isOutOfStock ? 'bg-red-500' : 'bg-emerald-500'}`} />
-              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">{product.stock} in Inventory</span>
+        <h3 className="text-xs font-bold text-[var(--text-heading)] leading-tight line-clamp-2 mb-2 min-h-[2rem]">{product.name}</h3>
+        
+        <div className="mt-auto pt-3 border-t border-gray-50 flex items-center justify-between">
+           <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-gray-400">
+              <div className={`w-1.5 h-1.5 rounded-full ${isOutOfStock ? 'bg-red-500' : 'bg-emerald-500'}`} />
+              {product.stock} Units
            </div>
-           {product.stock > 0 && <span className="text-[10px] text-emerald-600 font-bold uppercase flex items-center gap-1"><CheckCircle size={10}/> Ready</span>}
         </div>
       </div>
     </div>
