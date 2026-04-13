@@ -48,7 +48,11 @@ const getAdminStats = async () => {
     topProductItems.map(async (item) => {
       const variant = await prisma.productVariant.findUnique({
         where: { id: item.variantId },
-        include: { product: true }
+        include: { 
+          product: {
+            include: { images: { take: 1 } }
+          } 
+        }
       })
       return {
         id: variant?.productId,
@@ -108,7 +112,8 @@ const updateOrderStatus = async (id, status, trackingNo) => {
 const getProducts = async () => {
   return prisma.product.findMany({
     include: {
-      variants: true
+      variants: true,
+      images: { take: 1 }
     },
     orderBy: {
       createdAt: "desc"
