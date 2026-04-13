@@ -6,26 +6,26 @@ export const fetchCache = "force-no-store"
 import { useEffect, useState } from "react"
 import { api } from "@/lib/api"
 import { useAuth } from "@/context/AuthContext"
-import { 
-  Package, 
-  DollarSign, 
-  ShoppingCart, 
-  Users, 
-  TrendingUp, 
-  ArrowUpRight, 
+import {
+  Package,
+  DollarSign,
+  ShoppingCart,
+  Users,
+  TrendingUp,
+  ArrowUpRight,
   Calendar,
   MoreVertical,
   Activity,
   Box
 } from "lucide-react"
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
 } from 'recharts'
 import Image from "next/image"
 import Link from "next/link"
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
             </span>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 px-4 py-2 bg-white border border-[var(--border-light)] rounded-xl text-xs font-bold text-[var(--text-heading)] hover:bg-gray-50 transition shadow-sm">
             <Calendar size={14} />
@@ -116,32 +116,32 @@ export default function AdminDashboard() {
           Array(4).fill(0).map((_, i) => <SkeletonCard key={i} />)
         ) : (
           <>
-            <StatCard 
-              title="Gross Revenue" 
-              value={`₱${Number(stats?.revenue).toLocaleString()}`} 
-              icon={<DollarSign size={20} />} 
-              trend="+12.5%" 
+            <StatCard
+              title="Gross Revenue"
+              value={`₱${Number(stats?.revenue).toLocaleString()}`}
+              icon={<DollarSign size={20} />}
+              trend="+12.5%"
               positive={true}
             />
-            <StatCard 
-              title="Total Orders" 
-              value={stats?.totalOrders || 0} 
-              icon={<ShoppingCart size={20} />} 
-              trend="+8.2%" 
+            <StatCard
+              title="Total Orders"
+              value={stats?.totalOrders || 0}
+              icon={<ShoppingCart size={20} />}
+              trend="+8.2%"
               positive={true}
             />
-            <StatCard 
-              title="Total Customers" 
-              value={stats?.totalCustomers || 0} 
-              icon={<Users size={20} />} 
-              trend="+4.1%" 
+            <StatCard
+              title="Total Customers"
+              value={stats?.totalCustomers || 0}
+              icon={<Users size={20} />}
+              trend="+4.1%"
               positive={true}
             />
-            <StatCard 
-              title="Active Products" 
-              value={stats?.totalProducts || 0} 
-              icon={<Package size={20} />} 
-              trend="Stable" 
+            <StatCard
+              title="Active Products"
+              value={stats?.totalProducts || 0}
+              icon={<Package size={20} />}
+              trend="Stable"
               positive={null}
             />
           </>
@@ -150,7 +150,7 @@ export default function AdminDashboard() {
 
       {/* ANALYTICS CHARTS SECTION */}
       <div className="grid lg:grid-cols-3 gap-8">
-        
+
         {/* REVENUE CHART */}
         <div className="lg:col-span-2 bg-white rounded-[2rem] border border-[var(--border-light)] p-8 shadow-sm">
           <div className="flex justify-between items-center mb-8">
@@ -159,7 +159,7 @@ export default function AdminDashboard() {
               <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mt-1">Cash Inflow performance</p>
             </div>
           </div>
-          
+
           <div className="h-[350px] w-full">
             {isStatsLoading ? (
               <div className="w-full h-full bg-gray-50 rounded-3xl animate-pulse" />
@@ -168,26 +168,26 @@ export default function AdminDashboard() {
                 <AreaChart data={stats?.revenueChart} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--brand-primary)" stopOpacity={0.1}/>
-                      <stop offset="95%" stopColor="var(--brand-primary)" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="var(--brand-primary)" stopOpacity={0.1} />
+                      <stop offset="95%" stopColor="var(--brand-primary)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey="date" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }} 
+                  <XAxis
+                    dataKey="date"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
                     dy={10}
                     tickFormatter={(val) => new Date(val).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                   />
-                  <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }} 
-                    tickFormatter={(val) => `₱${val >= 1000 ? val/1000 + 'k' : val}`}
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
+                    tickFormatter={(val) => `₱${val >= 1000 ? val / 1000 + 'k' : val}`}
                   />
-                  <Tooltip 
+                  <Tooltip
                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', padding: '12px 16px' }}
                   />
                   <Area type="monotone" dataKey="amount" stroke="var(--brand-primary)" strokeWidth={4} fillOpacity={1} fill="url(#colorAmount)" />
@@ -200,7 +200,7 @@ export default function AdminDashboard() {
         {/* TOP SELLING PRODUCTS */}
         <div className="bg-white rounded-[2rem] border border-[var(--border-light)] p-8 shadow-sm">
           <h2 className="text-xl font-extrabold text-[var(--text-heading)] mb-6">Top Sellers</h2>
-          
+
           <div className="space-y-6">
             {isStatsLoading ? (
               Array(3).fill(0).map((_, i) => (
@@ -228,7 +228,7 @@ export default function AdminDashboard() {
                       <span className="text-[var(--text-muted)] text-[10px] uppercase font-black">{product.sold} Units Sold</span>
                     </div>
                   </div>
-                  <div className="text-xs font-black text-[var(--brand-primary)]">#{i+1}</div>
+                  <div className="text-xs font-black text-[var(--brand-primary)]">#{i + 1}</div>
                 </div>
               ))
             )}
@@ -249,9 +249,9 @@ export default function AdminDashboard() {
 
         <div className="overflow-x-auto">
           {isStatsLoading ? (
-             <div className="p-8 space-y-4">
-                {Array(5).fill(0).map((_, i) => <div key={i} className="h-10 bg-gray-50 rounded-xl animate-pulse w-full" />)}
-             </div>
+            <div className="p-8 space-y-4">
+              {Array(5).fill(0).map((_, i) => <div key={i} className="h-10 bg-gray-50 rounded-xl animate-pulse w-full" />)}
+            </div>
           ) : (
             <table className="w-full">
               <thead className="bg-[var(--bg-surface)]">
