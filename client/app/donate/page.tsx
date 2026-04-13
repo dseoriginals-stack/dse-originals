@@ -28,7 +28,7 @@ export default function DonatePage() {
     } catch (err: any) {
       toast.error(err.message || "Something went wrong")
     } finally {
-      // Don't set loading false if redirecting
+      setLoading(false)
     }
   }
 

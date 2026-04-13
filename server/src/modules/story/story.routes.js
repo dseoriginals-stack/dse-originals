@@ -5,9 +5,21 @@ import { getStories, createStory, getAdminStories, updateStoryStatus, deleteStor
 const router = express.Router()
 
 router.get("/", getStories)
-router.post("/", (req, res, next) => {
-  if (req.cookies?.accessToken || req.headers.authorization) {
-    return authenticate(req, res, next)
+import jwt from "jsonwebtoken"
+import prisma from "../../config/prisma.js"
+
+router.post("/", async (req, res, next) => {
+  const token = req.cookies?.accessToken
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET)
+      const user = await prisma.user.findUnique({ where: { id: decoded.id } })
+      if (user) {
+        req.user = { id: user.id, email: user.email, role: user.role }
+      }
+    } catch (err) {
+      // Proceed as guest if token is invalid
+    }
   }
   next()
 }, createStory)
