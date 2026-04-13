@@ -34,20 +34,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
           })
 
           if (!user) {
-
-            user = await prisma.user.create({
-              data: {
-                name: profile.displayName || email.split("@")[0],
-                email,
-                password: "oauth",
-                role: "customer",
-                luckyPoints: 0,
-                emailVerified: true
-              }
-            })
-
-            logger.info("New user created via Google OAuth", { email })
-
+            return done(new Error("no_account"), null)
           }
 
           return done(null, user)
@@ -100,20 +87,7 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
           })
 
           if (!user) {
-
-            user = await prisma.user.create({
-              data: {
-                name: profile.displayName || profile.name?.givenName || email.split("@")[0],
-                email,
-                password: "oauth",
-                role: "customer",
-                luckyPoints: 0,
-                emailVerified: true
-              }
-            })
-
-            logger.info("New user created via Facebook OAuth", { email })
-
+            return done(new Error("no_account"), null)
           }
 
           return done(null, user)

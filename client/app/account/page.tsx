@@ -37,6 +37,7 @@ import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 import { regions, provinces, cities } from "philippines"
 import toast from "react-hot-toast"
+import { useSearchParams } from "next/navigation"
 
 export default function AccountPage() {
   const { user, loading, logout, login, register, updateUser } = useAuth()
@@ -51,6 +52,17 @@ export default function AccountPage() {
   const [editingAddress, setEditingAddress] = useState<any>(null)
   const [profileForm, setProfileForm] = useState({ name: "", phone: "" })
   const [savingProfile, setSavingProfile] = useState(false)
+  const searchParams = useSearchParams()
+  const [oauthError, setOauthError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const error = searchParams.get("error")
+    if (error === "no_account") {
+      setOauthError("No account found with this email. Please register first.")
+    } else if (error === "oauth_failed") {
+      setOauthError("Social authentication failed. Please try again.")
+    }
+  }, [searchParams])
 
   useEffect(() => {
     if (user) {
@@ -104,7 +116,7 @@ export default function AccountPage() {
   )
 
   if (!user) {
-    return <GuestPortal login={login} register={register} />
+    return <GuestPortal login={login} register={register} oauthError={oauthError} />
   }
 
   const totalSpent = orders.reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0)
@@ -397,8 +409,14 @@ export default function AccountPage() {
 GUEST PORTAL COMPONENT
 ============================ */
 
-function GuestPortal({ login, register }: any) {
+function GuestPortal({ login, register, oauthError }: any) {
   const [tab, setTab] = useState<"login" | "register" | "track">("login")
+
+  useEffect(() => {
+    if (oauthError && tab !== 'register') {
+      setTab('login')
+    }
+  }, [oauthError])
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center p-0 sm:p-4 md:p-6 py-0 md:py-20">
@@ -464,8 +482,8 @@ function GuestPortal({ login, register }: any) {
               transition={{ duration: 0.3, ease: "circOut" }}
               className="flex-1 flex flex-col"
             >
-              {tab === 'login' && <AccountLoginForm login={login} />}
-              {tab === 'register' && <AccountRegisterForm register={register} setTab={setTab} />}
+              {tab === 'login' && <AccountLoginForm login={login} oauthError={oauthError} />}
+              {tab === 'register' && <AccountRegisterForm register={register} setTab={setTab} oauthError={oauthError} />}
               {tab === 'track' && <AccountGuestTrack />}
             </motion.div>
           </AnimatePresence>
@@ -476,10 +494,10 @@ function GuestPortal({ login, register }: any) {
 }
 
 /* LOGIN FORM */
-function AccountLoginForm({ login }: any) {
+function AccountLoginForm({ login, oauthError }: any) {
   const [form, setForm] = useState({ email: "", password: "" })
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(oauthError || null)
   const [showPass, setShowPass] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -586,6 +604,11 @@ function AccountRegisterForm({ register, setTab }: any) {
       setLoading(false)
     }
   }
+
+  // Effect to sync OAuth error to register form if needed
+  useEffect(() => {
+      if (oauthError) setError(oauthError)
+  }, [oauthError])
 
   if (success) {
     return (

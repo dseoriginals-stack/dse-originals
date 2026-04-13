@@ -201,12 +201,15 @@ router.get("/google", passport.authenticate("google", {
   session: false
 }))
 
-router.get("/google/callback",
-  passport.authenticate("google", { session: false, failureRedirect: `${process.env.CLIENT_URL}/account?error=oauth_failed` }),
-  async (req, res) => {
-    return await issueTokens(req.user, req, res, true)
-  }
-)
+router.get("/google/callback", (req, res, next) => {
+  passport.authenticate("google", { session: false }, async (err, user) => {
+    if (err || !user) {
+      const errorType = err?.message === "no_account" ? "no_account" : "oauth_failed";
+      return res.redirect(`${process.env.CLIENT_URL}/account?error=${errorType}`);
+    }
+    return await issueTokens(user, req, res, true);
+  })(req, res, next);
+});
 
 /* =============================
    FACEBOOK OAUTH
@@ -217,12 +220,15 @@ router.get("/facebook", passport.authenticate("facebook", {
   session: false
 }))
 
-router.get("/facebook/callback",
-  passport.authenticate("facebook", { session: false, failureRedirect: `${process.env.CLIENT_URL}/account?error=oauth_failed` }),
-  async (req, res) => {
-    return await issueTokens(req.user, req, res, true)
-  }
-)
+router.get("/facebook/callback", (req, res, next) => {
+  passport.authenticate("facebook", { session: false }, async (err, user) => {
+    if (err || !user) {
+      const errorType = err?.message === "no_account" ? "no_account" : "oauth_failed";
+      return res.redirect(`${process.env.CLIENT_URL}/account?error=${errorType}`);
+    }
+    return await issueTokens(user, req, res, true);
+  })(req, res, next);
+});
 
 /* =============================
    LOGOUT
