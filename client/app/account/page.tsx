@@ -591,7 +591,7 @@ function AccountLoginForm({ login, oauthError }: any) {
 }
 
 /* REGISTER FORM */
-function AccountRegisterForm({ register, setTab }: any) {
+function AccountRegisterForm({ register, setTab, oauthError }: any) {
   const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
