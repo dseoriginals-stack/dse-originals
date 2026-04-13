@@ -117,8 +117,8 @@ export default function AccountPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[10px] md:text-xs font-[1000] uppercase tracking-widest transition-all whitespace-nowrap active:scale-95 ${activeTab === tab.id 
-                  ? 'bg-[var(--brand-primary)] text-white shadow-lg' 
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[10px] md:text-xs font-[1000] uppercase tracking-widest transition-all whitespace-nowrap active:scale-95 ${activeTab === tab.id
+                  ? 'bg-[var(--brand-primary)] text-white shadow-lg'
                   : 'bg-white/50 text-gray-400 hover:text-[var(--brand-primary)]'
                   }`}
               >
@@ -403,7 +403,7 @@ function AccountLoginForm({ login }: any) {
         </div>
 
         <button disabled={loading} className="btn-premium w-full !py-5 shadow-2xl !rounded-3xl !font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2">
-          {loading ? <Loader2 className="animate-spin" size={18} /> : <>Initialize Entry <ArrowRight size={18} /></>}
+          {loading ? <Loader2 className="animate-spin" size={18} /> : <>Login <ArrowRight size={18} /></>}
         </button>
       </form>
     </div>
@@ -500,7 +500,7 @@ function AccountRegisterForm({ register, setTab }: any) {
         {error && <div className="col-span-full py-2 text-[10px] font-black uppercase text-red-500 tracking-widest">{error}</div>}
 
         <button disabled={loading} className="col-span-full btn-premium !py-4 shadow-xl !rounded-2xl !font-black uppercase tracking-widest mt-4">
-          {loading ? "Verifying..." : "Confirm Enrollment"}
+          {loading ? "Verifying..." : "Register Now"}
         </button>
       </form>
     </div>
