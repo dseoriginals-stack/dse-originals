@@ -19,6 +19,8 @@ import recommendationRoutes from "./modules/product/recommendation.routes.js"
 import orderRoutes from "./modules/order/order.routes.js"
 import adminRoutes from "./modules/admin/admin.routes.js"
 import wishlistRoutes from "./modules/wishlist/wishlist.routes.js"
+import storyRoutes from "./modules/story/story.routes.js"
+import donationRoutes from "./modules/donation/donation.routes.js"
 import cartRoutes from "./modules/cart/cart.routes.js"
 import categoryRoutes from "./routes/category.routes.js"
 import reviewRoutes from "./modules/review/review.routes.js"
@@ -98,6 +100,8 @@ app.use("/api/recommendations", recommendationRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/cart", cartRoutes)
 app.use("/api/wishlist", wishlistRoutes)
+app.use("/api/stories", storyRoutes)
+app.use("/api/donations", donationRoutes)
 app.use("/api/categories", categoryRoutes)
 app.use("/api/admin", adminRoutes)
 

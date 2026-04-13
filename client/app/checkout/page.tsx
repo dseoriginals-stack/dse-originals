@@ -2,12 +2,14 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useCart } from "@/context/CartContext"
+import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
 import { regions, provinces, cities } from "philippines"
-import { Truck, Store, CreditCard, Check, Package } from "lucide-react"
+import { Truck, Store, CreditCard, Check, Package, MapPin, ChevronDown, Home, Briefcase } from "lucide-react"
 import { getShippingRate, ShippingZone } from "@/lib/shipping"
 import PaymentModal from "@/components/PaymentModal"
 import toast from "react-hot-toast"
+import { motion, AnimatePresence } from "framer-motion"
 
 /* ============================ TYPES ============================ */
 
@@ -43,6 +45,53 @@ export default function CheckoutPage() {
   const [selectedProvince, setSelectedProvince] = useState("")
   const [selectedCity, setSelectedCity] = useState("")
   const [regionLabel, setRegionLabel] = useState("")
+
+  const { user } = useAuth()
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([])
+  const [showAddressBook, setShowAddressBook] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      fetchSavedAddresses()
+      setForm(p => ({ ...p, name: user.name || "", email: user.email || "", phone: user.phone || "" }))
+    }
+  }, [user])
+
+  async function fetchSavedAddresses() {
+    try {
+      const data = await api.get("/user/me/addresses")
+      setSavedAddresses(data || [])
+      
+      const def = data?.find((a: any) => a.isDefault)
+      if (def) applySavedAddress(def)
+    } catch (err) {
+      console.error("Failed to load saved addresses")
+    }
+  }
+
+  function applySavedAddress(addr: any) {
+    const r = (regions as any[]).find(x => x.name === addr.region)
+    const p = (provinces as any[]).find(x => x.name === addr.province)
+    
+    setForm({
+      name: addr.fullName,
+      email: user?.email || "",
+      phone: addr.phone,
+      street: addr.street,
+      barangay: addr.barangay,
+      region: addr.region,
+      province: addr.province,
+      city: addr.city
+    })
+    
+    if (r) {
+      setSelectedRegion(r.key)
+      setRegionLabel(r.name)
+    }
+    if (p) setSelectedProvince(p.key)
+    setSelectedCity(addr.city)
+    setShowAddressBook(false)
+  }
 
   const subtotal = itemsToCheckout.reduce((acc, item) => acc + item.price * item.quantity, 0)
   const shippingFee = delivery === "pickup" ? 0 : (shipping?.fee ?? 0)
@@ -219,6 +268,51 @@ export default function CheckoutPage() {
             {step === 2 && (
               <Card title={delivery === "delivery" ? "2. Shipping Details" : "2. Contact & Pickup Info"}>
                 {error && <ErrorBox message={error} />}
+
+                {/* ADDRESS BOOK SELECTOR */}
+                {user && savedAddresses.length > 0 && (
+                  <div className="mb-6">
+                    <button 
+                      onClick={() => setShowAddressBook(!showAddressBook)}
+                      className="w-full flex items-center justify-between p-4 bg-white border-2 border-dashed border-gray-200 rounded-2xl hover:border-[var(--brand-primary)] hover:bg-[var(--brand-soft)]/5 transition-all text-left"
+                    >
+                      <div className="flex items-center gap-3">
+                        <MapPin size={20} className="text-[var(--brand-primary)]" />
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-[var(--brand-primary)]">Select from Address Book</p>
+                          <p className="text-xs font-bold text-gray-500">Pick a saved shipment destination</p>
+                        </div>
+                      </div>
+                      <ChevronDown size={20} className={`text-gray-300 transition-transform ${showAddressBook ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    <AnimatePresence>
+                      {showAddressBook && (
+                        <motion.div 
+                          initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3"
+                        >
+                          {savedAddresses.map(addr => (
+                            <button 
+                              key={addr.id}
+                              onClick={() => applySavedAddress(addr)}
+                              className="p-4 rounded-2xl border-2 border-transparent bg-white hover:border-[var(--brand-primary)] hover:shadow-md transition-all text-left group shadow-sm ring-1 ring-gray-100"
+                            >
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="p-1.5 bg-gray-50 rounded-lg group-hover:bg-[var(--brand-soft)]/20 transition-colors">
+                                  {addr.label === 'Work' ? <Briefcase size={14} className="text-gray-400 group-hover:text-[var(--brand-primary)]" /> : <Home size={14} className="text-gray-400 group-hover:text-[var(--brand-primary)]" />}
+                                </div>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-[var(--brand-primary)]">{addr.label || 'Home'}</span>
+                              </div>
+                              <p className="text-xs font-black text-[var(--text-heading)] line-clamp-1">{addr.fullName}</p>
+                              <p className="text-[10px] font-bold text-gray-400 mt-1 line-clamp-1">{addr.street}, {addr.city}</p>
+                            </button>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Input label="Full Name *" value={form.name} onChange={v => setForm(p => ({ ...p, name: v }))} />

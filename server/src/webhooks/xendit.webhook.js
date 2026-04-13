@@ -28,51 +28,42 @@ export const handleXenditWebhook = async (req, res) => {
       return res.status(400).json({ message: "Missing order ID" })
     }
 
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: {
-        items: true,
-        address: true,
-        user: true
-      }
-    })
-
-    if (!order) {
-      return res.status(404).json({ message: "Order not found" })
-    }
-
     /* =========================
        PAID
     ========================= */
 
     if (status === "PAID") {
-
-      // ✅ IDEMPOTENCY FIX
-      if (order.status === "paid") {
+      if (orderId.startsWith("don_")) {
+        const donationId = orderId.replace("don_", "")
+        await prisma.donation.update({
+          where: { id: donationId },
+          data: { status: "paid" }
+        })
+        logger.info("Donation PAID", { donationId })
         return res.json({ success: true })
       }
 
-      await prisma.$transaction(async (tx) => {
+      // Existing order logic
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: { items: true, address: true, user: true }
+      })
 
+      if (!order) return res.status(404).json({ message: "Order not found" })
+      if (order.status === "paid") return res.json({ success: true })
+
+      await prisma.$transaction(async (tx) => {
         await tx.order.update({
           where: { id: orderId },
           data: { status: "paid" }
         })
-
         await confirmReservation(orderId)
-
         await createOrderEvent(orderId, "paid", "Payment confirmed")
-
       })
 
       logger.info("Order PAID", { orderId })
-
-      // ✅ EMAIL (outside transaction)
       try {
-        await sendOrderPaidEmail(
-          order.user?.email || order.guestEmail,
-          order
-        )
+        await sendOrderPaidEmail(order.user?.email || order.guestEmail, order)
       } catch (err) {
         logger.error("Email failed", { error: err.message })
       }
@@ -83,25 +74,27 @@ export const handleXenditWebhook = async (req, res) => {
     ========================= */
 
     if (status === "EXPIRED") {
-
-      // ✅ IDEMPOTENCY FIX
-      if (order.status === "cancelled") {
+      if (orderId.startsWith("don_")) {
+        const donationId = orderId.replace("don_", "")
+        await prisma.donation.update({
+          where: { id: donationId },
+          data: { status: "cancelled" }
+        })
+        logger.info("Donation EXPIRED", { donationId })
         return res.json({ success: true })
       }
 
-      await prisma.$transaction(async (tx) => {
+      const order = await prisma.order.findUnique({ where: { id: orderId } })
+      if (!order || order.status === "cancelled") return res.json({ success: true })
 
+      await prisma.$transaction(async (tx) => {
         await tx.order.update({
           where: { id: orderId },
           data: { status: "cancelled" }
         })
-
         await releaseReservation(orderId)
-
         await createOrderEvent(orderId, "cancelled", "Payment expired")
-
       })
-
       logger.info("Order EXPIRED", { orderId })
     }
 

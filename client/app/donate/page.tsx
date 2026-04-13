@@ -1,10 +1,36 @@
 "use client"
 
 import { useState } from "react"
-import { Heart } from "lucide-react"
+import { Heart, Loader2 } from "lucide-react"
+import { api } from "@/lib/api"
+import { useAuth } from "@/context/AuthContext"
+import toast from "react-hot-toast"
 
 export default function DonatePage() {
   const [customAmount, setCustomAmount] = useState("")
+  const [loading, setLoading] = useState(false)
+  const { user } = useAuth()
+ 
+  const handleDonate = async () => {
+    const amount = Number(customAmount)
+    if (!amount || amount <= 0) return toast.error("Please enter a valid amount")
+    
+    setLoading(true)
+    try {
+      const res: any = await api.post("/donations", {
+        amount,
+        email: user?.email || "anonymous@dseoriginals.com",
+        name: user?.name || "Guest Contributor"
+      })
+      
+      toast.success("Redirecting to secure payment...")
+      window.location.href = res.invoiceUrl
+    } catch (err: any) {
+      toast.error(err.message || "Something went wrong")
+    } finally {
+      // Don't set loading false if redirecting
+    }
+  }
 
   return (
     <div className="min-h-screen py-24 px-6">
@@ -65,9 +91,13 @@ export default function DonatePage() {
               />
             </div>
 
-            <button className="w-full btn-premium !py-5 !rounded-2xl text-lg shadow-[0_10px_40px_rgba(39,76,119,0.25)] flex justify-center items-center gap-3">
-              <Heart size={20} className="fill-white/20" />
-              Complete Processing
+            <button 
+              onClick={handleDonate}
+              disabled={loading}
+              className="w-full btn-premium !py-5 !rounded-2xl text-lg shadow-[0_10px_40px_rgba(39,76,119,0.25)] flex justify-center items-center gap-3 disabled:opacity-50"
+            >
+              {loading ? <Loader2 className="animate-spin" size={20} /> : <Heart size={20} className="fill-white/20" />}
+              {loading ? "Initializing..." : "Complete Processing"}
             </button>
             <p className="text-center text-xs text-[var(--text-muted)] font-medium mt-4">Securely processed. Transactions are encrypted and private.</p>
 

@@ -22,13 +22,21 @@ import {
   EyeOff,
   Loader2,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  MapPin,
+  Plus,
+  Trash2,
+  Edit,
+  Home,
+  Briefcase
 } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
 import Link from "next/link"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
+import { regions, provinces, cities } from "philippines"
+import toast from "react-hot-toast"
 
 export default function AccountPage() {
   const { user, loading, logout, login, register } = useAuth()
@@ -37,11 +45,29 @@ export default function AccountPage() {
   const [activeTab, setActiveTab] = useState("overview")
   const [selectedOrder, setSelectedOrder] = useState<any>(null)
 
+  const [addresses, setAddresses] = useState<any[]>([])
+  const [loadingAddresses, setLoadingAddresses] = useState(false)
+  const [showAddressModal, setShowAddressModal] = useState(false)
+  const [editingAddress, setEditingAddress] = useState<any>(null)
+
   useEffect(() => {
     if (user) {
       fetchOrders()
+      fetchAddresses()
     }
   }, [user])
+
+  async function fetchAddresses() {
+    try {
+      setLoadingAddresses(true)
+      const data = await api.get("/user/me/addresses")
+      setAddresses(data || [])
+    } catch (err) {
+      console.error("Failed to load addresses")
+    } finally {
+      setLoadingAddresses(false)
+    }
+  }
 
   async function fetchOrders() {
     try {
@@ -99,7 +125,7 @@ export default function AccountPage() {
               onClick={logout}
               className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-white border-2 border-slate-100 text-[10px] md:text-xs font-black uppercase tracking-widest text-slate-400 hover:text-red-500 hover:border-red-50 transition-all shadow-sm w-full md:w-auto mt-4 md:mt-0"
             >
-              <LogOut size={16} /> Terminate Session
+              <LogOut size={16} /> Logout
             </button>
           </div>
         </div>
@@ -220,20 +246,105 @@ export default function AccountPage() {
             )}
 
             {activeTab === 'settings' && (
-              <div className="animate-fade-in max-w-xl">
-                <h3 className="text-2xl font-[1000] text-[var(--text-heading)] mb-2 tracking-tighter">Account Integrity</h3>
-                <p className="text-[var(--text-muted)] text-sm font-bold mb-10 uppercase tracking-wider">Maintain your profile credentials</p>
+              <div className="animate-fade-in space-y-12">
+                <div className="max-w-xl">
+                  <h3 className="text-2xl font-[1000] text-[var(--text-heading)] mb-2 tracking-tighter">Account Integrity</h3>
+                  <p className="text-[var(--text-muted)] text-sm font-bold mb-10 uppercase tracking-wider">Maintain your profile credentials</p>
 
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-[1000] uppercase tracking-widest text-gray-400 ml-1">Full Identity</label>
-                    <input defaultValue={user.name} className="w-full px-6 py-4 bg-[var(--bg-surface)] border-2 border-transparent focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-[1000] uppercase tracking-widest text-gray-400 ml-1">Verified Email</label>
-                    <input defaultValue={user.email} disabled className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl font-bold text-gray-400 cursor-not-allowed" />
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-[1000] uppercase tracking-widest text-gray-400 ml-1">Full Identity</label>
+                      <input defaultValue={user.name} className="w-full px-6 py-4 bg-[var(--bg-surface)] border-2 border-transparent focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-[1000] uppercase tracking-widest text-gray-400 ml-1">Verified Email</label>
+                      <input defaultValue={user.email} disabled className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl font-bold text-gray-400 cursor-not-allowed" />
+                    </div>
                   </div>
                 </div>
+
+                <div className="pt-8 border-t border-[var(--border-light)]">
+                  <div className="flex items-center justify-between mb-8">
+                    <div>
+                      <h3 className="text-2xl font-[1000] text-[var(--text-heading)] mb-1 tracking-tighter">Address Book</h3>
+                      <p className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-wider">Saved locations for faster checkout</p>
+                    </div>
+                    <button
+                      onClick={() => { setEditingAddress(null); setShowAddressModal(true); }}
+                      className="flex items-center gap-2 px-6 py-3 bg-[var(--brand-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:shadow-lg transition-all"
+                    >
+                      <Plus size={14} /> Add New
+                    </button>
+                  </div>
+
+                  {loadingAddresses ? (
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      {Array(2).fill(0).map((_, i) => <div key={i} className="h-40 bg-gray-50 rounded-3xl animate-pulse" />)}
+                    </div>
+                  ) : addresses.length === 0 ? (
+                    <div className="p-12 bg-[var(--bg-surface)] rounded-[2.5rem] text-center border-2 border-dashed border-gray-100">
+                      <MapPin size={40} className="mx-auto text-gray-200 mb-4" />
+                      <p className="text-gray-400 font-bold italic text-sm">No saved addresses found.</p>
+                    </div>
+                  ) : (
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      {addresses.map((addr) => (
+                        <div key={addr.id} className={`group p-6 rounded-[2rem] border-2 transition-all relative ${addr.isDefault ? 'border-[var(--brand-primary)] bg-[var(--brand-soft)]/5' : 'border-gray-50 bg-white hover:border-gray-200'}`}>
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2.5 rounded-xl ${addr.isDefault ? 'bg-[var(--brand-primary)] text-white' : 'bg-gray-100 text-gray-400'}`}>
+                                {addr.label?.toLowerCase() === 'work' ? <Briefcase size={16} /> : <Home size={16} />}
+                              </div>
+                              <div>
+                                <h4 className="font-black text-[var(--text-heading)] text-sm">{addr.label || 'Home'}</h4>
+                                {addr.isDefault && <span className="text-[8px] font-black uppercase tracking-tighter text-[var(--brand-primary)] bg-white px-1.5 py-0.5 rounded-full border border-[var(--brand-primary)]/20">Default</span>}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => { setEditingAddress(addr); setShowAddressModal(true); }}
+                                className="p-2 hover:bg-white rounded-xl text-gray-400 hover:text-[var(--brand-primary)] transition"
+                              >
+                                <Edit size={14} />
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  if (confirm("Delete this address?")) {
+                                    await api.delete(`/user/me/addresses/${addr.id}`)
+                                    fetchAddresses()
+                                    toast.success("Address removed")
+                                  }
+                                }}
+                                className="p-2 hover:bg-white rounded-xl text-gray-400 hover:text-red-500 transition"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-xs font-bold text-[var(--text-heading)]">{addr.fullName}</p>
+                            <p className="text-[10px] font-bold text-[var(--text-muted)]">{addr.phone}</p>
+                            <p className="text-[10px] font-medium text-[var(--text-muted)] line-clamp-2 mt-2 leading-relaxed">
+                              {addr.street}, {addr.barangay}, {addr.city}, {addr.province}, {addr.region}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <AnimatePresence>
+                  {showAddressModal && (
+                    <AddressModal
+                      isOpen={showAddressModal}
+                      onClose={() => setShowAddressModal(false)}
+                      onSuccess={() => { setShowAddressModal(false); fetchAddresses(); }}
+                      initialData={editingAddress}
+                    />
+                  )}
+                </AnimatePresence>
               </div>
             )}
           </div>
@@ -740,5 +851,177 @@ function OrderDetailedCard({ order, isSelected, onSelect }: { order: any, isSele
         )}
       </AnimatePresence>
     </div>
+  )
+}
+
+/* ============================
+ADDRESS MODAL
+============================ */
+
+function AddressModal({ isOpen, onClose, onSuccess, initialData }: any) {
+  const [form, setForm] = useState({
+    label: initialData?.label || "Home",
+    fullName: initialData?.fullName || "",
+    phone: initialData?.phone || "",
+    street: initialData?.street || "",
+    barangay: initialData?.barangay || "",
+    city: initialData?.city || "",
+    province: initialData?.province || "",
+    region: initialData?.region || "",
+    isDefault: initialData?.isDefault || false
+  })
+
+  const [selectedRegion, setSelectedRegion] = useState("")
+  const [selectedProvince, setSelectedProvince] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (initialData) {
+      // Find keys for phil library
+      const r = (regions as any[]).find((x: any) => x.name === initialData.region)
+      if (r) setSelectedRegion(r.key)
+      const p = (provinces as any[]).find((x: any) => x.name === initialData.province)
+      if (p) setSelectedProvince(p.key)
+    }
+  }, [initialData])
+
+  const filteredProvinces = (provinces as any[]).filter((p: any) => String(p.region) === String(selectedRegion))
+  const filteredCities = (cities as any[]).filter((c: any) => String(c.province) === String(selectedProvince))
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      if (initialData) {
+        await api.patch(`/user/me/addresses/${initialData.id}`, form)
+        toast.success("Address updated")
+      } else {
+        await api.post("/user/me/addresses", form)
+        toast.success("Address added")
+      }
+      onSuccess()
+    } catch {
+      toast.error("Failed to save address")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+        className="bg-white w-full max-w-xl rounded-[3rem] shadow-2xl overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="p-8 md:p-10">
+          <div className="flex justify-between items-center mb-10">
+            <div>
+              <h3 className="text-2xl font-[1000] text-[var(--text-heading)] mb-1 tracking-tighter">{initialData ? 'Update Location' : 'New Identity Point'}</h3>
+              <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest">Configure shipping destination</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="flex gap-2 mb-6">
+              {['Home', 'Work'].map(l => (
+                <button
+                  key={l} type="button"
+                  onClick={() => setForm({ ...form, label: l })}
+                  className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${form.label === l ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white shadow-lg' : 'bg-white border-gray-100 text-gray-400'}`}
+                >
+                  {l === 'Work' ? <Briefcase size={12} className="inline mr-2" /> : <Home size={12} className="inline mr-2" />}
+                  {l}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Full Name</label>
+                <input required value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Phone Number</label>
+                <input required value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all" />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Street Address</label>
+              <input required value={form.street} onChange={e => setForm({ ...form, street: e.target.value })} className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <select
+                required
+                value={selectedRegion}
+                onChange={e => {
+                  const key = e.target.value
+                  setSelectedRegion(key)
+                  setForm({ ...form, region: (regions as any[]).find((x: any) => x.key === key)?.name || "", province: "", city: "" })
+                }}
+                className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl font-bold outline-none"
+              >
+                <option value="">Region</option>
+                {(regions as any[]).map((r: any) => <option key={r.key} value={r.key}>{r.name}</option>)}
+              </select>
+
+              <select
+                required
+                disabled={!selectedRegion}
+                value={selectedProvince}
+                onChange={e => {
+                  const key = e.target.value
+                  setSelectedProvince(key)
+                  setForm({ ...form, province: (provinces as any[]).find((x: any) => x.key === key)?.name || "", city: "" })
+                }}
+                className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl font-bold outline-none disabled:opacity-50"
+              >
+                <option value="">Province</option>
+                {filteredProvinces.map((p: any) => <option key={p.key} value={p.key}>{p.name}</option>)}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <select
+                required
+                disabled={!selectedProvince}
+                value={form.city}
+                onChange={e => setForm({ ...form, city: e.target.value })}
+                className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl font-bold outline-none disabled:opacity-50"
+              >
+                <option value="">City</option>
+                {filteredCities.map((c: any) => <option key={c.key} value={c.name}>{c.name}</option>)}
+              </select>
+
+              <input placeholder="Barangay" required value={form.barangay} onChange={e => setForm({ ...form, barangay: e.target.value })} className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none" />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, isDefault: !form.isDefault })}
+              className="flex items-center gap-3 py-2 group"
+            >
+              <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all ${form.isDefault ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)]' : 'border-gray-200'}`}>
+                {form.isDefault && <CheckCircle2 size={12} className="text-white" />}
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-[var(--brand-primary)] transition">Set as default location</span>
+            </button>
+
+            <div className="flex gap-4 pt-6">
+              <button type="button" onClick={onClose} className="flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-[var(--text-heading)] transition">Cancel</button>
+              <button disabled={loading} className="flex-[2] btn-premium !py-4 !rounded-2xl shadow-xl shadow-[var(--brand-primary)]/20 uppercase tracking-widest font-black">
+                {loading ? <Loader2 className="animate-spin mx-auto" size={18} /> : (initialData ? 'Update Destination' : 'Activate Location')}
+              </button>
+            </div>
+          </form>
+        </div>
+      </motion.div>
+    </motion.div>
   )
 }

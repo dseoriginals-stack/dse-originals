@@ -2,20 +2,63 @@
 
 import Modal from "@/components/ui/Modal"
 import { useState } from "react"
-import { Heart, Camera } from "lucide-react"
+import { Heart, Camera, Loader2, X } from "lucide-react"
+import { api } from "@/lib/api"
+import toast from "react-hot-toast"
 
 export default function StorySubmitModal({ open, onClose }: any) {
 
   const [story, setStory] = useState("")
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
+  const [title, setTitle] = useState("")
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [image, setImage] = useState<string | null>(null)
 
   const addTag = () => {
-    if (!tagInput) return
+    if (!tagInput || tags.includes(tagInput)) return
     setTags([...tags, tagInput])
     setTagInput("")
+  }
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) return toast.error("Image must be smaller than 5MB")
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImage(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleSubmit = async () => {
+    if (!title || !story) return toast.error("Title and story content are required")
+    setLoading(true)
+    try {
+      await api.post("/stories", {
+        title,
+        content: story,
+        image,
+        category: tags[0] || "General",
+        name,
+        email
+      })
+      toast.success("Story submitted for approval!")
+      onClose()
+      // Reset form
+      setTitle("")
+      setStory("")
+      setTags([])
+      setImage(null)
+    } catch (err: any) {
+      toast.error(err.message || "Failed to submit story")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -70,6 +113,12 @@ export default function StorySubmitModal({ open, onClose }: any) {
         <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] border-b border-[var(--border-light)] pb-2">
           Your Narrative
         </h3>
+        <input
+          placeholder="Story Title (e.g. A New Beginning)"
+          className="w-full px-4 py-3 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)]/30 focus:border-[var(--brand-primary)] transition placeholder:text-gray-400 font-bold text-sm mb-4"
+          value={title}
+          onChange={(e)=>setTitle(e.target.value)}
+        />
         <textarea
           rows={6}
           placeholder="Start writing your experience here..."
@@ -121,11 +170,24 @@ export default function StorySubmitModal({ open, onClose }: any) {
         <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] border-b border-[var(--border-light)] pb-2 mb-4">
           Attach Memories
         </h3>
-        <div className="border-2 border-dashed border-[var(--border-light)] rounded-2xl p-10 text-center text-gray-400 hover:text-[var(--brand-primary)] hover:border-[var(--brand-primary)] hover:bg-[var(--bg-surface)] transition-colors cursor-pointer flex flex-col items-center gap-3">
-          <Camera size={32} />
-          <p className="font-semibold text-sm">Click to upload or drag and drop</p>
-          <p className="text-xs">PNG, JPG up to 10MB</p>
-        </div>
+        {image ? (
+          <div className="relative aspect-video rounded-2xl overflow-hidden border-2 border-[var(--brand-primary)]">
+            <img src={image} className="w-full h-full object-cover" alt="Preview" />
+            <button 
+              onClick={() => setImage(null)}
+              className="absolute top-4 right-4 p-2 bg-white/90 rounded-full text-red-500 shadow-xl hover:scale-110 transition"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        ) : (
+          <label className="border-2 border-dashed border-[var(--border-light)] rounded-2xl p-10 text-center text-gray-400 hover:text-[var(--brand-primary)] hover:border-[var(--brand-primary)] hover:bg-[var(--bg-surface)] transition-colors cursor-pointer flex flex-col items-center gap-3">
+            <Camera size={32} />
+            <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+            <p className="font-semibold text-sm">Click to upload or drag and drop</p>
+            <p className="text-xs">PNG, JPG up to 5MB</p>
+          </label>
+        )}
       </div>
 
       {/* ACTIONS */}
@@ -133,13 +195,18 @@ export default function StorySubmitModal({ open, onClose }: any) {
         <button
           onClick={onClose}
           type="button"
+          disabled={loading}
           className="w-full sm:w-auto px-6 py-3 text-sm font-bold text-[var(--text-muted)] hover:text-[var(--text-heading)] transition-colors"
         >
           Cancel
         </button>
-        <button className="w-full sm:w-auto btn-premium !py-3 !px-8 flex justify-center items-center gap-2 shadow-md">
-          <Heart size={16} className="fill-white/20" />
-          Publish Story
+        <button 
+          onClick={handleSubmit}
+          disabled={loading}
+          className="w-full sm:w-auto btn-premium !py-3 !px-8 flex justify-center items-center gap-2 shadow-md disabled:opacity-50"
+        >
+          {loading ? <Loader2 className="animate-spin" size={16} /> : <Heart size={16} className="fill-white/20" />}
+          {loading ? "Publishing..." : "Publish Story"}
         </button>
       </div>
 
