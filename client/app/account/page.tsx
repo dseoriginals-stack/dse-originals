@@ -128,7 +128,7 @@ function AccountContent() {
   )
 
   if (!user) {
-    return <GuestPortal login={login} register={register} oauthError={oauthError} />
+    return <GuestPortal login={login} oauthError={oauthError} />
   }
 
   const totalSpent = orders.reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0)
@@ -421,11 +421,11 @@ function AccountContent() {
 GUEST PORTAL COMPONENT
 ============================ */
 
-function GuestPortal({ login, register, oauthError }: any) {
-  const [tab, setTab] = useState<"login" | "register" | "track">("login")
+function GuestPortal({ login, oauthError }: any) {
+  const [tab, setTab] = useState<"login" | "track">("login")
 
   useEffect(() => {
-    if (oauthError && tab !== 'register') {
+    if (oauthError) {
       setTab('login')
     }
   }, [oauthError])
@@ -470,17 +470,15 @@ function GuestPortal({ login, register, oauthError }: any) {
           <div className="flex bg-[var(--bg-surface)] p-1.5 md:p-2 rounded-2xl mb-8 md:mb-12 gap-1 overflow-x-auto scrollbar-hide shrink-0">
             {[
               { id: "login", label: "Sign In", icon: <Lock size={14} /> },
-              { id: "register", label: "Register", icon: <User size={14} /> },
               { id: "track", label: "Track", icon: <Truck size={14} /> }
             ].map((t: any) => (
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
-                className={`flex items-center justify-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-1 ${tab === t.id ? 'bg-white text-[var(--brand-primary)] shadow-md translate-y-[-1px]' : 'text-slate-500 hover:bg-white/50 hover:text-[var(--brand-primary)]'
+                className={`flex items-center justify-center gap-2 px-4 md:px-10 py-2.5 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-1 ${tab === t.id ? 'bg-white text-[var(--brand-primary)] shadow-md translate-y-[-1px]' : 'text-slate-500 hover:bg-white/50 hover:text-[var(--brand-primary)]'
                   }`}
               >
-                {t.icon} <span className="hidden sm:inline">{t.label}</span>
-                <span className="sm:hidden">{t.id === 'register' ? 'Join' : t.label.split(' ')[0]}</span>
+                {t.icon} <span className="inline">{t.label}</span>
               </button>
             ))}
           </div>
@@ -495,7 +493,6 @@ function GuestPortal({ login, register, oauthError }: any) {
               className="flex-1 flex flex-col"
             >
               {tab === 'login' && <AccountLoginForm login={login} oauthError={oauthError} />}
-              {tab === 'register' && <AccountRegisterForm register={register} setTab={setTab} oauthError={oauthError} />}
               {tab === 'track' && <AccountGuestTrack />}
             </motion.div>
           </AnimatePresence>
@@ -528,8 +525,8 @@ function AccountLoginForm({ login, oauthError }: any) {
 
   return (
     <div className="flex-1 flex flex-col pt-4 md:pt-0">
-      <h3 className="text-2xl md:text-3xl font-[1000] text-[var(--text-heading)] mb-2 tracking-tighter leading-none">Sign into Dashboard</h3>
-      <p className="text-[var(--text-muted)] text-[10px] md:text-sm font-bold uppercase tracking-wider mb-6 md:mb-10">Access your DSE profile</p>
+      <h3 className="text-2xl md:text-3xl font-[1000] text-[var(--text-heading)] mb-2 tracking-tighter leading-none">Access DSE Originals</h3>
+      <p className="text-[var(--text-muted)] text-[10px] md:text-sm font-bold uppercase tracking-wider mb-6 md:mb-10">Continue with social or login below</p>
       {error && <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-xs font-bold mb-6 flex items-center gap-2 border border-red-100 animate-shake">
         <AlertCircle size={16} /> {error}
       </div>}
@@ -537,12 +534,14 @@ function AccountLoginForm({ login, oauthError }: any) {
       <div className="mb-6">
         <button
           onClick={() => {
-            window.location.href = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:10000"}/api/auth/google`
+            window.location.href = `${process.env.NEXT_PUBLIC_API_URL || "https://dse-originals.onrender.com"}/api/auth/google`
           }}
-          className="w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-2xl border-2 border-[var(--border-light)] bg-white hover:bg-gray-50 transition-all font-bold text-[var(--text-heading)]"
+          className="w-full flex items-center justify-center gap-3 px-4 py-4 md:py-5 rounded-3xl bg-[var(--brand-primary)] hover:bg-[#1B3B60] text-white shadow-xl shadow-[#274C77]/20 transition-all font-[900] text-sm md:text-base uppercase tracking-widest group"
         >
-          <Image src="/google-icon.svg" alt="Google" width={20} height={20} />
-          Login with Google
+          <div className="bg-white p-2 rounded-xl group-hover:scale-110 transition-transform">
+            <Image src="/google-icon.svg" alt="Google" width={20} height={20} />
+          </div>
+          Continue with Google
         </button>
       </div>
 
@@ -550,8 +549,8 @@ function AccountLoginForm({ login, oauthError }: any) {
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-[var(--border-light)]"></div>
         </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-4 text-slate-400 font-bold tracking-widest">Or login with</span>
+        <div className="relative flex justify-center text-[10px] font-black uppercase tracking-[0.2em]">
+          <span className="bg-white px-6 text-slate-300">Staff & Partner Access</span>
         </div>
       </div>
 
@@ -584,108 +583,6 @@ function AccountLoginForm({ login, oauthError }: any) {
 
         <button disabled={loading} className="btn-premium w-full !py-5 shadow-2xl !rounded-3xl !font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2">
           {loading ? <Loader2 className="animate-spin" size={18} /> : <>Login <ArrowRight size={18} /></>}
-        </button>
-      </form>
-    </div>
-  )
-}
-
-/* REGISTER FORM */
-function AccountRegisterForm({ register, setTab, oauthError }: any) {
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (form.password !== form.confirm) return setError("Passwords do not match")
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await register(form.name, form.email, form.password)
-      if (res.success) {
-        setSuccess(true)
-        setTimeout(() => setTab('login'), 3000)
-      } else {
-        setError(res.message)
-      }
-    } catch {
-      setError("Server unreachable")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Effect to sync OAuth error to register form if needed
-  useEffect(() => {
-      if (oauthError) setError(oauthError)
-  }, [oauthError])
-
-  if (success) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center text-center">
-        <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-6 shadow-inner">
-          <CheckCircle2 size={40} />
-        </div>
-        <h3 className="text-3xl font-[1000] text-[var(--text-heading)] mb-4 tracking-tighter">Identity Verified</h3>
-        <p className="text-[var(--text-muted)] font-bold mb-6">Welcome to the elite rank. Redirecting to access terminal...</p>
-        <div className="w-10 h-1 border-2 border-emerald-500/20 rounded-full overflow-hidden">
-          <motion.div initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ duration: 3 }} className="h-full bg-emerald-500" />
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex-1 flex flex-col">
-      <h3 className="text-3xl font-[1000] text-[var(--text-heading)] mb-2 tracking-tighter leading-none">Elite Enrollment</h3>
-      <p className="text-[var(--text-muted)] text-sm font-bold uppercase tracking-wider mb-8">Join the DSE Originals collective</p>
-
-      <div className="mb-6 mb-8">
-        <button
-          type="button"
-          onClick={() => {
-            window.location.href = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:10000"}/api/auth/google`
-          }}
-          className="w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-2xl border-2 border-[var(--border-light)] bg-white hover:bg-gray-50 transition-all font-bold text-[var(--text-heading)]"
-        >
-          <Image src="/google-icon.svg" alt="Google" width={20} height={20} />
-          Continue with Google
-        </button>
-      </div>
-
-      <div className="relative mb-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-[var(--border-light)]"></div>
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-4 text-slate-400 font-bold tracking-widest">Or create account with</span>
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <label className="text-[10px] font-black uppercase text-slate-500">Full Name</label>
-          <input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full px-5 py-3.5 bg-[var(--bg-surface)] border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold transition-all outline-none text-sm text-[var(--text-main)]" />
-        </div>
-        <div className="space-y-1">
-          <label className="text-[10px] font-black uppercase text-slate-500">Email Address</label>
-          <input required type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full px-5 py-3.5 bg-[var(--bg-surface)] border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold transition-all outline-none text-sm text-[var(--text-main)]" />
-        </div>
-        <div className="space-y-1">
-          <label className="text-[10px] font-black uppercase text-slate-500">Security Password</label>
-          <input required type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} className="w-full px-5 py-3.5 bg-[var(--bg-surface)] border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold transition-all outline-none text-sm text-[var(--text-main)]" />
-        </div>
-        <div className="space-y-1">
-          <label className="text-[10px] font-black uppercase text-slate-500">Verify Password</label>
-          <input required type="password" value={form.confirm} onChange={e => setForm({ ...form, confirm: e.target.value })} className="w-full px-5 py-3.5 bg-[var(--bg-surface)] border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold transition-all outline-none text-sm text-[var(--text-main)]" />
-        </div>
-
-        {error && <div className="col-span-full py-2 text-[10px] font-black uppercase text-red-500 tracking-widest">{error}</div>}
-
-        <button disabled={loading} className="col-span-full btn-premium !py-4 shadow-xl !rounded-2xl !font-black uppercase tracking-widest mt-4">
-          {loading ? "Verifying..." : "Register Now"}
         </button>
       </form>
     </div>

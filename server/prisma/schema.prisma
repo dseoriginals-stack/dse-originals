@@ -15,14 +15,15 @@ model User {
   id            String   @id @default(uuid())
   name          String
   email         String   @unique
-  password      String
+  password      String?
+  provider      String   @default("local") // "google" | "local"
   address       String?
   phone         String?
   role          Role     @default(customer)
   luckyPoints    Int          @default(0)
   lifetimePoints Int          @default(0)
   tier           LoyaltyTier  @default(Faith)
-  emailVerified  Boolean      @default(false)
+  emailVerified  Boolean      @default(true)
   createdAt     DateTime @default(now())
 
   carts         Cart[]

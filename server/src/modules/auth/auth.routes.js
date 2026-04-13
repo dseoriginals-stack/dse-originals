@@ -97,50 +97,13 @@ async function issueTokens(user, req, res, isOAuth = false) {
    REGISTER
 ============================= */
 
-router.post("/register", authLimiter, async (req, res) => {
-  const validation = registerSchema.safeParse(req.body)
-
-  if (!validation.success) {
-    return res.status(400).json({
-      message: validation.error.errors[0].message,
-    })
-  }
-
-  try {
-    const { name, email, password } = req.body
-
-    const existing = await prisma.user.findUnique({
-      where: { email },
-    })
-
-    if (existing) {
-      return res.status(400).json({
-        message: "Email already exists",
-      })
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10)
-
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role: "customer",
-        luckyPoints: 0,
-        emailVerified: true // Set to true by default now
-      },
-    })
-
-    // Automatically log them in after registration
-    return await issueTokens(user, req, res)
-  } catch (err) {
-    logger.error("REGISTER ERROR:", err)
-
-    return res.status(500).json({
-      message: "Registration failed",
-    })
-  }
+/* =============================
+   REGISTER (DISABLED - MOVED TO GOOGLE ONLY)
+   ============================= */
+router.post("/register", (req, res) => {
+  return res.status(403).json({
+    message: "Manual registration is disabled. Please use 'Continue with Google'."
+  })
 })
 
 
@@ -168,9 +131,21 @@ router.post("/login", async (req, res) => {
       },
     })
 
-    if (!user || !user.password) {
+    if (!user) {
       return res.status(401).json({
-        message: "Invalid credentials",
+        message: "This account does not exist.",
+      })
+    }
+
+    if (user.provider === "google") {
+      return res.status(400).json({
+        message: "This account uses Google login. Please click 'Continue with Google'.",
+      })
+    }
+
+    if (!user.password) {
+      return res.status(401).json({
+        message: "This account does not have a password set. Please use social login.",
       })
     }
 
@@ -204,8 +179,7 @@ router.get("/google", passport.authenticate("google", {
 router.get("/google/callback", (req, res, next) => {
   passport.authenticate("google", { session: false }, async (err, user) => {
     if (err || !user) {
-      const errorType = err?.message === "no_account" ? "no_account" : "oauth_failed";
-      return res.redirect(`${process.env.CLIENT_URL}/account?error=${errorType}`);
+      return res.redirect(`${process.env.CLIENT_URL}/account?error=oauth_failed`);
     }
     return await issueTokens(user, req, res, true);
   })(req, res, next);

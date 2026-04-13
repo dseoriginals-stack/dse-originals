@@ -26,7 +26,7 @@ type AuthContextType = {
   user: User | null
   loading: boolean
   login: (email: string, password: string) => Promise<AuthResult>
-  register: (name: string, email: string, password: string) => Promise<AuthResult>
+  login: (email: string, password: string) => Promise<AuthResult>
   logout: () => Promise<void>
   refresh: () => Promise<void>
   updateUser: (data: Partial<User>) => void
@@ -99,28 +99,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const register = async (
-    name: string,
-    email: string,
-    password: string
-  ): Promise<AuthResult> => {
-    try {
-      const res = await api.post<{ user: User }>("/auth/register", {
-        name,
-        email: email.trim().toLowerCase(),
-        password: password.trim(),
-      })
-
-      setUser(res.user)
-      await refresh()
-
-      toast.success("Welcome! Account created successfully.")
-      return { success: true }
-    } catch (err: any) {
-      const message = err?.message || "Registration failed. Please try again."
-      return { success: false, message }
-    }
-  }
 
   /*
   -----------------------------
@@ -144,7 +122,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         loading,
         login,
-        register,
         logout,
         refresh,
         updateUser,
