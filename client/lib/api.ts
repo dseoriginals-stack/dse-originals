@@ -44,11 +44,8 @@ export async function request<T = any>(
     const data = await res.json().catch(() => null)
 
     if (!res.ok) {
-      console.error("❌ API ERROR:", {
-        url,
-        status: res.status,
-        data,
-      })
+      console.error(`❌ API ERROR [${res.status}] at: ${url}`);
+      if (data) console.error("Response:", data);
 
       throw new Error(data?.message || `Request failed: ${res.status}`)
     }
