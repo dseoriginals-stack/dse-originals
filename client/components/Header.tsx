@@ -91,8 +91,8 @@ export default function Header() {
             <span>• Get Discounts from Loyalty Points</span>
             <span>• Premium Faith-Inspired Collective</span>
             <span>• Official DSE Originals Store</span>
-            <span>• Global Shipping Available</span>
-            <span>• Get Discounts from Loyalty Points</span>
+            <span>• Shipping Available</span>
+            <span>• Hope • Faith • Love </span>
           </motion.div>
         </div>
 
