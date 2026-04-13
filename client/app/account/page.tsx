@@ -274,7 +274,7 @@ export default function AccountPage() {
                         value={profileForm.name} 
                         onChange={e => setProfileForm(p => ({ ...p, name: e.target.value }))}
                         placeholder="Your full name"
-                        className="w-full px-6 py-4 bg-[var(--bg-surface)] border-2 border-transparent focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all" 
+                        className="w-full px-6 py-4 bg-[var(--bg-surface)] border-2 border-transparent focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all text-[var(--text-heading)]" 
                       />
                     </div>
                     <div className="space-y-2">
@@ -283,12 +283,12 @@ export default function AccountPage() {
                         value={profileForm.phone} 
                         onChange={e => setProfileForm(p => ({ ...p, phone: e.target.value }))}
                         placeholder="e.g. 0912 345 6789"
-                        className="w-full px-6 py-4 bg-[var(--bg-surface)] border-2 border-transparent focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all" 
+                        className="w-full px-6 py-4 bg-[var(--bg-surface)] border-2 border-transparent focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all text-[var(--text-heading)]" 
                       />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-[1000] uppercase tracking-widest text-gray-400 ml-1">Verified Email</label>
-                      <input value={user.email} disabled className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl font-bold text-gray-400 cursor-not-allowed" />
+                      <input value={user.email} disabled className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl font-bold text-gray-400 cursor-not-allowed text-[var(--text-heading)]/50" />
                     </div>
 
                     <button
