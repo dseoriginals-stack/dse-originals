@@ -57,10 +57,10 @@ export const getAnalytics = async (req, res) => {
       last7Days.map(async (date) => {
 
         const start = new Date(date)
-        start.setHours(0,0,0,0)
+        start.setHours(0, 0, 0, 0)
 
         const end = new Date(date)
-        end.setHours(23,59,59,999)
+        end.setHours(23, 59, 59, 999)
 
         const result = await prisma.order.aggregate({
           _sum: { total: true },
@@ -74,7 +74,7 @@ export const getAnalytics = async (req, res) => {
         })
 
         return {
-          date: start.toISOString().slice(5,10),
+          date: start.toISOString().slice(5, 10),
           total: Number(result._sum.total || 0)
         }
 

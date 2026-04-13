@@ -44,8 +44,8 @@ const productSchema = z.object({
   price: z.coerce.number().positive(),
   categoryId: z.string(),
   stock: z.coerce.number().int().nonnegative(),
-  isBestseller: z.coerce.boolean().optional().default(false),
-  isPopular: z.coerce.boolean().optional().default(false)
+  isBestseller: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional().default(false),
+  isPopular: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional().default(false)
 })
 
 /* ================================
