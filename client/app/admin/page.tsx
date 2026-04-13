@@ -29,6 +29,7 @@ import {
 } from 'recharts'
 import Image from "next/image"
 import Link from "next/link"
+import toast from "react-hot-toast"
 
 type Stats = {
   totalOrders: number
@@ -62,6 +63,39 @@ export default function AdminDashboard() {
 
     load()
   }, [user])
+
+  const handleExport = () => {
+    if (!stats) return
+
+    try {
+      const headers = ["Order ID", "Customer", "Total", "Status", "Date"]
+      const rows = stats.recentOrders.map(o => [
+        o.id,
+        o.user?.name || "Guest",
+        o.total,
+        o.status,
+        new Date(o.createdAt).toLocaleDateString()
+      ])
+
+      const csvContent = [
+        headers.join(","),
+        ...rows.map(e => e.join(","))
+      ].join("\n")
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.setAttribute("href", url)
+      link.setAttribute("download", `dse_analytics_export_${new Date().toISOString().split('T')[0]}.csv`)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      toast.success("Recent orders exported to CSV")
+    } catch (err) {
+      toast.error("Failed to export data")
+    }
+  }
 
   if (authLoading) {
     return (
@@ -103,7 +137,11 @@ export default function AdminDashboard() {
             <Calendar size={14} />
             Last 30 Days
           </button>
-          <button className="btn-premium !py-3 !px-6 text-sm shadow-xl font-bold rounded-xl flex items-center gap-2">
+          <button
+            onClick={handleExport}
+            disabled={!stats}
+            className="btn-premium !py-3 !px-6 text-sm shadow-xl font-bold rounded-xl flex items-center gap-2 disabled:opacity-50"
+          >
             <TrendingUp size={16} />
             Export Data
           </button>
