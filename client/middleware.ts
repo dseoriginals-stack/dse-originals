@@ -17,12 +17,8 @@ export function middleware(request: NextRequest) {
   ) {
     return NextResponse.next()
   }
-  // ❌ PROTECT ADMIN
-  if (pathname.startsWith("/admin")) {
-    if (!token) {
-      return NextResponse.redirect(new URL("/account", request.url))
-    }
-  }
+  // NOTE: Admin security is handled at the Layout/Page level via useAuth and Backend API enforcement.
+  // This middleware should only handle lightweight redirects if necessary.
 
   // ✅ ALLOW
   return NextResponse.next()
