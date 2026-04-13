@@ -40,7 +40,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 // =========================
-// ✅ CORS FIX (ENFORCED)
+// ✅ CORS FIX (ROBUST)
 // =========================
 const allowedOrigins = [
   process.env.CLIENT_URL,
@@ -54,7 +54,9 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.includes(origin)) {
+    const isVercel = origin.endsWith(".vercel.app");
+    
+    if (allowedOrigins.includes(origin) || isVercel) {
       callback(null, true)
     } else {
       console.warn(`Blocked by CORS: ${origin}`);

@@ -2,7 +2,7 @@ router.get("/analytics", requireAdmin, async (req, res) => {
 
   const revenueChart = await prisma.order.groupBy({
     by: ["createdAt"],
-    _sum: { total: true }
+    _sum: { totalAmount: true }
   })
 
   const orderChart = await prisma.order.groupBy({

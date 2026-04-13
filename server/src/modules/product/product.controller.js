@@ -69,7 +69,7 @@ export const createProduct = async (req, res, next) => {
       })
     }
 
-    const { name, price, stock, categoryId, description } =
+    const { name, price, stock, categoryId, description, isBestseller, isPopular } =
       validation.data
 
     // ================================
@@ -94,28 +94,17 @@ export const createProduct = async (req, res, next) => {
 
     if (req.file) {
       try {
-        console.log("Uploading to Cloudinary:", req.file.path)
-
         const result = await uploadFromPath(req.file.path)
-
-        console.log("UPLOAD RESULT:", result)
-
         if (result?.secure_url) {
           imageUrl = result.secure_url
-        } else {
-          console.warn("⚠️ No secure_url returned")
         }
-
       } catch (err) {
         console.error("⚠️ CLOUDINARY FAILED:", err.message)
-        // ❗ DO NOT THROW — continue creating product
       }
     }
 
-    console.log("FINAL IMAGE URL:", imageUrl)
-
     // ================================
-    // CREATE PRODUCT (ALWAYS RUNS)
+    // CREATE PRODUCT
     // ================================
     const slug = await generateSlug(name)
 
@@ -125,12 +114,9 @@ export const createProduct = async (req, res, next) => {
         slug,
         description,
         status: "active",
-        isBestseller: validation.data.isBestseller,
-        isPopular: validation.data.isPopular,
-
-        category: {
-          connect: { id: category.id }
-        },
+        isBestseller: !!isBestseller,
+        isPopular: !!isPopular,
+        categoryId: category.id,
 
         ...(imageUrl && {
           images: {
@@ -146,10 +132,10 @@ export const createProduct = async (req, res, next) => {
         variants: {
           create: [
             {
-              sku: `SKU-${Date.now()}`,
+              sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
               name: "Default",
               price: new Prisma.Decimal(price),
-              stock
+              stock: parseInt(String(stock)) || 0
             }
           ]
         }
@@ -157,11 +143,17 @@ export const createProduct = async (req, res, next) => {
     })
 
     await deleteCache("products:*")
-
     res.status(201).json(product)
 
   } catch (err) {
     console.error("❌ CREATE PRODUCT ERROR:", err)
+    // Return more specific error if Prisma fails on unknown fields
+    if (err.message?.includes("Unknown argument")) {
+        return res.status(500).json({ 
+            message: "System sync in progress. Please wait 2 minutes for backend update.",
+            details: "Prisma schema mismatch" 
+        })
+    }
     next(err)
   }
 }
@@ -420,7 +412,7 @@ export const updateProduct = async (req, res, next) => {
       })
     }
 
-    const { name, price, stock, categoryId, description } = validation.data
+    const { name, price, stock, categoryId, description, isBestseller, isPopular } = validation.data
 
     const product = await prisma.product.findUnique({
       where: { id },
@@ -431,6 +423,12 @@ export const updateProduct = async (req, res, next) => {
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" })
+    }
+
+    // ✅ Validate category exists
+    if (categoryId) {
+        const cat = await prisma.category.findUnique({ where: { id: categoryId } })
+        if (!cat) return res.status(400).json({ message: "Invalid Category" })
     }
 
     let imageUrl = null
@@ -454,13 +452,11 @@ export const updateProduct = async (req, res, next) => {
       data: {
         name,
         description,
-        isBestseller: req.body.isBestseller === 'true' || req.body.isBestseller === true,
-        isPopular: req.body.isPopular === 'true' || req.body.isPopular === true,
+        isBestseller: !!isBestseller,
+        isPopular: !!isPopular,
 
         ...(categoryId && {
-          category: {
-            connect: { id: categoryId }
-          }
+          categoryId: categoryId
         }),
 
         // ✅ replace image if new one uploaded
@@ -492,6 +488,12 @@ export const updateProduct = async (req, res, next) => {
     res.json(updated)
   } catch (err) {
     console.error("❌ UPDATE PRODUCT ERROR:", err)
+    if (err.message?.includes("Unknown argument")) {
+        return res.status(500).json({ 
+            message: "System sync in progress. Please wait 2 minutes for backend update.",
+            details: "Prisma schema mismatch" 
+        })
+    }
     next(err)
   }
 }

@@ -6,7 +6,7 @@ const getAdminStats = async () => {
   const productsCount = await prisma.product.count()
 
   const revenue = await prisma.order.aggregate({
-    _sum: { total: true },
+    _sum: { totalAmount: true },
     where: { status: "paid" }
   })
 
@@ -16,7 +16,7 @@ const getAdminStats = async () => {
 
   const rawDailyRevenue = await prisma.order.groupBy({
     by: ['createdAt'],
-    _sum: { total: true },
+    _sum: { totalAmount: true },
     where: {
       status: "paid",
       createdAt: { gte: thirtyDaysAgo }
@@ -28,7 +28,7 @@ const getAdminStats = async () => {
   const revenueMap = {}
   rawDailyRevenue.forEach(item => {
     const date = item.createdAt.toISOString().split('T')[0]
-    revenueMap[date] = (revenueMap[date] || 0) + Number(item._sum.total || 0)
+    revenueMap[date] = (revenueMap[date] || 0) + Number(item._sum.totalAmount || 0)
   })
   const revenueChart = Object.keys(revenueMap).map(date => ({
     date,
@@ -69,7 +69,7 @@ const getAdminStats = async () => {
     orderBy: { createdAt: 'desc' },
     select: {
       id: true,
-      total: true,
+      totalAmount: true,
       status: true,
       createdAt: true,
       user: { select: { name: true } }
@@ -80,7 +80,7 @@ const getAdminStats = async () => {
     totalCustomers: users,
     totalOrders: ordersCount,
     totalProducts: productsCount,
-    revenue: revenue._sum.total || 0,
+    revenue: revenue._sum.totalAmount || 0,
     revenueChart,
     topProducts,
     recentOrders

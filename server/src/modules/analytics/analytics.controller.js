@@ -13,7 +13,7 @@ export const getAnalytics = async (req, res) => {
 
       // 💰 TOTAL REVENUE
       prisma.order.aggregate({
-        _sum: { total: true },
+        _sum: { totalAmount: true },
         where: { status: "paid" }
       }),
 
@@ -63,7 +63,7 @@ export const getAnalytics = async (req, res) => {
         end.setHours(23, 59, 59, 999)
 
         const result = await prisma.order.aggregate({
-          _sum: { total: true },
+          _sum: { totalAmount: true },
           where: {
             status: "paid",
             createdAt: {
@@ -75,14 +75,14 @@ export const getAnalytics = async (req, res) => {
 
         return {
           date: start.toISOString().slice(5, 10),
-          total: Number(result._sum.total || 0)
+          total: Number(result._sum.totalAmount || 0)
         }
 
       })
     )
 
     return res.json({
-      revenue: Number(revenue._sum.total || 0),
+      revenue: Number(revenue._sum.totalAmount || 0),
       orders,
       products,
       topProducts,
