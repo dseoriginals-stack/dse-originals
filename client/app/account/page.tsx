@@ -52,7 +52,7 @@ export default function AccountPage() {
 }
 
 function AccountContent() {
-  const { user, loading, logout, login, register, updateUser } = useAuth()
+  const { user, loading, logout, login, updateUser } = useAuth()
   const [orders, setOrders] = useState<any[]>([])
   const [loadingOrders, setLoadingOrders] = useState(false)
   const [activeTab, setActiveTab] = useState("overview")
