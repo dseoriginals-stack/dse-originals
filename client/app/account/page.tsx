@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import {
   User,
   Package,
@@ -40,6 +40,18 @@ import toast from "react-hot-toast"
 import { useSearchParams } from "next/navigation"
 
 export default function AccountPage() {
+  return (
+    <Suspense fallback={
+       <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center">
+         <div className="w-12 h-12 border-4 border-[var(--brand-primary)] border-t-transparent rounded-full animate-spin" />
+       </div>
+    }>
+      <AccountContent />
+    </Suspense>
+  )
+}
+
+function AccountContent() {
   const { user, loading, logout, login, register, updateUser } = useAuth()
   const [orders, setOrders] = useState<any[]>([])
   const [loadingOrders, setLoadingOrders] = useState(false)
