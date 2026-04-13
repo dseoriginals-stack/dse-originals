@@ -234,7 +234,7 @@ export const getProducts = async (req, res) => {
             take: 1,
             select: { url: true }
           },
-          // isBestseller: true,
+          isBestseller: true,
 
           variants: {
             take: 1,
@@ -264,7 +264,7 @@ export const getProducts = async (req, res) => {
         price: p.variants.length > 0
           ? Number(p.variants[0].price)
           : 0,
-        isBestseller: p.isBestseller || false,
+        isBestseller: p.isBestseller,
           
         variantId: p.variants.length > 0
           ? p.variants[0].id
