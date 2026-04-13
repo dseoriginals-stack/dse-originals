@@ -30,16 +30,10 @@ export default function AccountDropdown({ close }: any) {
       {!user && (
         <div className="p-4 space-y-2">
           <button
-            onClick={() => { close(); router.push("/login") }}
+            onClick={() => { close(); router.push("/account") }}
             className="w-full py-2.5 px-4 rounded-xl bg-[#274C77] text-white text-sm font-semibold hover:bg-[#1B3B60] transition"
           >
-            Sign In
-          </button>
-          <button
-            onClick={() => { close(); router.push("/register") }}
-            className="w-full py-2.5 px-4 rounded-xl border-2 border-[#274C77]/20 text-[#274C77] text-sm font-semibold hover:bg-[#274C77]/5 transition"
-          >
-            Create Account
+            Access Portal
           </button>
         </div>
       )}

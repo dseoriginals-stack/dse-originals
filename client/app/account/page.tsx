@@ -70,7 +70,7 @@ function AccountContent() {
   useEffect(() => {
     const error = searchParams.get("error")
     if (error === "no_account") {
-      setOauthError("No account found with this email. Please register first.")
+      setOauthError("Account access denied. Please use the Google login button.")
     } else if (error === "oauth_failed") {
       setOauthError("Social authentication failed. Please try again.")
     }
