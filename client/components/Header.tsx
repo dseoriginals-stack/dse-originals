@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic"
 import Image from "next/image"
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
-import { Menu, ShoppingCart, User, ArrowRight, Heart } from "lucide-react"
+import { Menu, ShoppingCart, User, ArrowRight, Heart, ShieldCheck } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { AnimatePresence, motion } from "framer-motion"
 
