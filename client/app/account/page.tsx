@@ -39,7 +39,7 @@ import { regions, provinces, cities } from "philippines"
 import toast from "react-hot-toast"
 
 export default function AccountPage() {
-  const { user, loading, logout, login, register } = useAuth()
+  const { user, loading, logout, login, register, updateUser } = useAuth()
   const [orders, setOrders] = useState<any[]>([])
   const [loadingOrders, setLoadingOrders] = useState(false)
   const [activeTab, setActiveTab] = useState("overview")
@@ -49,11 +49,14 @@ export default function AccountPage() {
   const [loadingAddresses, setLoadingAddresses] = useState(false)
   const [showAddressModal, setShowAddressModal] = useState(false)
   const [editingAddress, setEditingAddress] = useState<any>(null)
+  const [profileForm, setProfileForm] = useState({ name: "", phone: "" })
+  const [savingProfile, setSavingProfile] = useState(false)
 
   useEffect(() => {
     if (user) {
       fetchOrders()
       fetchAddresses()
+      setProfileForm({ name: user.name || "", phone: user.phone || "" })
     }
   }, [user])
 
@@ -78,6 +81,19 @@ export default function AccountPage() {
       console.error("Failed to load orders")
     } finally {
       setLoadingOrders(false)
+    }
+  }
+
+  async function updateProfile() {
+    try {
+      setSavingProfile(true)
+      const updated = await api.patch("/user/me", profileForm)
+      updateUser(updated)
+      toast.success("Profile updated successfully")
+    } catch (err) {
+      toast.error("Failed to update profile")
+    } finally {
+      setSavingProfile(false)
     }
   }
 
@@ -254,12 +270,35 @@ export default function AccountPage() {
                   <div className="space-y-6">
                     <div className="space-y-2">
                       <label className="text-[10px] font-[1000] uppercase tracking-widest text-gray-400 ml-1">Full Identity</label>
-                      <input defaultValue={user.name} className="w-full px-6 py-4 bg-[var(--bg-surface)] border-2 border-transparent focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all" />
+                      <input 
+                        value={profileForm.name} 
+                        onChange={e => setProfileForm(p => ({ ...p, name: e.target.value }))}
+                        placeholder="Your full name"
+                        className="w-full px-6 py-4 bg-[var(--bg-surface)] border-2 border-transparent focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-[1000] uppercase tracking-widest text-gray-400 ml-1">Phone Connection</label>
+                      <input 
+                        value={profileForm.phone} 
+                        onChange={e => setProfileForm(p => ({ ...p, phone: e.target.value }))}
+                        placeholder="e.g. 0912 345 6789"
+                        className="w-full px-6 py-4 bg-[var(--bg-surface)] border-2 border-transparent focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all" 
+                      />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-[1000] uppercase tracking-widest text-gray-400 ml-1">Verified Email</label>
-                      <input defaultValue={user.email} disabled className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl font-bold text-gray-400 cursor-not-allowed" />
+                      <input value={user.email} disabled className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl font-bold text-gray-400 cursor-not-allowed" />
                     </div>
+
+                    <button
+                      onClick={updateProfile}
+                      disabled={savingProfile}
+                      className="btn-premium !py-4 !px-10 shadow-lg flex items-center gap-3 disabled:opacity-50"
+                    >
+                      {savingProfile ? <Loader2 className="animate-spin" size={18} /> : <ShieldCheck size={18} />}
+                      {savingProfile ? "Saving..." : "Save Profile Changes"}
+                    </button>
                   </div>
                 </div>
 
