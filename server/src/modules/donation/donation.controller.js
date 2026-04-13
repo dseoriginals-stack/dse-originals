@@ -19,7 +19,12 @@ export const createDonation = async (req, res, next) => {
       return res.status(400).json({ message: "Email is required" })
     }
 
-    const donation = await prisma.donation.create({
+    const model = prisma.donation || (prisma as any).Donation
+    if (!model) {
+       throw new Error("Donation model not found in database client. Please redeploy server.")
+    }
+
+    const donation = await model.create({
       data: {
         amount: Number(amount),
         name,

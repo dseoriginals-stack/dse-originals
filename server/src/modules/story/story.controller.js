@@ -22,7 +22,12 @@ export const createStory = async (req, res, next) => {
     const { title, content, image, category, name, email } = req.body
     const userId = req.user?.id || null
     
-    const story = await prisma.story.create({
+    const model = prisma.story || prisma.Story
+    if (!model) {
+       throw new Error("Story model not found in database client. Please redeploy server.")
+    }
+
+    const story = await model.create({
       data: {
         title,
         content,

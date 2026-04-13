@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "build": "npx prisma generate",
+    "postinstall": "npx prisma generate",
     "dev": "nodemon src/server.js",
     "worker": "node src/jobs/email.job.js",
     "worker:inventory": "node src/jobs/inventory.job.js"

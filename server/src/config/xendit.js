@@ -1,10 +1,10 @@
-import { Xendit } from "xendit-node"
+import { Xendit, Invoice } from "xendit-node"
 
 const xendit = new Xendit({
   secretKey: process.env.XENDIT_SECRET_KEY,
 })
 
-const { Invoice } = xendit
+const invoiceClient = new Invoice({ xenditClient: xendit })
 
 export async function createInvoice({
   external_id,
@@ -12,7 +12,7 @@ export async function createInvoice({
   payer_email,
   description,
 }) {
-  const invoice = await Invoice.createInvoice({
+  const invoice = await invoiceClient.createInvoice({
     data: {
       externalId: external_id,
       amount: amount,
