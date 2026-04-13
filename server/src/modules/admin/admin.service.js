@@ -111,6 +111,9 @@ const updateOrderStatus = async (id, status, trackingNo) => {
 
 const getProducts = async () => {
   return prisma.product.findMany({
+    where: {
+      status: { not: "archived" }
+    },
     include: {
       variants: true,
       images: { take: 1 }
