@@ -6,7 +6,7 @@ const router = express.Router()
 
 router.get("/", getStories)
 router.post("/", (req, res, next) => {
-  if (req.headers.authorization || req.cookies.token) {
+  if (req.cookies?.accessToken || req.headers.authorization) {
     return authenticate(req, res, next)
   }
   next()

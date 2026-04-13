@@ -3,7 +3,7 @@ import prisma from "../../config/prisma.js"
 export const getStories = async (req, res, next) => {
   try {
     const stories = await prisma.story.findMany({
-      where: { status: "active" }, // ONLY active (approved) stories for public
+      where: { status: "approved" }, // Match schema StoryStatus
       orderBy: { createdAt: "desc" },
       include: {
         user: {

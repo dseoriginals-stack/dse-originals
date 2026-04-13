@@ -5,9 +5,7 @@ import { createDonation, getMyDonations } from "./donation.controller.js"
 const router = express.Router()
 
 router.post("/", (req, res, next) => {
-  // Optional authentication: check if user is logged in
-  // but allow guest donations
-  if (req.headers.authorization) {
+  if (req.cookies?.accessToken || req.headers.authorization) {
     return authenticate(req, res, next)
   }
   next()

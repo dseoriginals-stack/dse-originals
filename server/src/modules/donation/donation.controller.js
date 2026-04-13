@@ -7,11 +7,15 @@ export const createDonation = async (req, res, next) => {
     const { amount, name, email } = req.body
     const userId = req.user?.id || null
 
+    logger.info("Initiating donation process", { userId, amount, email })
+
     if (!amount || amount <= 0) {
+      logger.warn("Invalid donation amount attempt", { amount })
       return res.status(400).json({ message: "Invalid donation amount" })
     }
 
     if (!email) {
+      logger.warn("Donation attempt without email")
       return res.status(400).json({ message: "Email is required" })
     }
 
@@ -25,12 +29,16 @@ export const createDonation = async (req, res, next) => {
       }
     })
 
+    logger.info("Donation record created", { donationId: donation.id })
+
     const invoice = await createInvoice({
       external_id: `don_${donation.id}`, // Prefix with don_ to distinguish from orders
       amount: Number(amount),
       payer_email: email,
       description: `DSE Mission Support Donation - ${name || 'Anonymous'}`,
     })
+
+    logger.info("Xendit invoice created", { invoiceId: invoice.id })
 
     await prisma.donation.update({
       where: { id: donation.id },
@@ -45,8 +53,17 @@ export const createDonation = async (req, res, next) => {
       invoiceUrl: invoice.invoiceUrl
     })
   } catch (err) {
-    logger.error("Donation creation failed", { error: err.message })
-    next(err)
+    logger.error("❌ DONATION FAILED:", { 
+      message: err.message, 
+      stack: err.stack,
+      body: req.body 
+    })
+    
+    // Provide a more helpful error message
+    res.status(err.status || 500).json({ 
+      message: err.message || "Failed to initialize payment. Please check your connection or try a different amount.",
+      details: err.response?.data?.message || null
+    })
   }
 }
 
