@@ -42,17 +42,6 @@ export default function CheckoutPage() {
     street: "", barangay: "", city: "", province: "", region: "",
   })
 
-  /* GUEST VERIFICATION */
-  const [isEmailVerified, setIsEmailVerified] = useState(false)
-  const [showOtpInput, setShowOtpInput] = useState(false)
-  const [otpValue, setOtpValue] = useState("")
-  const [verifying, setVerifying] = useState(false)
-
-  // Reset verification if email changes
-  useEffect(() => {
-    if (!user) setIsEmailVerified(false)
-  }, [form.email, user])
-
   const [selectedRegion, setSelectedRegion] = useState("")
   const [selectedProvince, setSelectedProvince] = useState("")
   const [selectedCity, setSelectedCity] = useState("")
@@ -127,57 +116,12 @@ export default function CheckoutPage() {
       return toast.error("Phone number must start with 09 and be 11 digits long.")
     }
 
-    // Guest must verify email
-    if (!user && !isEmailVerified) {
-      if (showOtpInput) {
-        return handleVerifyOtp()
-      }
-      return handleSendOtp()
-    }
-
     if (delivery === "delivery" && selectedRegion) {
       setShipping(getShippingRate(selectedRegion))
     } else {
       setShipping(null)
     }
     setStep(3)
-  }
-
-  const handleSendOtp = async () => {
-    if (!form.email) return toast.error("Email is required")
-    setVerifying(true)
-    try {
-      await api.post("/auth/guest/send-otp", { email: form.email })
-      setShowOtpInput(true)
-      toast.success("Verification code sent to your email!")
-    } catch (err: any) {
-      const msg = err.response?.data?.error || err.response?.data?.message || "Failed to send code."
-      toast.error(msg)
-    } finally {
-      setVerifying(false)
-    }
-  }
-
-  const handleVerifyOtp = async () => {
-    if (!otpValue) return toast.error("Please enter the code")
-    setVerifying(true)
-    try {
-      await api.post("/auth/guest/verify-otp", { email: form.email, otp: otpValue })
-      setIsEmailVerified(true)
-      setShowOtpInput(false)
-      toast.success("Email verified!")
-      
-      // Now proceed
-      if (delivery === "delivery" && selectedRegion) {
-        setShipping(getShippingRate(selectedRegion))
-      }
-      setStep(3)
-    } catch (err: any) {
-      const msg = err.response?.data?.message || "Invalid or expired code"
-      toast.error(msg)
-    } finally {
-      setVerifying(false)
-    }
   }
 
   /* ============================ SUBMIT ============================ */
@@ -392,40 +336,7 @@ export default function CheckoutPage() {
                   />
                 </div>
                 
-                <div className="relative">
-                   <Input label="Email (for receipt) *" value={form.email} onChange={v => setForm(p => ({ ...p, email: v }))} type="email" />
-                   {!user && isEmailVerified && (
-                     <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase text-emerald-600 flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100 animate-in fade-in zoom-in">
-                       <Check size={12} /> Verified
-                     </div>
-                   )}
-                </div>
-
-                {/* OTP INPUT SECTION */}
-                {!user && showOtpInput && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
-                    className="p-5 bg-[var(--brand-soft)]/5 border-2 border-dashed border-[var(--brand-primary)] rounded-2xl space-y-3"
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-black uppercase tracking-widest text-[var(--brand-primary)]">Enter 6-Digit Code</p>
-                      <button 
-                        onClick={handleSendOtp}
-                        className="text-[10px] font-bold text-gray-400 hover:text-[var(--brand-primary)] transition-colors underline"
-                      >
-                        Resend Code
-                      </button>
-                    </div>
-                    <input
-                      placeholder="000000"
-                      maxLength={6}
-                      value={otpValue}
-                      onChange={e => setOtpValue(e.target.value)}
-                      className="w-full text-center text-2xl font-black tracking-[0.5em] py-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-[var(--brand-primary)] outline-none"
-                    />
-                    <p className="text-[10px] text-gray-400 font-medium">Verify your email to continue to payment. Check your inbox (including spam).</p>
-                  </motion.div>
-                )}
+                <Input label="Email (for receipt) *" value={form.email} onChange={v => setForm(p => ({ ...p, email: v }))} type="email" />
 
                 {delivery === "delivery" && (
                   <>
@@ -478,16 +389,10 @@ export default function CheckoutPage() {
                   <button onClick={() => setStep(1)} className="btn-outline flex-1 !py-3">← Back</button>
                   <button
                     onClick={goToPayment}
-                    disabled={!isDetailsValid || verifying}
+                    disabled={!isDetailsValid}
                     className="btn-premium flex-[2] !py-3 shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   >
-                    {verifying ? (
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (!user && !isEmailVerified) ? (
-                      showOtpInput ? "Submit Code →" : "Verify Email →"
-                    ) : (
-                      "Continue to Payment →"
-                    )}
+                    Continue to Payment →
                   </button>
                 </div>
               </Card>
