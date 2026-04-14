@@ -4,6 +4,9 @@ const xendit = new Xendit({
   secretKey: process.env.XENDIT_SECRET_KEY?.replace(/['"]/g, "").trim(),
 })
 
+console.log("Xendit Configured. Key Length:", process.env.XENDIT_SECRET_KEY?.replace(/['"]/g, "").trim().length);
+console.log("Key starts with:", process.env.XENDIT_SECRET_KEY?.replace(/['"]/g, "").trim().substring(0, 15));
+
 const invoiceClient = new Invoice({ xenditClient: xendit })
 
 export async function createInvoice({
