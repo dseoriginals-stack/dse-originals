@@ -47,7 +47,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user || user.role !== "admin") return
+    if (!user || (user.role !== "admin" && user.role !== "staff")) return
 
     async function load() {
       try {
@@ -55,7 +55,7 @@ export default function AdminDashboard() {
         const data = await api.get<Stats>("/admin/stats")
         setStats(data)
       } catch (err) {
-        console.error("Failed to load admin stats", err)
+        console.error("Failed to load dashboard stats", err)
       } finally {
         setLoading(false)
       }
@@ -105,7 +105,7 @@ export default function AdminDashboard() {
     )
   }
 
-  if (!user || user.role !== "admin") {
+  if (!user || (user.role !== "admin" && user.role !== "staff")) {
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center text-center p-6 text-gray-500">
         Checking authentication...
@@ -113,6 +113,7 @@ export default function AdminDashboard() {
     )
   }
 
+  const isStaff = user.role === 'staff'
   const isStatsLoading = loading && !stats
 
   return (
@@ -122,12 +123,12 @@ export default function AdminDashboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl md:text-4xl font-[900] text-[var(--text-heading)] tracking-tight">
-            System Overview
+            {isStaff ? 'Staff Portal' : 'System Overview'}
           </h1>
           <div className="flex items-center gap-2 mt-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <div className={`w-2 h-2 rounded-full ${isStaff ? 'bg-blue-500' : 'bg-emerald-500'} animate-pulse`} />
             <span className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-widest">
-              Live Store Analytics · {new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+              {isStaff ? 'Operations Management' : 'Live Store Analytics'} · {new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
             </span>
           </div>
         </div>
@@ -135,16 +136,18 @@ export default function AdminDashboard() {
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 px-4 py-2 bg-white border border-[var(--border-light)] rounded-xl text-xs font-bold text-[var(--text-heading)] hover:bg-gray-50 transition shadow-sm">
             <Calendar size={14} />
-            Last 30 Days
+            Today
           </button>
-          <button
-            onClick={handleExport}
-            disabled={!stats}
-            className="btn-premium !py-3 !px-6 text-sm shadow-xl font-bold rounded-xl flex items-center gap-2 disabled:opacity-50"
-          >
-            <TrendingUp size={16} />
-            Export Data
-          </button>
+          {!isStaff && (
+            <button
+              onClick={handleExport}
+              disabled={!stats}
+              className="btn-premium !py-3 !px-6 text-sm shadow-xl font-bold rounded-xl flex items-center gap-2 disabled:opacity-50"
+            >
+              <TrendingUp size={16} />
+              Export Data
+            </button>
+          )}
         </div>
       </div>
 
@@ -155,28 +158,28 @@ export default function AdminDashboard() {
         ) : (
           <>
             <StatCard
-              title="Gross Revenue"
-              value={`₱${Number(stats?.revenue).toLocaleString()}`}
-              icon={<DollarSign size={20} />}
-              trend="+12.5%"
-              positive={true}
+              title={isStaff ? "Active Sessions" : "Gross Revenue"}
+              value={isStaff ? stats?.totalCustomers : `₱${Number(stats?.revenue).toLocaleString()}`}
+              icon={isStaff ? <Activity size={20} /> : <DollarSign size={20} />}
+              trend={isStaff ? "Live" : "+12.5%"}
+              positive={isStaff ? null : true}
             />
             <StatCard
-              title="Total Orders"
+              title={isStaff ? "Pending Fulfillment" : "Total Orders"}
               value={stats?.totalOrders || 0}
               icon={<ShoppingCart size={20} />}
               trend="+8.2%"
               positive={true}
             />
             <StatCard
-              title="Total Customers"
+              title={isStaff ? "Customer Base" : "Total Customers"}
               value={stats?.totalCustomers || 0}
               icon={<Users size={20} />}
               trend="+4.1%"
               positive={true}
             />
             <StatCard
-              title="Active Products"
+              title={isStaff ? "Stock Variety" : "Active Products"}
               value={stats?.totalProducts || 0}
               icon={<Package size={20} />}
               trend="Stable"
@@ -187,56 +190,58 @@ export default function AdminDashboard() {
       </div>
 
       {/* ANALYTICS CHARTS SECTION */}
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className={`grid ${isStaff ? 'grid-cols-1' : 'lg:grid-cols-3'} gap-8`}>
 
         {/* REVENUE CHART */}
-        <div className="lg:col-span-2 bg-white rounded-[2rem] border border-[var(--border-light)] p-8 shadow-sm">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h2 className="text-xl font-extrabold text-[var(--text-heading)]">Revenue Growth</h2>
-              <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mt-1">Cash Inflow performance</p>
+        {!isStaff && (
+          <div className="lg:col-span-2 bg-white rounded-[2rem] border border-[var(--border-light)] p-8 shadow-sm">
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h2 className="text-xl font-extrabold text-[var(--text-heading)]">Revenue Growth</h2>
+                <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mt-1">Cash Inflow performance</p>
+              </div>
+            </div>
+
+            <div className="h-[350px] w-full">
+              {isStatsLoading ? (
+                <div className="w-full h-full bg-gray-50 rounded-3xl animate-pulse" />
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={stats?.revenueChart} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--brand-primary)" stopOpacity={0.1} />
+                        <stop offset="95%" stopColor="var(--brand-primary)" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                    <XAxis
+                      dataKey="date"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
+                      dy={10}
+                      tickFormatter={(val) => new Date(val).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
+                      tickFormatter={(val) => `₱${val >= 1000 ? val / 1000 + 'k' : val}`}
+                    />
+                    <Tooltip
+                      contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', padding: '12px 16px' }}
+                    />
+                    <Area type="monotone" dataKey="amount" stroke="var(--brand-primary)" strokeWidth={4} fillOpacity={1} fill="url(#colorAmount)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
-
-          <div className="h-[350px] w-full">
-            {isStatsLoading ? (
-              <div className="w-full h-full bg-gray-50 rounded-3xl animate-pulse" />
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={stats?.revenueChart} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--brand-primary)" stopOpacity={0.1} />
-                      <stop offset="95%" stopColor="var(--brand-primary)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                  <XAxis
-                    dataKey="date"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
-                    dy={10}
-                    tickFormatter={(val) => new Date(val).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
-                    tickFormatter={(val) => `₱${val >= 1000 ? val / 1000 + 'k' : val}`}
-                  />
-                  <Tooltip
-                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', padding: '12px 16px' }}
-                  />
-                  <Area type="monotone" dataKey="amount" stroke="var(--brand-primary)" strokeWidth={4} fillOpacity={1} fill="url(#colorAmount)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </div>
+        )}
 
         {/* TOP SELLING PRODUCTS */}
-        <div className="bg-white rounded-[2rem] border border-[var(--border-light)] p-8 shadow-sm">
+        <div className={`${isStaff ? 'w-full' : ''} bg-white rounded-[2rem] border border-[var(--border-light)] p-8 shadow-sm`}>
           <h2 className="text-xl font-extrabold text-[var(--text-heading)] mb-6">Top Sellers</h2>
 
           <div className="space-y-6">
