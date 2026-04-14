@@ -284,6 +284,11 @@ export function CartProvider({
   ========================= */
 
   const addToCart = useCallback(async (item: CartItem) => {
+    if (!item.variantId) {
+      toast.error("Please select a variant")
+      return
+    }
+
     if (user) {
       try {
         await api.post("/cart", {

@@ -1,4 +1,5 @@
 import prisma from "../../config/prisma.js"
+import { logOrderEvent } from "../../services/orderEvent.service.js"
 
 const getAdminStats = async () => {
   const users = await prisma.user.count()
@@ -165,13 +166,22 @@ const getPayments = async () => {
 }
 
 const updateOrderStatus = async (id, status, trackingNo) => {
-  return prisma.order.update({
+  const updated = await prisma.order.update({
     where: { id },
     data: {
       status,
       trackingNo
     }
   })
+
+  // ✅ Log the manual status change for the audit trail
+  await logOrderEvent(
+    id, 
+    "STATUS_UPDATE", 
+    `Manual update to [${status}]${trackingNo ? ' with tracking: ' + trackingNo : ''}`
+  )
+
+  return updated
 }
 
 const getProducts = async () => {

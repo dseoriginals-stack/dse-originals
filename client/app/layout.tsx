@@ -9,10 +9,18 @@ const outfit = Outfit({
 })
 
 export const metadata = {
-  title: "DSEoriginals",
-  description: "Elevated, faith-inspired apparel and essentials.",
+  title: "DSE Originals | Elevated Faith-Inspired Apparel",
+  description: "DSE Originals offers premium, faith-inspired clothing and essentials designed with a modern aesthetic.",
   icons: {
     icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/DSEoriginals.png",
+    other: [
+      {
+        rel: "apple-touch-icon-precomposed",
+        url: "/DSEoriginals.png",
+      },
+    ],
   },
 }
 
