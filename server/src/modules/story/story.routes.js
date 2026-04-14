@@ -1,10 +1,18 @@
 import express from "express"
 import authenticate from "../../middleware/auth.middleware.js"
-import { getStories, createStory, getAdminStories, updateStoryStatus, deleteStory } from "./story.controller.js"
+import { 
+  getStories, 
+  createStory, 
+  getAdminStories, 
+  updateStoryStatus, 
+  deleteStory,
+  likeStory 
+} from "./story.controller.js"
 
 const router = express.Router()
 
 router.get("/", getStories)
+router.post("/:id/like", likeStory)
 import jwt from "jsonwebtoken"
 import prisma from "../../config/prisma.js"
 
@@ -24,9 +32,11 @@ router.post("/", async (req, res, next) => {
   next()
 }, createStory)
 
+import requireRole from "../../middleware/role.middleware.js"
+
 // Admin
-router.get("/admin/all", authenticate, getAdminStories)
-router.patch("/:id/status", authenticate, updateStoryStatus)
-router.delete("/:id", authenticate, deleteStory)
+router.get("/admin/all", authenticate, requireRole("admin"), getAdminStories)
+router.patch("/:id/status", authenticate, requireRole("admin"), updateStoryStatus)
+router.delete("/:id", authenticate, requireRole("admin"), deleteStory)
 
 export default router

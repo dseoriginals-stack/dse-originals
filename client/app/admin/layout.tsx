@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic"
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, BarChart3, Package, ShoppingCart, Users, LogOut, MessageSquare, Bell, Menu, X } from "lucide-react"
+import { LayoutDashboard, BarChart3, Package, ShoppingCart, Users, LogOut, MessageSquare, BookOpen, Bell, Menu, X } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 import { useEffect, useState } from "react"
 import NotificationPanel from "@/components/admin/NotificationPanel"
@@ -15,7 +15,9 @@ const nav = [
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { name: "Products", href: "/admin/products", icon: Package },
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
+  { name: "Payments", href: "/admin/orders?status=paid", icon: CreditCard },
   { name: "Users", href: "/admin/users", icon: Users },
+  { name: "Stories", href: "/admin/stories", icon: BookOpen },
   { name: "Reviews", href: "/admin/reviews", icon: MessageSquare },
 ]
 
@@ -34,10 +36,19 @@ export default function AdminLayout({
      FIX: ROLE ACCESS (ADMIN & STAFF)
   ========================= */
   useEffect(() => {
-    if (!loading && (!user || (user.role !== "admin" && user.role !== "staff"))) {
+    if (loading) return
+
+    if (!user || (user.role !== "admin" && user.role !== "staff")) {
       router.push("/")
+      return
     }
-  }, [user, loading, router])
+
+    // Staff path protection
+    const allowedStaffPaths = ["/admin", "/admin/products", "/admin/orders"]
+    if (user.role === "staff" && pathname !== "/admin" && !allowedStaffPaths.some(p => pathname.startsWith(p))) {
+      router.push("/admin")
+    }
+  }, [user, loading, router, pathname])
 
   if (loading || !user || (user.role !== "admin" && user.role !== "staff")) {
     return null
@@ -82,7 +93,12 @@ export default function AdminLayout({
         {/* NAV */}
         <nav className="px-4 space-y-1.5 flex-1 mt-2">
 
-          {nav.map(item => {
+          {nav.filter(item => {
+            if (isStaff) {
+              return ["Dashboard", "Products", "Orders", "Payments"].includes(item.name)
+            }
+            return true
+          }).map(item => {
             const active = pathname === item.href
             const Icon = item.icon
 

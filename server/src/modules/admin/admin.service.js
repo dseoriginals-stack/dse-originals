@@ -63,27 +63,51 @@ const getAdminStats = async () => {
     })
   )
 
-  // 3. RECENT ORDERS (Last 10)
-  const recentOrders = await prisma.order.findMany({
-    take: 10,
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      totalAmount: true,
-      status: true,
-      createdAt: true,
-      user: { select: { name: true } }
+  // 4. DONATION ANALYTICS
+  const donations = await prisma.donation.aggregate({
+    _sum: { amount: true },
+    where: { status: "paid" }
+  })
+
+  // 5. CATEGORY BREAKDOWN
+  const categories = await prisma.category.findMany({
+    include: {
+      products: {
+        include: {
+          variants: {
+            include: {
+              orderItems: {
+                where: { order: { status: "paid" } }
+              }
+            }
+          }
+        }
+      }
     }
   })
+
+  const categoryBreakdown = categories.map(cat => {
+    let sales = 0
+    cat.products.forEach(prod => {
+      prod.variants.forEach(variant => {
+        variant.orderItems.forEach(item => {
+          sales += item.quantity
+        })
+      })
+    })
+    return { name: cat.name, sales }
+  }).sort((a, b) => b.sales - a.sales)
 
   return {
     totalCustomers: users,
     totalOrders: ordersCount,
     totalProducts: productsCount,
     revenue: revenue._sum.totalAmount || 0,
+    donationRevenue: donations._sum.amount || 0,
     revenueChart,
     topProducts,
-    recentOrders
+    recentOrders,
+    categoryBreakdown
   }
 }
 

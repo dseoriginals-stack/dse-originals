@@ -79,7 +79,7 @@ async function issueTokens(user, req, res, isOAuth = false) {
   })
 
   if (isOAuth) {
-    return res.redirect(`${process.env.CLIENT_URL}/account?auth=success`);
+    return res.redirect(`${process.env.CLIENT_URL}/?auth=success`);
   }
 
   return res.json({

@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react"
 import { api } from "@/lib/api"
 import StorySubmitModal from "@/components/stories/StorySubmitModal"
+import { motion, AnimatePresence } from "framer-motion"
+import { Heart } from "lucide-react"
+import toast from "react-hot-toast"
 
 type Story = {
   id: string
@@ -11,6 +14,7 @@ type Story = {
   image?: string
   productTags?: string[]
   createdAt: string
+  likes: number
 }
 
 export default function StoriesPage() {
@@ -18,30 +22,45 @@ export default function StoriesPage() {
   const [stories, setStories] = useState<Story[]>([])
   const [loading, setLoading] = useState(true)
   const [openSubmit, setOpenSubmit] = useState(false)
+  const [likedStories, setLikedStories] = useState<string[]>([])
 
   const fetchStories = async () => {
-
     try {
-
       const data = await api.get<any>("/stories")
-
       setStories(data.data || data)
-
     } catch (err) {
-
       console.error("Failed to fetch stories")
-
     } finally {
-
       setLoading(false)
-
     }
-
   }
 
   useEffect(() => {
     fetchStories()
+    // Load liked stories from localStorage
+    const saved = localStorage.getItem("dse_liked_stories")
+    if (saved) setLikedStories(JSON.parse(saved))
   }, [])
+
+  const handleLike = async (id: string) => {
+    if (likedStories.includes(id)) return // Only one like per session for guests
+
+    try {
+      const res = await api.post<{ likes: number }>(`/stories/${id}/like`)
+      
+      setStories(prev => prev.map(s => 
+        s.id === id ? { ...s, likes: res.likes } : s
+      ))
+
+      const newLiked = [...likedStories, id]
+      setLikedStories(newLiked)
+      localStorage.setItem("dse_liked_stories", JSON.stringify(newLiked))
+      
+      toast.success("Thanks for the love! ✨")
+    } catch (err) {
+      toast.error("Failed to react")
+    }
+  }
 
   return (
 
@@ -87,10 +106,31 @@ export default function StoriesPage() {
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
           {stories.map(story => (
-            <div
+            <motion.div
+              layout
               key={story.id}
-              className="bg-[var(--bg-card)] border border-[var(--border-light)] rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl hover:border-[var(--brand-accent)]/40 transition-all duration-500 group flex flex-col"
+              className="bg-[var(--bg-card)] border border-[var(--border-light)] rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl hover:border-[var(--brand-accent)]/40 transition-all duration-500 group flex flex-col relative"
             >
+              {/* INTERACTIVE HEART (FLOATING) */}
+              <div className="absolute top-6 right-6 z-10">
+                <button 
+                  onClick={() => handleLike(story.id)}
+                  className={`p-3 rounded-2xl flex items-center gap-2 backdrop-blur-md transition-all duration-300 shadow-lg ${likedStories.includes(story.id) 
+                    ? 'bg-rose-500 text-white shadow-rose-500/30' 
+                    : 'bg-white/90 text-slate-400 hover:text-rose-500 border border-[var(--border-light)]'}`}
+                >
+                  <motion.div
+                    animate={likedStories.includes(story.id) ? { scale: [1, 1.4, 1] } : {}}
+                    transition={{ duration: 0.4 }}
+                  >
+                    <Heart size={20} className={likedStories.includes(story.id) ? 'fill-white' : ''} />
+                  </motion.div>
+                  <span className="text-xs font-[1000] tabular-nums tracking-tighter">
+                    {story.likes || 0}
+                  </span>
+                </button>
+              </div>
+
               {/* IMAGE */}
               {story.image && (
                 <div className="w-full aspect-square relative overflow-hidden bg-[var(--bg-surface)] border-b border-[var(--border-light)]">
@@ -99,7 +139,7 @@ export default function StoriesPage() {
                     alt={story.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 </div>
               )}
 
@@ -110,7 +150,7 @@ export default function StoriesPage() {
                     {story.title}
                   </h3>
 
-                  <p className="text-base text-[var(--text-muted)] mt-3 leading-relaxed">
+                  <p className="text-base text-[var(--text-muted)] mt-2 leading-relaxed">
                     {story.content.substring(0, 140)}...
                   </p>
                 </div>
@@ -131,12 +171,12 @@ export default function StoriesPage() {
                   )}
 
                   {/* DATE */}
-                  <div className="text-xs font-bold tracking-widest text-[var(--text-muted)] pt-4 border-t border-[var(--border-light)] uppercase">
+                  <div className="text-[10px] font-black tracking-[0.2em] text-[var(--text-muted)] pt-4 border-t border-[var(--border-light)] uppercase opacity-50">
                     {new Date(story.createdAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}

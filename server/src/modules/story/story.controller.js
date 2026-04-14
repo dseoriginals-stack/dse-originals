@@ -1,4 +1,6 @@
 import prisma from "../../config/prisma.js"
+import cloudinary from "../../config/cloudinary.js"
+import { sendAdminStoryNotification } from "../../config/email.js"
 
 export const getStories = async (req, res, next) => {
   try {
@@ -22,23 +24,40 @@ export const createStory = async (req, res, next) => {
     const { title, content, image, category, name, email } = req.body
     const userId = req.user?.id || null
     
-    const model = prisma.story || prisma.Story
-    if (!model) {
-       throw new Error("Story model not found in database client. Please redeploy server.")
+    // 1. Upload to Cloudinary if image is base64
+    let imageUrl = image
+    if (image && image.startsWith("data:image")) {
+       try {
+         const uploadRes = await cloudinary.uploader.upload(image, {
+           folder: "stories",
+           resource_type: "auto"
+         })
+         imageUrl = uploadRes.secure_url
+       } catch (cloudinaryErr) {
+         console.error("Cloudinary Upload Error:", cloudinaryErr)
+         // Fallback to original image if upload fails
+       }
     }
 
-    const story = await model.create({
+    const story = await prisma.story.create({
       data: {
         title,
         content,
-        image,
-        category,
+        image: imageUrl,
+        category: category || "General",
         userId,
         guestName: userId ? null : name,
         guestEmail: userId ? null : email,
         status: "pending" // Admin must approve
       }
     })
+
+    // 2. Notify Admin
+    try {
+      await sendAdminStoryNotification(story)
+    } catch (emailErr) {
+      console.error("Failed to notify admin via email:", emailErr)
+    }
     
     res.status(201).json(story)
   } catch (err) {
@@ -83,6 +102,21 @@ export const deleteStory = async (req, res, next) => {
     const { id } = req.params
     await prisma.story.delete({ where: { id } })
     res.json({ message: "Story deleted" })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export const likeStory = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const story = await prisma.story.update({
+      where: { id },
+      data: {
+        likes: { increment: 1 }
+      }
+    })
+    res.json({ likes: story.likes })
   } catch (err) {
     next(err)
   }

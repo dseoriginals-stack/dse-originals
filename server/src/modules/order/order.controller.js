@@ -264,7 +264,7 @@ export const createOrder = async (req, res, next) => {
 
     return res.json({
       orderId: order.id,
-      invoiceUrl: invoice.invoiceUrl
+      invoiceUrl: invoice.invoiceUrl || invoice.invoice_url
     })
 
   } catch (err) {

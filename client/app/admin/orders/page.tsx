@@ -46,13 +46,24 @@ type Order = {
   items: OrderItem[]
 }
 
+import { useSearchParams } from "next/navigation"
+import toast from "react-hot-toast"
+
 export default function AdminOrders() {
+  const searchParams = useSearchParams()
+  const initialFilter = searchParams.get("status") || "all"
+
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
-  const [filter, setFilter] = useState("all")
+  const [filter, setFilter] = useState(initialFilter)
   const [trackingInputs, setTrackingInputs] = useState<Record<string, string>>({})
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
+
+  useEffect(() => {
+    const status = searchParams.get("status")
+    if (status) setFilter(status)
+  }, [searchParams])
 
   useEffect(() => {
     fetchOrders()

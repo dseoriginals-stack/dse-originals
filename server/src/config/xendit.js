@@ -11,6 +11,8 @@ export async function createInvoice({
   amount,
   payer_email,
   description,
+  success_url,
+  failure_url,
 }) {
   const invoice = await invoiceClient.createInvoice({
     data: {
@@ -19,8 +21,8 @@ export async function createInvoice({
       payerEmail: payer_email,
       description: description,
       currency: "PHP",
-      successRedirectUrl: `${process.env.FRONTEND_URL}/order-success/${external_id}`,
-      failureRedirectUrl: `${process.env.FRONTEND_URL}/checkout`,
+      successRedirectUrl: success_url || `${process.env.FRONTEND_URL}/order-success/${external_id}`,
+      failureRedirectUrl: failure_url || `${process.env.FRONTEND_URL}/checkout`,
     },
   })
 

@@ -515,7 +515,11 @@ function AccountLoginForm({ login, oauthError }: any) {
     setError(null)
     try {
       const res = await login(form.email, form.password)
-      if (!res.success) setError(res.message)
+      if (res.success) {
+        window.location.href = "/"
+      } else {
+        setError(res.message)
+      }
     } catch {
       setError("Network or server error")
     } finally {
@@ -886,10 +890,10 @@ function AddressModal({ isOpen, onClose, onSuccess, initialData }: any) {
     >
       <motion.div
         initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-        className="bg-white w-full max-w-xl rounded-[3rem] shadow-2xl overflow-hidden"
+        className="bg-white w-full max-w-xl rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
         onClick={e => e.stopPropagation()}
       >
-        <div className="p-8 md:p-10">
+        <div className="p-8 md:p-10 overflow-y-auto custom-scrollbar flex-1">
           <div className="flex justify-between items-center mb-10">
             <div>
               <h3 className="text-2xl font-[1000] text-[var(--text-heading)] mb-1 tracking-tighter">{initialData ? 'Update Location' : 'New Identity Point'}</h3>
@@ -914,19 +918,19 @@ function AddressModal({ isOpen, onClose, onSuccess, initialData }: any) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Full Name</label>
-                <input required value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all" />
+                <input required value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all text-[var(--text-heading)]" />
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Phone Number</label>
-                <input required value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all" />
+                <input required value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all text-[var(--text-heading)]" />
               </div>
             </div>
-
+ 
             <div className="space-y-1">
               <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Street Address</label>
-              <input required value={form.street} onChange={e => setForm({ ...form, street: e.target.value })} className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all" />
+              <input required value={form.street} onChange={e => setForm({ ...form, street: e.target.value })} className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all text-[var(--text-heading)]" />
             </div>
-
+ 
             <div className="grid grid-cols-2 gap-4">
               <select
                 required
@@ -936,12 +940,12 @@ function AddressModal({ isOpen, onClose, onSuccess, initialData }: any) {
                   setSelectedRegion(key)
                   setForm({ ...form, region: (regions as any[]).find((x: any) => x.key === key)?.name || "", province: "", city: "" })
                 }}
-                className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl font-bold outline-none"
+                className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl font-bold outline-none text-[var(--text-heading)]"
               >
                 <option value="">Region</option>
                 {(regions as any[]).map((r: any) => <option key={r.key} value={r.key}>{r.name}</option>)}
               </select>
-
+ 
               <select
                 required
                 disabled={!selectedRegion}
@@ -951,26 +955,26 @@ function AddressModal({ isOpen, onClose, onSuccess, initialData }: any) {
                   setSelectedProvince(key)
                   setForm({ ...form, province: (provinces as any[]).find((x: any) => x.key === key)?.name || "", city: "" })
                 }}
-                className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl font-bold outline-none disabled:opacity-50"
+                className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl font-bold outline-none disabled:opacity-50 text-[var(--text-heading)]"
               >
                 <option value="">Province</option>
                 {filteredProvinces.map((p: any) => <option key={p.key} value={p.key}>{p.name}</option>)}
               </select>
             </div>
-
+ 
             <div className="grid grid-cols-2 gap-4">
               <select
                 required
                 disabled={!selectedProvince}
                 value={form.city}
                 onChange={e => setForm({ ...form, city: e.target.value })}
-                className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl font-bold outline-none disabled:opacity-50"
+                className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl font-bold outline-none disabled:opacity-50 text-[var(--text-heading)]"
               >
                 <option value="">City</option>
                 {filteredCities.map((c: any) => <option key={c.key} value={c.name}>{c.name}</option>)}
               </select>
-
-              <input placeholder="Barangay" required value={form.barangay} onChange={e => setForm({ ...form, barangay: e.target.value })} className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none" />
+ 
+              <input placeholder="Barangay" required value={form.barangay} onChange={e => setForm({ ...form, barangay: e.target.value })} className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none text-[var(--text-heading)]" />
             </div>
 
             <button

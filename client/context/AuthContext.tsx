@@ -26,7 +26,6 @@ type AuthContextType = {
   user: User | null
   loading: boolean
   login: (email: string, password: string) => Promise<AuthResult>
-  login: (email: string, password: string) => Promise<AuthResult>
   logout: () => Promise<void>
   refresh: () => Promise<void>
   updateUser: (data: Partial<User>) => void
@@ -113,6 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setUser(null)
       toast.success("Logged out")
+      window.location.href = "/"
     }
   }
 

@@ -19,7 +19,7 @@ export const createDonation = async (req, res, next) => {
       return res.status(400).json({ message: "Email is required" })
     }
 
-    const model = prisma.donation || (prisma as any).Donation
+    const model = prisma.donation || prisma.Donation
     if (!model) {
        throw new Error("Donation model not found in database client. Please redeploy server.")
     }
@@ -37,10 +37,12 @@ export const createDonation = async (req, res, next) => {
     logger.info("Donation record created", { donationId: donation.id })
 
     const invoice = await createInvoice({
-      external_id: `don_${donation.id}`, // Prefix with don_ to distinguish from orders
+      external_id: `don_${donation.id}`, 
       amount: Number(amount),
       payer_email: email,
       description: `DSE Mission Support Donation - ${name || 'Anonymous'}`,
+      success_url: `${process.env.FRONTEND_URL}/donation-success?id=${donation.id}`,
+      failure_url: `${process.env.FRONTEND_URL}/donate`
     })
 
     logger.info("Xendit invoice created", { invoiceId: invoice.id })
@@ -49,13 +51,13 @@ export const createDonation = async (req, res, next) => {
       where: { id: donation.id },
       data: {
         paymentId: invoice.id,
-        invoiceUrl: invoice.invoiceUrl
+        invoiceUrl: invoice.invoiceUrl || invoice.invoice_url
       }
     })
 
     res.json({
       donationId: donation.id,
-      invoiceUrl: invoice.invoiceUrl
+      invoiceUrl: invoice.invoiceUrl || invoice.invoice_url
     })
   } catch (err) {
     logger.error("❌ DONATION FAILED:", { 

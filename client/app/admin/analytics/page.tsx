@@ -32,29 +32,42 @@ import {
 type AnalyticsData = {
   revenueChart: { date: string; amount: number }[]
   topProducts: { name: string; sales: number }[]
+  categoryBreakdown: { name: string; sales: number }[]
   revenueTotal: number
+  donationRevenue: number
   ordersTotal: number
   productsTotal: number
 }
 
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/context/AuthContext"
+
 export default function AdminAnalytics() {
+  const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!authLoading && user?.role === "staff") {
+      router.push("/admin/orders")
+      return
+    }
+
     async function load() {
       try {
         setLoading(true)
         const res = await api.get<any>("/admin/stats")
         
-        // Re-mapping stats for analytical view
         setData({
           revenueChart: res.revenueChart || [],
           topProducts: (res.topProducts || []).map((p: any) => ({
             name: p.name,
             sales: p.sold
           })),
+          categoryBreakdown: res.categoryBreakdown || [],
           revenueTotal: res.revenue,
+          donationRevenue: res.donationRevenue,
           ordersTotal: res.totalOrders,
           productsTotal: res.totalProducts
         })
@@ -99,10 +112,10 @@ export default function AdminAnalytics() {
 
       {/* KPI GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPICard title="Revenue Volume" value={`₱${data.revenueTotal.toLocaleString()}`} icon={<CreditCard size={20}/>} trend="+18%" />
-        <KPICard title="Transaction Count" value={data.ordersTotal} icon={<ShoppingBag size={20}/>} trend="+5%" />
-        <KPICard title="Customer Base" value={Math.floor(data.revenueTotal / 1500)} icon={<Users size={20}/>} trend="+12%" />
-        <KPICard title="Sales Velocity" value="84%" icon={<TrendingUp size={20}/>} trend="+2%" />
+        <KPICard title="Commerce Revenue" value={`₱${data.revenueTotal.toLocaleString()}`} icon={<CreditCard size={20}/>} trend="+18%" />
+        <KPICard title="Donation Impact" value={`₱${data.donationRevenue.toLocaleString()}`} icon={<TrendingUp size={20}/>} trend="+24%" />
+        <KPICard title="Total Transactions" value={data.ordersTotal} icon={<ShoppingBag size={20}/>} trend="+5%" />
+        <KPICard title="Product Inventory" value={data.productsTotal} icon={<BarChart size={20}/>} trend="Active" />
       </div>
 
       {/* CORE ANALYTICS */}
@@ -155,18 +168,18 @@ export default function AdminAnalytics() {
           </div>
         </div>
 
-        {/* TOP PRODUCT PERFORMANCE */}
+        {/* CATEGORY BREAKDOWN */}
         <div className="bg-white rounded-[2.5rem] border border-[var(--border-light)] p-10 shadow-sm flex flex-col">
           <div className="flex justify-between items-center mb-10">
             <div>
-              <h2 className="text-xl font-[1000] text-[var(--text-heading)] tracking-tight">Sales Contribution</h2>
-              <p className="text-[10px] font-black uppercase tracking-widest text-[var(--brand-primary)] mt-1">By volume metrics</p>
+              <h2 className="text-xl font-[1000] text-[var(--text-heading)] tracking-tight">Category Dominance</h2>
+              <p className="text-[10px] font-black uppercase tracking-widest text-[var(--brand-primary)] mt-1">Niche volume metrics</p>
             </div>
           </div>
 
           <div className="flex-1 min-h-[400px]">
              <ResponsiveContainer width="100%" height="100%">
-               <BarChart data={data.topProducts} layout="vertical" margin={{ left: 40 }}>
+               <BarChart data={data.categoryBreakdown} layout="vertical" margin={{ left: 40 }}>
                  <XAxis type="number" hide />
                  <YAxis 
                   dataKey="name" 
@@ -178,7 +191,7 @@ export default function AdminAnalytics() {
                  />
                  <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '15px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}/>
                  <Bar dataKey="sales" radius={[0, 10, 10, 0]} barSize={34}>
-                    {data.topProducts.map((_, index) => (
+                    {data.categoryBreakdown.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                  </Bar>
@@ -187,9 +200,9 @@ export default function AdminAnalytics() {
           </div>
 
           <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Total volume reflected: {data.ordersTotal} Orders</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Inventory diverse across categories</span>
             <button className="text-[10px] font-black uppercase tracking-widest text-[var(--brand-primary)] flex items-center gap-1 group">
-              Full Breakdown <ChevronRight size={12} className="group-hover:translate-x-1 transition-transform" />
+              Inventory Report <ChevronRight size={12} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
         </div>

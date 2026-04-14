@@ -5,6 +5,7 @@ import { createDonation, getMyDonations } from "./donation.controller.js"
 const router = express.Router()
 
 import jwt from "jsonwebtoken"
+import prisma from "../../config/prisma.js"
 
 router.post("/", async (req, res, next) => {
   const token = req.cookies?.accessToken

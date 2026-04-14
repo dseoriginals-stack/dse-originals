@@ -119,9 +119,12 @@ export default function HomePage({ initialProducts }: Props) {
               Shop Collection <ArrowRight size={18} />
             </Link>
 
-            <button className="btn-outline w-full sm:w-auto flex justify-center !px-5 !py-2.5 md:!px-7 md:!py-3 border-white/40 bg-black/20 backdrop-blur-md !text-white hover:!bg-white hover:!text-[var(--text-heading)]">
+            <Link 
+              href="/stories"
+              className="btn-outline w-full sm:w-auto flex justify-center !px-5 !py-2.5 md:!px-7 md:!py-3 border-white/40 bg-black/20 backdrop-blur-md !text-white hover:!bg-white hover:!text-[var(--text-heading)] transition-all"
+            >
               View Stories
-            </button>
+            </Link>
           </motion.div>
 
         </div>

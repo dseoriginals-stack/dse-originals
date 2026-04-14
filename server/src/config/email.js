@@ -59,5 +59,27 @@ export async function sendInvoiceEmail(email, order) {
       <p>Status: ${order.status}</p>
     `
   })
+}
 
+export async function sendAdminStoryNotification(story) {
+  try {
+    await sgMail.send({
+      to: process.env.EMAIL_USER,
+      from: process.env.EMAIL_FROM,
+      subject: "✨ New Story Pending Review - DSE Community",
+      html: `
+        <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 12px;">
+          <h2 style="color: #274C77;">New Story Submission</h2>
+          <p>A new story has been shared by the community and is waiting for your approval.</p>
+          <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>Title:</strong> ${story.title}</p>
+            <p><strong>Preview:</strong> ${story.content.substring(0, 150)}...</p>
+          </div>
+          <a href="${process.env.FRONTEND_URL}/admin" style="display: inline-block; padding: 12px 24px; background-color: #274C77; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">Review Stories</a>
+        </div>
+      `
+    })
+  } catch (err) {
+    console.error("Failed to send admin story notification:", err)
+  }
 }
