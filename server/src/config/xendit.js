@@ -1,13 +1,11 @@
-import { Xendit, Invoice } from "xendit-node"
+import { Xendit } from "xendit-node"
 
 const xendit = new Xendit({
   secretKey: process.env.XENDIT_SECRET_KEY?.replace(/['"]/g, "").trim(),
 })
 
-console.log("Xendit Configured. Key Length:", process.env.XENDIT_SECRET_KEY?.replace(/['"]/g, "").trim().length);
-console.log("Key starts with:", process.env.XENDIT_SECRET_KEY?.replace(/['"]/g, "").trim().substring(0, 15));
-
-const invoiceClient = new Invoice({ xenditClient: xendit })
+// In v7, sub-clients are directly attached to the Xendit instance
+const invoiceClient = xendit.Invoice
 
 export async function createInvoice({
   external_id,
@@ -17,10 +15,11 @@ export async function createInvoice({
   success_url,
   failure_url,
 }) {
+  // v7 uses a different method signature
   const invoice = await invoiceClient.createInvoice({
     data: {
       externalId: external_id,
-      amount: amount,
+      amount: Number(amount),
       payerEmail: payer_email,
       description: description,
       currency: "PHP",
