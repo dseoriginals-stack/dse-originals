@@ -106,11 +106,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   */
   const logout = async () => {
     try {
+      setUser(null)
       await api.post("/auth/logout")
     } catch {
       console.warn("Logout request failed")
     } finally {
-      setUser(null)
       toast.success("Logged out")
       window.location.href = "/"
     }

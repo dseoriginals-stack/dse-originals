@@ -223,8 +223,20 @@ router.post("/logout", async (req, res) => {
       })
     }
 
-    res.clearCookie("accessToken")
-    res.clearCookie("refreshToken")
+    res.clearCookie("accessToken", {
+      path: "/",
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+    })
+    res.clearCookie("refreshToken", {
+      path: "/",
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+    })
+
+    logger.info(`User logged out and cookies cleared.`)
 
     return res.json({ message: "Logged out" })
   } catch (error) {
