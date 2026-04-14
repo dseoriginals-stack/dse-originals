@@ -47,7 +47,6 @@ type Order = {
 }
 
 import { useSearchParams } from "next/navigation"
-import toast from "react-hot-toast"
 
 export default function AdminOrders() {
   const searchParams = useSearchParams()
