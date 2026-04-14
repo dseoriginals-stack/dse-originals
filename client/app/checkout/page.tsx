@@ -150,8 +150,9 @@ export default function CheckoutPage() {
       await api.post("/auth/guest/send-otp", { email: form.email })
       setShowOtpInput(true)
       toast.success("Verification code sent to your email!")
-    } catch {
-      toast.error("Failed to send code. Please check your email.")
+    } catch (err: any) {
+      const msg = err.response?.data?.error || err.response?.data?.message || "Failed to send code."
+      toast.error(msg)
     } finally {
       setVerifying(false)
     }
@@ -171,8 +172,9 @@ export default function CheckoutPage() {
         setShipping(getShippingRate(selectedRegion))
       }
       setStep(3)
-    } catch {
-      toast.error("Invalid or expired code")
+    } catch (err: any) {
+      const msg = err.response?.data?.message || "Invalid or expired code"
+      toast.error(msg)
     } finally {
       setVerifying(false)
     }
