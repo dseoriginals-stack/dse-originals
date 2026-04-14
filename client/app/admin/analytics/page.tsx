@@ -26,7 +26,8 @@ import {
   Download,
   Filter,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  BarChart3
 } from "lucide-react"
 
 type AnalyticsData = {
@@ -115,7 +116,7 @@ export default function AdminAnalytics() {
         <KPICard title="Commerce Revenue" value={`₱${data.revenueTotal.toLocaleString()}`} icon={<CreditCard size={20}/>} trend="+18%" />
         <KPICard title="Donation Impact" value={`₱${data.donationRevenue.toLocaleString()}`} icon={<TrendingUp size={20}/>} trend="+24%" />
         <KPICard title="Total Transactions" value={data.ordersTotal} icon={<ShoppingBag size={20}/>} trend="+5%" />
-        <KPICard title="Product Inventory" value={data.productsTotal} icon={<BarChart size={20}/>} trend="Active" />
+        <KPICard title="Product Inventory" value={data.productsTotal} icon={<BarChart3 size={20}/>} trend="Active" />
       </div>
 
       {/* CORE ANALYTICS */}
