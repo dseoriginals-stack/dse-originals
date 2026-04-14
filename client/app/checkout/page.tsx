@@ -117,6 +117,11 @@ export default function CheckoutPage() {
 
   /* ── Step 2 → 3: calculate shipping ── */
   const goToPayment = async () => {
+    // Phone Validation
+    if (!form.phone.startsWith("09") || form.phone.length !== 11) {
+      return toast.error("Phone number must start with 09 and be 11 digits long.")
+    }
+
     // Guest must verify email
     if (!user && !isEmailVerified) {
       if (showOtpInput) {
@@ -370,7 +375,14 @@ export default function CheckoutPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Input label="Full Name *" value={form.name} onChange={v => setForm(p => ({ ...p, name: v }))} />
-                  <Input label="Phone *" value={form.phone} onChange={v => setForm(p => ({ ...p, phone: v }))} />
+                  <Input 
+                    label="Phone (09...) *" 
+                    value={form.phone} 
+                    onChange={v => {
+                       const numeric = v.replace(/\D/g, "").slice(0, 11)
+                       setForm(p => ({ ...p, phone: numeric }))
+                    }} 
+                  />
                 </div>
                 
                 <div className="relative">
