@@ -268,16 +268,10 @@ export const createOrder = async (req, res, next) => {
     })
 
   } catch (err) {
-
-    logger.error("ORDER FAIL:", { msg: err.message, stack: err.stack, st: err.status });
-    
     if (order?.id) {
        await releaseReservation(order.id)
     }
-
-    if (err.status || err.response?.status) err.status = err.status || err.response?.status;
     next(err)
-
   }
 }
 
