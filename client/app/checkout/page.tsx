@@ -61,6 +61,11 @@ export default function CheckoutPage() {
   const [savedAddresses, setSavedAddresses] = useState<any[]>([])
   const [showAddressBook, setShowAddressBook] = useState(false)
 
+  // Scroll to top on step change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [step])
+
   useEffect(() => {
     if (user) {
       fetchSavedAddresses()
