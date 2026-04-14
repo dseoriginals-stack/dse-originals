@@ -1,7 +1,7 @@
 import { Xendit, Invoice } from "xendit-node"
 
 const xendit = new Xendit({
-  secretKey: process.env.XENDIT_SECRET_KEY,
+  secretKey: process.env.XENDIT_SECRET_KEY?.trim(),
 })
 
 const invoiceClient = new Invoice({ xenditClient: xendit })
