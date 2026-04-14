@@ -15,7 +15,7 @@ const nav = [
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { name: "Products", href: "/admin/products", icon: Package },
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
-  { name: "Payments", href: "/admin/orders?status=paid", icon: CreditCard },
+  { name: "Payments", href: "/admin/payments", icon: CreditCard },
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Stories", href: "/admin/stories", icon: BookOpen },
   { name: "Reviews", href: "/admin/reviews", icon: MessageSquare },
