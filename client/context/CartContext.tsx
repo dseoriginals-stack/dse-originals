@@ -197,46 +197,31 @@ export function CartProvider({
             setGuestId(freshGuestId)
           }
 
-          // Now fetch the authoritative server cart
-          const res = await api.get<{ items: CartItem[] }>("/cart")
-          setCart(res.items || [])
-        } catch {
-          setCart([])
-        }
-      }
-
-      loadAndMerge()
-
-    } else if (previousUserId !== undefined && previousUserId !== null) {
-      // ============================
-      // LOGOUT EVENT: clear everything
-      // ============================
+      // Now fetch the authoritative server cart
+      const res = await api.get<{ items: CartItem[] }>("/cart")
+      const items = res.items || []
+      setCart(items)
+      
+      // Auto-select everything on first load if nothing selected
+      setSelectedItems(prev => prev.length > 0 ? prev : items.map(i => i.variantId))
+    } catch {
       setCart([])
-      setSelectedItems([])
-
-      // Generate fresh guest ID so the logged-out session is isolated
-      const freshGuestId = uuidv4()
-      try {
-        localStorage.setItem(GUEST_STORAGE_KEY, freshGuestId)
-      } catch {}
-      setGuestId(freshGuestId)
-
-    } else if (!currentUserId) {
-      // ============================
-      // GUEST: load from localStorage
-      // ============================
-      try {
-        const guestCartKey = getGuestCartKey(guestId)
-        const raw = localStorage.getItem(guestCartKey)
-        if (raw) {
-          setCart(JSON.parse(raw))
-        } else {
-          setCart([])
-        }
-      } catch {
-        setCart([])
-      }
     }
+  }, [user, guestId])
+
+  // Guest Load logic
+  useEffect(() => {
+    if (user) return
+    if (!guestId) return
+    try {
+      const guestCartKey = getGuestCartKey(guestId)
+      const raw = localStorage.getItem(guestCartKey)
+      if (raw) {
+        const items = JSON.parse(raw)
+        setCart(items)
+        setSelectedItems(prev => prev.length > 0 ? prev : items.map((i: any) => i.variantId))
+      }
+    } catch {}
   }, [user, guestId])
 
   /* =========================

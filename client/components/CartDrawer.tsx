@@ -97,8 +97,36 @@ export default function CartDrawer() {
             </div>
           )}
 
+          {/* FREE SHIPPING PROGRESS */}
+          {cart.length > 0 && (
+            <div className="bg-white px-6 pb-4 pt-1 shrink-0">
+               <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                      {selectedSubtotal >= 3000 ? "Free Shipping Unlocked!" : "Free Shipping Goal"}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-900">
+                      {selectedSubtotal >= 3000 ? "🎉" : `₱${(3000 - selectedSubtotal).toLocaleString()} away`}
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min((selectedSubtotal / 3000) * 100, 100)}%` }}
+                      className={`h-full rounded-full transition-all duration-500 ${selectedSubtotal >= 3000 ? 'bg-emerald-500' : 'bg-slate-900'}`}
+                    />
+                  </div>
+                  <p className="text-[9px] text-slate-400 font-medium mt-2">
+                    {selectedSubtotal >= 3000 
+                      ? "Your entire order qualifies for free delivery! 🚚" 
+                      : "Add more items to unlock free nationwide shipping."}
+                  </p>
+               </div>
+            </div>
+          )}
+
           {/* ITEMS LIST */}
-          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          <div className="flex-1 overflow-y-auto px-6 py-2 space-y-4">
             {cart.length === 0 ? (
                <div className="h-full flex flex-col items-center justify-center text-center p-10">
                   <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4 text-slate-300">

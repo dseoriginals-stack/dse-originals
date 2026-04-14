@@ -1,7 +1,21 @@
 "use client"
 
 import { useCart } from "@/context/CartContext"
+import { motion, AnimatePresence } from "framer-motion"
+import { 
+  X, 
+  Minus, 
+  Plus, 
+  Trash2, 
+  Check,
+  ChevronRight,
+  ArrowLeft,
+  ShoppingBag,
+  ShieldCheck,
+  Truck
+} from "lucide-react"
 import Link from "next/link"
+import toast from "react-hot-toast"
 
 const FREE_SHIPPING_THRESHOLD = 3000
 
@@ -10,7 +24,6 @@ export default function CartPage() {
     cart, 
     removeFromCart, 
     updateQuantity, 
-    subtotal, 
     selectedItems, 
     toggleSelection, 
     toggleAllSelection, 
@@ -18,240 +31,258 @@ export default function CartPage() {
     selectedCount 
   } = useCart()
 
-  const progress = Math.min(
-    (selectedSubtotal / FREE_SHIPPING_THRESHOLD) * 100,
-    100
-  )
-
-  const totalItems = cart.reduce(
-    (acc, item) => acc + item.quantity,
-    0
-  )
-
-  /* ---------------- EMPTY ---------------- */
+  const isAllSelected = cart.length > 0 && selectedItems.length === cart.length
+  const hasSelection = selectedItems.length > 0
+  const progress = Math.min((selectedSubtotal / FREE_SHIPPING_THRESHOLD) * 100, 100)
 
   if (!cart || cart.length === 0) {
     return (
-      <div className="container py-24 text-center px-4 max-w-2xl mx-auto flex flex-col items-center">
-        <div className="w-32 h-32 bg-[var(--brand-soft)]/20 rounded-full flex items-center justify-center mb-8 drop-shadow-sm">
-          <span className="text-5xl">🛒</span>
+      <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-6 text-slate-300">
+          <ShoppingBag size={48} />
         </div>
-
-        <h1 className="text-3xl md:text-5xl font-bold text-[var(--text-heading)] tracking-tight">
-          Your Cart is Empty
-        </h1>
-
-        <p className="mt-6 text-lg text-[var(--text-muted)]">
-          Looks like you haven’t added anything yet. Discover our premium collection and find something you love.
-        </p>
-
-        <Link
-          href="/products"
-          className="btn-premium mt-10 !px-10 !py-4 text-lg shadow-lg"
+        <h1 className="text-2xl font-black text-slate-900">Your cart is empty</h1>
+        <p className="text-slate-500 mt-2 max-w-sm">Explore our collection and find something beautiful to add to your cart.</p>
+        <Link 
+          href="/products" 
+          className="mt-8 bg-slate-900 text-white px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-slate-900/10 hover:bg-black transition-all"
         >
-          Explore Collection
+          Start Shopping
         </Link>
       </div>
     )
   }
 
   return (
-    <div className="max-w-5xl mx-auto py-8 md:py-16 px-4 md:px-8">
-
-      {/* HEADER */}
-      <div className="mb-6 md:mb-10 text-center md:text-left">
-        <h1 className="text-2xl md:text-4xl font-extrabold text-[var(--text-heading)] tracking-tight">
-          Shopping Cart
-        </h1>
-
-        <div className="flex items-center justify-between mt-3">
-          <Link
-            href="/products"
-            className="text-xs font-bold tracking-widest text-[var(--text-muted)] hover:text-[var(--brand-primary)] transition uppercase"
-          >
-            ← Continue Shopping
-          </Link>
-
-          {selectedItems.length > 0 && (
-            <button
-              onClick={() => toggleAllSelection()}
-              className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] hover:text-red-500 transition"
-            >
-              ✕ Deselect
-            </button>
-          )}
+    <div className="bg-[#f8fafc] min-h-screen pb-32">
+      {/* HEADER BAR (DESKTOP) */}
+      <div className="bg-white border-b sticky top-0 z-30">
+        <div className="container max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
+            <h1 className="text-2xl font-black text-slate-900 flex items-center gap-3">
+              Shopping Cart
+              <span className="text-xs font-bold bg-slate-100 px-3 py-1 rounded-full text-slate-500">{cart.length} items</span>
+            </h1>
+            <Link href="/products" className="hidden md:flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-slate-900 transition-colors uppercase tracking-widest">
+              <ArrowLeft size={16} /> Continue Shopping
+            </Link>
         </div>
       </div>
 
-      {/* FREE SHIPPING */}
-      <div className="bg-[var(--brand-soft)]/20 border border-[var(--brand-accent)]/20 rounded-2xl p-4 md:p-6 mb-8 shadow-sm">
-        {selectedSubtotal < FREE_SHIPPING_THRESHOLD ? (
-          <p className="text-xs md:text-sm font-semibold text-[var(--brand-primary)] mb-4">
-            Add <span className="font-bold underline underline-offset-2">₱{(FREE_SHIPPING_THRESHOLD - selectedSubtotal).toLocaleString()}</span> more to
-            unlock <span className="font-bold underline underline-offset-2">Free Shipping</span> 🚚
-          </p>
-        ) : (
-          <p className="text-xs md:text-sm font-bold text-emerald-600 mb-4 bg-emerald-50 w-fit px-3 py-1 rounded-full border border-emerald-100 shadow-sm">
-            🎉 Free shipping unlocked!
-          </p>
-        )}
-
-        <div className="w-full bg-[var(--brand-soft)]/40 h-2 md:h-2.5 rounded-full overflow-hidden shadow-inner">
-          <div
-            className="h-full bg-[var(--brand-primary)] rounded-full transition-all duration-1000 ease-out relative"
-            style={{ width: `${progress}%` }}
-          >
-             <div className="absolute top-0 right-0 bottom-0 w-8 bg-white/20 animate-[pulse_2s_ease-in-out_infinite]"></div>
-          </div>
-        </div>
-      </div>
-
-      {/* GRID */}
-      <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
-
-        {/* CART ITEMS */}
-        <div className="lg:col-span-2 space-y-4 md:space-y-6">
-          {[...cart].reverse().map((item) => {
-            const price = Number(item.price) || 0
-            const quantity = Number(item.quantity) || 1
-
-            return (
-              <div
-                key={item.variantId}
-                className={`
-                  bg-[var(--bg-card)]
-                  border ${selectedItems.includes(item.variantId) ? 'border-[var(--brand-primary)] ring-2 ring-[var(--brand-accent)]/20' : 'border-[var(--border-light)]'}
-                  rounded-2xl md:rounded-3xl
-                  p-4 md:p-5
-                  flex flex-col sm:flex-row gap-4 md:gap-6 
-                  shadow-sm hover:shadow-md hover:border-[var(--brand-accent)]/30
-                  transition-all duration-300 relative
-                `}
-              >
-                {/* CHECKBOX */}
-                <div className="absolute xs:static top-4 left-4 sm:flex items-center">
-                  <input
-                    type="checkbox"
-                    className="w-5 h-5 rounded border-[var(--border-light)] text-[var(--brand-primary)] focus:ring-[var(--brand-accent)] cursor-pointer"
-                    checked={selectedItems.includes(item.variantId)}
-                    onChange={() => toggleSelection(item.variantId)}
-                  />
-                </div>
-
-                {/* IMAGE */}
-                <div 
-                  className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-xl md:rounded-2xl overflow-hidden shadow-inner border border-gray-50 flex-shrink-0 cursor-pointer transition ${!selectedItems.includes(item.variantId) && 'opacity-60 grayscale-[50%]'}`}
-                  onClick={() => toggleSelection(item.variantId)}
-                >
-                  <img
-                    src={item.image || "/placeholder.png"}
-                    alt={item.name || "Product"}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                {/* INFO */}
-                <div className="flex-1 flex flex-col justify-between py-1">
-                  <div>
-                    <h3 className="text-base md:text-lg font-bold text-[var(--text-heading)] leading-tight">
-                      {item.name || "Unnamed Product"}
-                    </h3>
-
-                    <p className="text-xs md:text-sm font-semibold text-[var(--text-muted)] mt-1 tracking-wide">
-                      ₱{price.toLocaleString()}
-                    </p>
+      <div className="container max-w-6xl mx-auto px-6 py-8">
+        <div className="grid lg:grid-cols-3 gap-10">
+          
+          {/* LEFT: ITEMS LIST */}
+          <div className="lg:col-span-2 space-y-4">
+            
+            {/* FREE SHIPPING BANNER */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm mb-6">
+               <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Truck className={`w-5 h-5 ${selectedSubtotal >= FREE_SHIPPING_THRESHOLD ? 'text-emerald-500' : 'text-slate-900'}`} />
+                    <span className="text-sm font-bold text-slate-900">
+                      {selectedSubtotal >= FREE_SHIPPING_THRESHOLD ? "Free Shipping Unlocked!" : "Free Shipping Goal"}
+                    </span>
                   </div>
+                  <span className="text-xs font-black text-slate-400">
+                    {selectedSubtotal >= FREE_SHIPPING_THRESHOLD ? "CONGRATS" : `₱${(FREE_SHIPPING_THRESHOLD - selectedSubtotal).toLocaleString()} away`}
+                  </span>
+               </div>
+               <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    className={`h-full rounded-full transition-all duration-700 ${selectedSubtotal >= FREE_SHIPPING_THRESHOLD ? 'bg-emerald-500' : 'bg-slate-900'}`}
+                  />
+               </div>
+               <p className="text-xs text-slate-400 mt-3 font-medium">
+                  {selectedSubtotal >= FREE_SHIPPING_THRESHOLD 
+                    ? "Your entire selection qualifies for free nationwide delivery! 🚚" 
+                    : "Add more faith-inspired items to your selection for free shipping."}
+               </p>
+            </div>
 
-                  {/* CONTROLS */}
-                  <div className="flex items-center justify-between mt-4 md:mt-6">
+            {/* SELECT ALL */}
+            <div className="bg-white rounded-2xl px-6 py-4 border border-slate-100 shadow-sm flex items-center justify-between">
+               <button 
+                 onClick={toggleAllSelection}
+                 className="flex items-center gap-3 group"
+               >
+                 <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
+                   isAllSelected ? "bg-red-500 border-red-500 shadow-md shadow-red-500/20" : "bg-white border-slate-200 group-hover:border-slate-400"
+                 }`}>
+                   {isAllSelected && <Check size={16} className="text-white font-black" />}
+                 </div>
+                 <span className="text-sm font-black text-slate-700 uppercase tracking-widest leading-none">Select all ({cart.length})</span>
+               </button>
+               
+               {hasSelection && (
+                 <button className="flex items-center gap-2 text-xs font-black text-slate-300 hover:text-red-500 transition-colors uppercase tracking-widest">
+                   <Trash2 size={14} /> Remove Selected
+                 </button>
+               )}
+            </div>
 
-                    {/* QUANTITY */}
-                    <div className="flex items-center bg-white border border-[var(--border-light)] rounded-xl overflow-hidden h-9 shadow-sm w-fit">
-                      <button
-                        onClick={() =>
-                          quantity > 1 &&
-                          updateQuantity(item.variantId, quantity - 1)
-                        }
-                        className="w-9 h-full flex items-center justify-center text-[var(--text-main)] hover:bg-gray-50 transition active:scale-95 text-lg font-medium"
-                      >
-                        −
-                      </button>
+            {/* PRODUCT CARDS */}
+            <div className="space-y-4">
+               {cart.map((item) => (
+                 <div 
+                   key={item.variantId}
+                   className={`bg-white rounded-[2rem] p-5 flex flex-col md:flex-row gap-6 border-2 transition-all relative group ${
+                     selectedItems.includes(item.variantId) ? 'border-slate-900 shadow-xl shadow-slate-900/5' : 'border-transparent hover:border-slate-100 shadow-sm'
+                   }`}
+                 >
+                    {/* SELECTION OVERLAY */}
+                    <button 
+                       onClick={() => toggleSelection(item.variantId)}
+                       className="absolute inset-0 z-0"
+                    />
 
-                      <span className="px-3 text-sm font-bold text-[var(--text-heading)] border-x border-[var(--border-light)] h-full flex items-center">
-                        {quantity}
-                      </span>
+                    <div className="relative z-10 flex gap-4 md:gap-6 flex-1">
+                        {/* CHECKBOX */}
+                        <div className="flex items-center">
+                          <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
+                            selectedItems.includes(item.variantId) ? "bg-red-500 border-red-500 shadow-md shadow-red-500/10" : "bg-slate-50 border-slate-200"
+                          }`}>
+                            {selectedItems.includes(item.variantId) && <Check size={16} className="text-white font-black" />}
+                          </div>
+                        </div>
 
-                      <button
-                        onClick={() =>
-                          updateQuantity(item.variantId, quantity + 1)
-                        }
-                        className="w-9 h-full flex items-center justify-center text-[var(--text-main)] hover:bg-gray-50 transition active:scale-95 text-lg font-medium"
-                      >
-                        +
-                      </button>
+                        {/* IMAGE */}
+                        <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl overflow-hidden bg-slate-50 border border-slate-100 shadow-inner flex-shrink-0">
+                          <img 
+                            src={item.image || "/placeholder.png"} 
+                            alt={item.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                          />
+                        </div>
+
+                        {/* INFO */}
+                        <div className="flex-1 flex flex-col justify-between py-1">
+                           <div>
+                              <h3 className="text-base md:text-xl font-black text-slate-900 line-clamp-1 leading-tight">{item.name}</h3>
+                              <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Standard Edition / Variant</p>
+                              
+                              <div className="mt-3 flex items-center gap-3">
+                                <span className="text-lg md:text-2xl font-black text-slate-900">₱{item.price.toLocaleString()}</span>
+                                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">In Stock</span>
+                              </div>
+                           </div>
+
+                           <div className="hidden md:flex items-center gap-6 mt-4">
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); removeFromCart(item.variantId) }}
+                                className="text-[10px] font-black uppercase tracking-widest text-slate-300 hover:text-red-500 transition-colors"
+                              >
+                                Remove Item
+                              </button>
+                           </div>
+                        </div>
                     </div>
 
-                    {/* REMOVE */}
-                    <button
-                      onClick={() => removeFromCart(item.variantId)}
-                      className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-red-500/80 hover:text-red-600 transition hover:bg-red-50 px-2 py-1.5 rounded-lg"
-                    >
-                      Remove
-                    </button>
+                    {/* CONTROLS (RIGHT) */}
+                    <div className="relative z-10 flex items-center justify-between md:flex-col md:justify-center md:items-end gap-4 border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-8 border-slate-100">
+                       <div className="flex items-center bg-slate-50 border-2 border-slate-100 rounded-full p-1 shadow-inner md:scale-110">
+                          <button 
+                             onClick={(e) => { e.stopPropagation(); updateQuantity(item.variantId, item.quantity - 1) }}
+                             className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-slate-100 shadow-sm text-slate-500 hover:text-red-500 transition-colors"
+                          >
+                            <Minus size={14} />
+                          </button>
+                          <span className="w-10 text-center text-sm font-black text-slate-900">{item.quantity}</span>
+                          <button 
+                             onClick={(e) => { e.stopPropagation(); updateQuantity(item.variantId, item.quantity + 1) }}
+                             className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-slate-100 shadow-sm text-slate-500 hover:bg-slate-900 hover:text-white transition-colors"
+                          >
+                            <Plus size={14} />
+                          </button>
+                       </div>
+                       
+                       <div className="text-right flex flex-col items-end">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Item Total</span>
+                          <span className="text-lg font-black text-slate-900">₱{(item.price * item.quantity).toLocaleString()}</span>
+                       </div>
+                    </div>
+                 </div>
+               ))}
+            </div>
+          </div>
 
+          {/* RIGHT: SUMMARY CARD */}
+          <div className="relative">
+            <div className="lg:sticky lg:top-24 space-y-6">
+               <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-xl shadow-slate-900/5 overflow-hidden relative">
+                  {/* Decorative Elements */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 flex items-center justify-center pt-8 pr-8">
+                     <ShoppingBag className="w-12 h-12 text-slate-100" />
                   </div>
-                </div>
 
-                {/* PRICE */}
-                <div className="text-right font-extrabold text-lg md:text-xl text-[var(--brand-primary)] sm:pt-1">
-                  ₱{(price * quantity).toLocaleString()}
-                </div>
-              </div>
-            )
-          })}
-        </div>
+                  <h2 className="text-2xl font-black text-slate-900 mb-8">Summary</h2>
+                  
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center group">
+                       <span className="text-xs font-bold text-slate-400 uppercase tracking-widest group-hover:text-slate-600 transition-colors">Subtotal ({selectedCount} items)</span>
+                       <span className="text-lg font-black text-slate-900 font-mono">₱{selectedSubtotal.toLocaleString()}</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center group">
+                       <span className="text-xs font-bold text-slate-400 uppercase tracking-widest group-hover:text-slate-600 transition-colors">Shipping Fee</span>
+                       <span className="text-xs font-bold text-slate-400 italic">Calculated Next</span>
+                    </div>
 
-        {/* SUMMARY */}
-        <div className="lg:sticky lg:top-24 h-fit bg-[var(--bg-card)] border border-[var(--border-light)] rounded-3xl p-5 md:p-6 space-y-5 shadow-md drop-shadow-sm">
-          <h2 className="text-xl md:text-2xl font-bold text-[var(--text-heading)]">
-            Order Summary
-          </h2>
+                    <div className="pt-6 border-t border-dashed border-slate-200">
+                       <div className="flex justify-between items-end">
+                          <div>
+                            <span className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">Estimated Total</span>
+                            <div className="h-1 w-8 bg-red-500 rounded-full mt-1"></div>
+                          </div>
+                          <span className="text-3xl font-black text-slate-900">₱{selectedSubtotal.toLocaleString()}</span>
+                       </div>
+                    </div>
+                  </div>
 
-          <div className="space-y-3 text-[var(--text-main)] font-semibold text-sm">
-            <div className="flex justify-between items-center bg-[var(--bg-surface)] p-3 rounded-xl border border-[var(--border-light)]">
-              <span>Subtotal ({selectedCount} items)</span>
-              <span className="text-base font-bold">₱{selectedSubtotal.toLocaleString()}</span>
+                  <Link
+                    href={hasSelection ? "/checkout" : "#"}
+                    onClick={(e) => {
+                      if (!hasSelection) {
+                        e.preventDefault()
+                        toast.error("Please select items to proceed")
+                      }
+                    }}
+                    className={`mt-10 w-full group flex items-center justify-center gap-3 py-5 rounded-[1.5rem] font-black text-sm uppercase tracking-widest transition-all duration-300 ${
+                      hasSelection 
+                        ? "bg-slate-900 text-white shadow-2xl shadow-slate-900/20 hover:bg-black active:scale-[0.98]" 
+                        : "bg-slate-100 text-slate-300 cursor-not-allowed"
+                    }`}
+                  >
+                    Checkout Selected
+                    <ChevronRight className={`w-5 h-5 transition-transform duration-300 ${hasSelection ? "group-hover:translate-x-1" : ""}`} />
+                  </Link>
+
+                  <div className="mt-8 pt-8 border-t border-slate-50 space-y-4">
+                     <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                        Secure Checkout via Xendit
+                     </div>
+                     <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <Check className="w-4 h-4 text-blue-500" />
+                        In-stock & Ready for Ship
+                     </div>
+                  </div>
+               </div>
+
+               {/* HELP SECTION */}
+               <div className="bg-slate-900 rounded-[2rem] p-6 text-white text-center shadow-lg">
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Need Assistance?</p>
+                  <p className="text-sm font-bold mt-2">support@dseoriginals.com</p>
+                  <button className="mt-4 text-[10px] font-black uppercase tracking-[0.2em] bg-white/10 hover:bg-white/20 py-2 px-6 rounded-full transition-colors">
+                     Live Chat
+                  </button>
+               </div>
             </div>
-
-            <div className="flex justify-between items-center bg-[var(--bg-surface)] p-3 rounded-xl border border-[var(--border-light)]">
-              <span>Shipping</span>
-              <span className="text-xs text-[var(--text-muted)]">Calculated Next</span>
-            </div>
           </div>
 
-          <div className="border-t border-[var(--border-light)] pt-5 flex justify-between items-end font-extrabold text-[var(--brand-primary)]">
-            <span className="uppercase tracking-widest text-[10px] text-[var(--text-heading)] mb-1">Estimated Total</span>
-            <span className="text-2xl md:text-3xl">₱{selectedSubtotal.toLocaleString()}</span>
-          </div>
-
-          <Link
-            href={selectedCount > 0 ? "/checkout" : "#"}
-            className={`btn-premium block w-full text-center mt-2 !py-3 text-sm md:text-base ${selectedCount === 0 && 'opacity-50 pointer-events-none cursor-not-allowed grayscale'}`}
-          >
-            {selectedCount > 0 ? "Proceed to Secure Checkout" : "Select an item to Checkout"}
-          </Link>
-
-          <div className="pt-4 space-y-2 font-semibold text-[10px] md:text-xs text-[var(--text-muted)] grid grid-cols-1 gap-1.5">
-            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[var(--brand-accent)]"></div> Secure encrypted transaction</div>
-            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[var(--brand-accent)]"></div> Multiple premium payment options</div>
-            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[var(--brand-accent)]"></div> Fast, reliable nationwide shipping</div>
-          </div>
         </div>
-
       </div>
-
-
-
     </div>
   )
 }
