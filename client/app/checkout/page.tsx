@@ -26,6 +26,7 @@ const STORE_HOURS = "Mon–Sat, 9 AM – 6 PM"
 
 export default function CheckoutPage() {
   const { cart, selectedItems, removeFromCart } = useCart()
+  const { user } = useAuth()
   const itemsToCheckout = cart.filter(item => selectedItems.includes(item.variantId))
 
   const [step, setStep] = useState<Step>(1)
@@ -57,7 +58,6 @@ export default function CheckoutPage() {
   const [selectedCity, setSelectedCity] = useState("")
   const [regionLabel, setRegionLabel] = useState("")
 
-  const { user } = useAuth()
   const [savedAddresses, setSavedAddresses] = useState<any[]>([])
   const [showAddressBook, setShowAddressBook] = useState(false)
 
