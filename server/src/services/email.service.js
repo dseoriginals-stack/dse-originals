@@ -6,7 +6,7 @@ TRANSPORT
 -----------------------------------
 */
 
-const transporter = nodemailer.createTransport({
+export const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
@@ -20,7 +20,7 @@ BASE TEMPLATE (PREMIUM UI)
 -----------------------------------
 */
 
-const baseTemplate = (content) => `
+export const baseTemplate = (content) => `
   <div style="background:#f1f5f9;padding:40px 0;font-family:Arial,sans-serif;">
     
     <div style="max-width:600px;margin:auto;background:white;border-radius:16px;overflow:hidden;">

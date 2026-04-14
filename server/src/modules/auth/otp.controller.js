@@ -16,17 +16,10 @@ export const sendGuestOTP = async (req, res, next) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString()
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 minutes
 
-    // Store in DB (update if exists)
-    await prisma.emailVerificationToken.upsert({
-      where: { email_token: { email, token: otp } }, // This might fail if using @@unique, let's use delete + create
-      update: { token: otp, expiresAt },
-      create: { email, token: otp, expiresAt }
-    }).catch(async () => {
-        // Fallback: delete any old tokens for this email and create new
-        await prisma.emailVerificationToken.deleteMany({ where: { email } })
-        return prisma.emailVerificationToken.create({
-            data: { email, token: otp, expiresAt }
-        })
+    // Cleanup old tokens and store new one
+    await prisma.emailVerificationToken.deleteMany({ where: { email } })
+    await prisma.emailVerificationToken.create({
+      data: { email, token: otp, expiresAt }
     })
 
     // HTML Content
@@ -43,12 +36,17 @@ export const sendGuestOTP = async (req, res, next) => {
       </div>
     `
 
-    await transporter.sendMail({
-      from: `"DSE Originals" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: `Verification Code: ${otp}`,
-      html: baseTemplate(content)
-    })
+    try {
+      await transporter.sendMail({
+        from: `"DSE Originals" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: `Verification Code: ${otp}`,
+        html: baseTemplate(content)
+      })
+    } catch (mailError) {
+      logger.error("Failed to send guest OTP email", { error: mailError.message, email })
+      return res.status(500).json({ message: "Failed to send code. Please check your email and try again." })
+    }
 
     logger.info(`OTP sent to ${email}`)
     res.json({ success: true, message: "OTP sent successfully" })
