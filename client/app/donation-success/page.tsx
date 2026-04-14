@@ -4,8 +4,9 @@ import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Heart, ArrowRight, Share2 } from "lucide-react"
+import { Suspense } from "react"
 
-export default function DonationSuccessPage() {
+function SuccessContent() {
   const searchParams = useSearchParams()
   const id = searchParams.get("id")
 
@@ -85,5 +86,13 @@ export default function DonationSuccessPage() {
 
       </div>
     </div>
+  )
+}
+
+export default function DonationSuccessPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SuccessContent />
+    </Suspense>
   )
 }
