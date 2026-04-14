@@ -1,174 +1,223 @@
 "use client"
 
 import { useCart } from "@/context/CartContext"
-import Image from "next/image"
+import { motion, AnimatePresence } from "framer-motion"
+import { 
+  X, 
+  Minus, 
+  Plus, 
+  ShoppingBag, 
+  Trash2, 
+  Check,
+  ChevronRight,
+  ShoppingCart
+} from "lucide-react"
 import Link from "next/link"
-import { X, Minus, Plus, Trash2 } from "lucide-react"
+import toast from "react-hot-toast"
 
 export default function CartDrawer() {
-
   const {
     cart,
     isCartOpen,
     closeCart,
     removeFromCart,
-    updateQuantity
+    updateQuantity,
+    selectedItems,
+    toggleSelection,
+    toggleAllSelection,
+    selectedSubtotal,
+    selectedCount
   } = useCart()
 
-  const subtotal = cart.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0
-  )
-
-  const getImage = (url?: string) => {
-    return `${url}`
-  }
+  const isAllSelected = cart.length > 0 && selectedItems.length === cart.length
+  const hasSelection = selectedItems.length > 0
 
   return (
     <>
       {/* OVERLAY */}
-      {isCartOpen && (
-        <div
-          onClick={closeCart}
-          className="fixed inset-0 bg-[#274C77]/20 backdrop-blur-sm z-[100] transition-opacity animate-fadeIn"
-        />
-      )}
+      <AnimatePresence>
+        {isCartOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeCart}
+            className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[100]"
+          />
+        )}
+      </AnimatePresence>
 
       {/* DRAWER */}
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-[400px] bg-[var(--bg-card)] backdrop-blur-xl border border-[var(--border-light)] !rounded-none !border-r-0 !border-t-0 !border-b-0 z-[101] transform transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) ${
-          isCartOpen ? "translate-x-0 shadow-[-10px_0_40px_rgba(39,76,119,0.2)]" : "translate-x-full"
+        className={`fixed top-0 right-0 h-full w-full max-w-[420px] bg-white z-[101] shadow-2xl transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) ${
+          isCartOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex flex-col h-full relative">
-
-          {/* BACKGROUND GLOW */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[var(--brand-soft)]/40 to-transparent rounded-full blur-3xl -z-10 pointer-events-none"></div>
-
+        <div className="flex flex-col h-full bg-[#f8fafc]">
+          
           {/* HEADER */}
-          <div className="flex items-center justify-between p-6 border-b border-[var(--border-light)] bg-transparent shrink-0">
-            <h2 className="text-xl font-bold tracking-tight text-[var(--text-heading)] flex items-center gap-3">
-               Shopping Cart
-               <span className="bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-accent)] text-white text-xs px-2 py-0.5 rounded-full shadow-[0_2px_8px_rgba(39,76,119,0.2)]">
-                 {cart.length}
-               </span>
-            </h2>
-
-            <button
+          <div className="bg-white px-6 py-5 flex items-center justify-between border-b shrink-0">
+            <div className="flex items-center gap-3">
+               <div className="relative">
+                 <ShoppingBag className="w-6 h-6 text-slate-900" />
+                 <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-black w-4 h-4 flex items-center justify-center rounded-full">
+                   {cart.length}
+                 </span>
+               </div>
+               <h2 className="text-lg font-bold text-slate-900">Cart</h2>
+            </div>
+            <button 
               onClick={closeCart}
-              className="p-2 rounded-full hover:bg-[var(--brand-soft)] text-[var(--text-muted)] hover:text-[var(--brand-primary)] transition-colors"
+              className="p-2 -mr-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400"
             >
-              <X size={20} />
+              <X size={22} />
             </button>
           </div>
 
-          {/* ITEMS */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide shrink-0">
+          {/* SELECT ALL BAR */}
+          {cart.length > 0 && (
+            <div className="bg-white px-6 py-3 border-b flex items-center justify-between shrink-0">
+               <button 
+                 onClick={toggleAllSelection}
+                 className="flex items-center gap-2 group"
+               >
+                 <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                   isAllSelected ? "bg-red-500 border-red-500" : "bg-white border-slate-200 group-hover:border-slate-300"
+                 }`}>
+                   {isAllSelected && <Check size={14} className="text-white font-bold" />}
+                 </div>
+                 <span className="text-xs font-bold text-slate-600">Select all</span>
+               </button>
+               
+               {hasSelection && (
+                 <button className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors uppercase tracking-widest">
+                   Delete ({selectedItems.length})
+                 </button>
+               )}
+            </div>
+          )}
 
-            {cart.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-70">
-                <div className="w-20 h-20 rounded-full bg-[var(--brand-primary)]/5 flex items-center justify-center">
-                   <Trash2 size={32} className="text-[var(--brand-primary)] opacity-60" />
-                </div>
-                <p className="text-[var(--text-main)] text-base font-medium">
-                  Your cart is empty <br />
-                  <span className="text-sm font-light text-[var(--text-muted)]">Explore our curated collection.</span>
-                </p>
-                <button onClick={closeCart} className="text-[var(--brand-primary)] hover:underline text-sm font-medium pt-2">
-                   Continue Shopping
-                </button>
-              </div>
-            )}
-
-            {cart.map(item => {
-
-              const imageUrl = getImage(item.image)
-
-              return (
-                <div
+          {/* ITEMS LIST */}
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+            {cart.length === 0 ? (
+               <div className="h-full flex flex-col items-center justify-center text-center p-10">
+                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4 text-slate-300">
+                    <ShoppingCart size={32} />
+                  </div>
+                  <h3 className="font-bold text-slate-900">Your cart is empty</h3>
+                  <p className="text-sm text-slate-400 mt-1 max-w-[200px]">Looks like you haven't added anything yet.</p>
+                  <button 
+                    onClick={closeCart}
+                    className="mt-6 font-bold text-xs uppercase tracking-widest bg-slate-900 text-white px-8 py-3 rounded-full shadow-lg"
+                  >
+                    Start Shopping
+                  </button>
+               </div>
+            ) : (
+              cart.map((item) => (
+                <div 
                   key={item.variantId}
-                  className="flex gap-5 group animate-fade-up relative"
+                  className="bg-white rounded-2xl p-4 flex gap-4 shadow-sm border border-slate-100 relative group transition-all hover:border-slate-200"
                 >
-                  {/* IMAGE */}
-                  <div className="relative w-[85px] h-[85px] rounded-2xl overflow-hidden bg-[var(--bg-main)] shrink-0 border border-[var(--border-light)] shadow-sm">
-                    <img
-                      src={imageUrl}
+                  {/* SELECTION OVERLAY-CLICKABLE */}
+                  <button 
+                    onClick={() => toggleSelection(item.variantId)}
+                    className="absolute inset-0 z-0"
+                  />
+
+                  {/* CHECKBOX */}
+                  <div className="relative z-10 flex items-center self-center">
+                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                      selectedItems.includes(item.variantId) ? "bg-red-500 border-red-500" : "bg-white border-slate-200"
+                    }`}>
+                      {selectedItems.includes(item.variantId) && <Check size={14} className="text-white font-bold" />}
+                    </div>
+                  </div>
+
+                  {/* PRODUCT IMAGE */}
+                  <div className="relative z-10 w-20 h-20 rounded-xl overflow-hidden bg-slate-50 border shrink-0">
+                    <img 
+                      src={item.image || "/placeholder.png"} 
                       alt={item.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 mix-blend-multiply"
+                      className="w-full h-full object-cover"
                     />
                   </div>
 
-                  <div className="flex-1 flex flex-col justify-between py-1">
-
+                  {/* INFO */}
+                  <div className="relative z-10 flex-1 flex flex-col justify-between pt-0.5">
                     <div>
-                       <p className="text-base font-semibold text-[var(--text-heading)] leading-tight line-clamp-2 pr-6">
-                         {item.name}
-                       </p>
-                       <p className="text-sm font-bold text-[var(--brand-primary)] mt-1">
-                         ₱{Number(item.price).toLocaleString()}
-                       </p>
+                      <h4 className="text-sm font-bold text-slate-900 line-clamp-1 leading-tight">{item.name}</h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Variant: Standard</span>
+                      </div>
                     </div>
 
-                    <div className="flex items-center justify-between mt-3">
-                       {/* QUANTITY */}
-                       <div className="flex items-center bg-[var(--bg-main)] border border-[var(--border-light)] rounded-full p-1">
-                         <button
-                           onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
-                           className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] transition-colors"
+                    <div className="flex items-end justify-between">
+                       <span className="text-sm font-black text-slate-900">₱{item.price.toLocaleString()}</span>
+                       
+                       {/* QUANTITY CONTROLS */}
+                       <div className="flex items-center bg-slate-50 border rounded-full p-0.5 scale-90 -mr-2 origin-right">
+                         <button 
+                           onClick={(e) => { e.stopPropagation(); updateQuantity(item.variantId, item.quantity - 1) }}
+                           className="w-7 h-7 flex items-center justify-center rounded-full bg-white border border-slate-100 shadow-sm text-slate-500 hover:text-red-500 transition-colors"
                          >
-                           <Minus size={14} />
+                           <Minus size={12} />
                          </button>
-
-                         <span className="w-8 text-center text-sm font-medium text-[var(--text-heading)]">{item.quantity}</span>
-
-                         <button
-                           onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
-                           className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] transition-colors"
+                         <span className="w-8 text-center text-xs font-black text-slate-900">{item.quantity}</span>
+                         <button 
+                           onClick={(e) => { e.stopPropagation(); updateQuantity(item.variantId, item.quantity + 1) }}
+                           className="w-7 h-7 flex items-center justify-center rounded-full bg-white border border-slate-100 shadow-sm text-slate-500 hover:bg-slate-900 hover:text-white transition-colors"
                          >
-                           <Plus size={14} />
+                           <Plus size={12} />
                          </button>
                        </div>
-
-                       <button
-                         onClick={() => removeFromCart(item.variantId)}
-                         className="p-2 text-[var(--text-muted)] hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
-                       >
-                         <Trash2 size={16} />
-                       </button>
                     </div>
-
                   </div>
-
                 </div>
-              )
-            })}
-
+              ))
+            )}
           </div>
 
-          {/* FOOTER */}
-          <div className="border-t border-[var(--border-light)] p-6 bg-[var(--bg-main)]/50 backdrop-blur-md shrink-0">
+          {/* FOOTER BAR (TIKTOK STYLE) */}
+          {cart.length > 0 && (
+            <div className="bg-white px-6 pt-4 pb-8 border-t shadow-[0_-10px_40px_rgba(0,0,0,0.03)] flex flex-col gap-4">
+               <div className="flex items-center justify-between">
+                 <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total to Pay</span>
+                    <div className="flex items-baseline gap-1">
+                       <span className="text-xl font-black text-slate-900">₱{selectedSubtotal.toLocaleString()}</span>
+                       {hasSelection && (
+                         <span className="text-[10px] font-bold text-red-500 mb-0.5">({selectedCount} items)</span>
+                       )}
+                    </div>
+                 </div>
+                 
+                 <div className="text-right">
+                    <p className="text-[10px] font-medium text-slate-400">Shipping calculated <br />at final step</p>
+                 </div>
+               </div>
 
-            <div className="flex flex-col gap-3 mb-6">
-               <div className="flex justify-between text-sm text-[var(--text-muted)]">
-                 <span>Shipping</span>
-                 <span>Calculated at checkout</span>
-               </div>
-               <div className="h-[1px] bg-[var(--border-light)] w-full"></div>
-               <div className="flex justify-between font-bold text-lg text-[var(--text-heading)] items-end">
-                 <span>Subtotal</span>
-                 <span className="text-xl text-[var(--brand-primary)]">₱{subtotal.toLocaleString()}</span>
-               </div>
+               <Link
+                 href={hasSelection ? "/checkout" : "#"}
+                 onClick={(e) => {
+                   if (!hasSelection) {
+                     e.preventDefault()
+                     toast.error("Please select items to checkout")
+                   } else {
+                     closeCart()
+                   }
+                 }}
+                 className={`group flex items-center justify-center gap-2 py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all duration-300 ${
+                   hasSelection 
+                     ? "bg-slate-900 text-white shadow-xl shadow-slate-900/10 hover:bg-black active:scale-[0.98]" 
+                     : "bg-slate-100 text-slate-300 cursor-not-allowed"
+                 }`}
+               >
+                 Checkout Selected
+                 <ChevronRight className={`w-5 h-5 transition-transform duration-300 ${hasSelection ? "group-hover:translate-x-1" : ""}`} />
+               </Link>
             </div>
-
-            <Link
-              href="/checkout"
-              className="btn-premium w-full !py-4 shadow-[0_8px_30px_rgba(39,76,119,0.2)] hover:shadow-[0_12px_40px_rgba(39,76,119,0.3)]"
-              onClick={closeCart}
-            >
-              Secure Checkout
-            </Link>
-
-          </div>
+          )}
 
         </div>
       </div>

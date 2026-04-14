@@ -298,6 +298,8 @@ export function CartProvider({
         })
         const res = await api.get<{ items: CartItem[] }>("/cart")
         setCart(res.items || [])
+        setSelectedItems(prev => prev.includes(item.variantId) ? prev : [...prev, item.variantId])
+        setIsCartOpen(true)
         toast.success(`"${item.name}" added to cart`)
       } catch (err) {
         console.error("Cart API error", err)
@@ -317,6 +319,8 @@ export function CartProvider({
         }
         return [...prev, item]
       })
+      setSelectedItems(prev => prev.includes(item.variantId) ? prev : [...prev, item.variantId])
+      setIsCartOpen(true)
       toast.success(`"${item.name}" added to cart`)
     }
 
@@ -399,7 +403,9 @@ export function CartProvider({
 
   const toggleSelection = useCallback((variantId: string) => {
     setSelectedItems(prev =>
-      prev.includes(variantId) ? [] : [variantId]
+      prev.includes(variantId)
+        ? prev.filter(id => id !== variantId)
+        : [...prev, variantId]
     )
   }, [])
 
