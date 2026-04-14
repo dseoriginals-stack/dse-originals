@@ -45,7 +45,10 @@ export const sendGuestOTP = async (req, res, next) => {
       })
     } catch (mailError) {
       logger.error("Failed to send guest OTP email", { error: mailError.message, email })
-      return res.status(500).json({ message: "Failed to send code. Please check your email and try again." })
+      return res.status(500).json({ 
+        message: "Failed to send code.", 
+        error: mailError.message 
+      })
     }
 
     logger.info(`OTP sent to ${email}`)
