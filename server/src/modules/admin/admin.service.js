@@ -156,6 +156,13 @@ const getUsers = async () => {
   })
 }
 
+const updateUserRole = async (id, role) => {
+  return prisma.user.update({
+    where: { id },
+    data: { role }
+  })
+}
+
 const getStories = async () => {
   return prisma.story.findMany({
     orderBy: {
@@ -188,6 +195,7 @@ export default {
   updateOrderStatus,
   getProducts,
   getUsers,
+  updateUserRole,
   getStories,
   getReviews,
   deleteReview

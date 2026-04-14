@@ -20,6 +20,8 @@ router.get("/products", adminController.getProducts)
 
 router.get("/users", adminController.getUsers)
 
+router.patch("/users/:id/role", adminController.updateUserRole)
+
 router.get("/stories", adminController.getStories)
 
 router.get("/reviews", adminController.getReviews)

@@ -59,6 +59,18 @@ const getUsers = async (req, res, next) => {
   }
 }
 
+const updateUserRole = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const { role } = req.body
+    const updated = await adminService.updateUserRole(id, role)
+    res.json(updated)
+  } catch (err) {
+    logger.error("Admin user role update failed", { error: err })
+    next(err)
+  }
+}
+
 const getStories = async (req, res, next) => {
   try {
     const stories = await adminService.getStories()
@@ -96,6 +108,7 @@ export default {
   updateOrderStatus,
   getProducts,
   getUsers,
+  updateUserRole,
   getStories,
   getReviews,
   deleteReview
