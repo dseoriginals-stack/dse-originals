@@ -278,10 +278,10 @@ export default function Header() {
                     onClick={() => setMenuOpen(false)}
                   />
 
-                  {user?.role === "admin" && (
+                  {(user?.role === "admin" || user?.role === "staff") && (
                     <MobileMenuItem
                       icon={<div className="text-[var(--brand-primary)]"><ShieldCheck size={18} /></div>}
-                      label="Admin Panel"
+                      label={user.role === "admin" ? "Admin Panel" : "Staff Panel"}
                       href="/admin"
                       onClick={() => setMenuOpen(false)}
                     />

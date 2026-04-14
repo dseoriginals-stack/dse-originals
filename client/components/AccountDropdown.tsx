@@ -61,9 +61,9 @@ export default function AccountDropdown({ close }: any) {
             <Item label="My Account" onClick={() => router.push("/account")} />
             <Item label="Orders" onClick={() => router.push("/account?tab=orders")} />
 
-            {user.role === "admin" && (
+            {(user.role === "admin" || user.role === "staff") && (
               <Item
-                label="Admin Panel"
+                label={user.role === "admin" ? "Admin Panel" : "Staff Panel"}
                 highlight
                 onClick={() => {
                   close()
