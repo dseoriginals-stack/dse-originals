@@ -141,42 +141,26 @@ export function CartProvider({
   ========================= */
 
   useEffect(() => {
-    // Don't run until guestId is resolved
-    if (guestId === null) return
-
-    const currentUserId = user?.id ?? null
+    const currentUserId = user?.id || null
     const previousUserId = initializedUserId.current
 
-    // Skip if nothing has changed (prevents redundant re-fetches)
     if (previousUserId !== undefined && previousUserId === currentUserId) return
-
-    // Mark as initialized for this userId
     initializedUserId.current = currentUserId
 
     if (currentUserId) {
-      // ============================
-      // LOGGED-IN: fetch server cart
-      // ============================
-
-      // Clear local cart immediately so old/guest items don't flash
+      // LOGGED-IN: fetch server cart & merge
       setCart([])
       setSelectedItems([])
 
-      // Check if there's a guest cart to merge
-      const guestCartKey = getGuestCartKey(guestId)
+      const guestCartKey = getGuestCartKey(guestId || "")
       let guestItems: CartItem[] = []
       try {
         const raw = localStorage.getItem(guestCartKey)
-        if (raw) {
-          guestItems = JSON.parse(raw) as CartItem[]
-        }
-      } catch {
-        guestItems = []
-      }
+        if (raw) guestItems = JSON.parse(raw) as CartItem[]
+      } catch { guestItems = [] }
 
       const loadAndMerge = async () => {
         try {
-          // First merge guest items into the server cart (if any)
           if (guestItems.length > 0) {
             for (const item of guestItems) {
               try {
@@ -185,43 +169,41 @@ export function CartProvider({
                   productId: item.productId,
                   quantity: item.quantity,
                 })
-              } catch {
-                // Skip failed items silently
-              }
+              } catch {}
             }
-            // Clear guest cart from localStorage after merge
             localStorage.removeItem(guestCartKey)
-            // Generate a fresh guest ID so next logout gets a clean slate
             const freshGuestId = uuidv4()
             localStorage.setItem(GUEST_STORAGE_KEY, freshGuestId)
             setGuestId(freshGuestId)
           }
 
-      // Now fetch the authoritative server cart
-      const res = await api.get<{ items: CartItem[] }>("/cart")
-      const items = res.items || []
-      setCart(items)
-      
-      // Auto-select everything on first load if nothing selected
-      setSelectedItems(prev => prev.length > 0 ? prev : items.map(i => i.variantId))
-    } catch {
-      setCart([])
-    }
-  }, [user, guestId])
-
-  // Guest Load logic
-  useEffect(() => {
-    if (user) return
-    if (!guestId) return
-    try {
-      const guestCartKey = getGuestCartKey(guestId)
-      const raw = localStorage.getItem(guestCartKey)
-      if (raw) {
-        const items = JSON.parse(raw)
-        setCart(items)
-        setSelectedItems(prev => prev.length > 0 ? prev : items.map((i: any) => i.variantId))
+          const res = await api.get<{ items: CartItem[] }>("/cart")
+          const items = res.items || []
+          setCart(items)
+          setSelectedItems(prev => prev.length > 0 ? prev : items.map(i => i.variantId))
+        } catch {
+          setCart([])
+        }
       }
-    } catch {}
+      loadAndMerge()
+    } else {
+      // GUEST: load from localStorage
+      if (!guestId) return
+      try {
+        const guestCartKey = getGuestCartKey(guestId)
+        const raw = localStorage.getItem(guestCartKey)
+        if (raw) {
+          const items = JSON.parse(raw)
+          setCart(items)
+          setSelectedItems(prev => prev.length > 0 ? prev : items.map((i: any) => i.variantId))
+        } else {
+          setCart([])
+          setSelectedItems([])
+        }
+      } catch {
+        setCart([])
+      }
+    }
   }, [user, guestId])
 
   /* =========================
