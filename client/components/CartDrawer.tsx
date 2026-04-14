@@ -145,16 +145,13 @@ export default function CartDrawer() {
               cart.map((item) => (
                 <div 
                   key={item.variantId}
-                  className="bg-[var(--bg-card)] rounded-2xl p-4 flex gap-4 shadow-sm border border-[var(--border-light)] relative group transition-all hover:border-[var(--brand-soft)]/30"
+                  onClick={() => toggleSelection(item.variantId)}
+                  className={`bg-[var(--bg-card)] cursor-pointer rounded-2xl p-4 flex gap-4 shadow-sm border border-[var(--border-light)] relative group transition-all ${
+                    selectedItems.includes(item.variantId) ? 'border-[var(--brand-primary)]' : 'hover:border-[var(--brand-soft)]/30'
+                  }`}
                 >
-                  {/* SELECTION OVERLAY-CLICKABLE */}
-                  <button 
-                    onClick={() => toggleSelection(item.variantId)}
-                    className="absolute inset-0 z-0"
-                  />
-
                   {/* CHECKBOX */}
-                  <div className="relative z-10 flex items-center self-center">
+                  <div className="flex items-center self-center">
                     <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
                       selectedItems.includes(item.variantId) ? "bg-[var(--brand-primary)] border-[var(--brand-primary)]" : "bg-white border-gray-200"
                     }`}>
@@ -163,7 +160,7 @@ export default function CartDrawer() {
                   </div>
 
                   {/* PRODUCT IMAGE */}
-                  <div className="relative z-10 w-20 h-20 rounded-xl overflow-hidden bg-[var(--bg-surface)] border shrink-0">
+                  <div className="w-20 h-20 rounded-xl overflow-hidden bg-[var(--bg-surface)] border shrink-0">
                     <img 
                       src={item.image || "/placeholder.png"} 
                       alt={item.name}
@@ -172,7 +169,7 @@ export default function CartDrawer() {
                   </div>
 
                   {/* INFO */}
-                  <div className="relative z-10 flex-1 flex flex-col justify-between pt-0.5">
+                  <div className="flex-1 flex flex-col justify-between pt-0.5">
                     <div>
                       <h4 className="text-sm font-bold text-[var(--text-heading)] line-clamp-1 leading-tight">{item.name}</h4>
                       <div className="flex items-center gap-2 mt-1">

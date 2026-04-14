@@ -124,20 +124,15 @@ export default function CartPage() {
 
             {/* PRODUCT CARDS */}
             <div className="space-y-4">
-               {cart.map((item) => (
-                 <div 
-                   key={item.variantId}
-                   className={`bg-[var(--bg-card)] rounded-[2rem] p-5 flex flex-col md:flex-row gap-6 border-2 transition-all relative group ${
-                     selectedItems.includes(item.variantId) ? 'border-[var(--brand-primary)] shadow-xl shadow-[var(--brand-primary)]/5' : 'border-transparent hover:border-[var(--border-light)] shadow-sm'
-                   }`}
-                 >
-                    {/* SELECTION OVERLAY */}
-                    <button 
-                       onClick={() => toggleSelection(item.variantId)}
-                       className="absolute inset-0 z-0"
-                    />
-
-                    <div className="relative z-10 flex gap-4 md:gap-6 flex-1">
+                {cart.map((item) => (
+                  <div 
+                    key={item.variantId}
+                    onClick={() => toggleSelection(item.variantId)}
+                    className={`bg-[var(--bg-card)] cursor-pointer rounded-[2rem] p-5 flex flex-col md:flex-row gap-6 border-2 transition-all relative group ${
+                      selectedItems.includes(item.variantId) ? 'border-[var(--brand-primary)] shadow-xl shadow-[var(--brand-primary)]/5' : 'border-transparent hover:border-[var(--border-light)] shadow-sm'
+                    }`}
+                  >
+                    <div className="flex gap-4 md:gap-6 flex-1">
                         {/* CHECKBOX */}
                         <div className="flex items-center">
                           <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
