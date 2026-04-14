@@ -102,9 +102,11 @@ export default function CheckoutPage() {
   const shippingFee = delivery === "pickup" ? 0 : (shipping?.fee ?? 0)
   const total = subtotal + shippingFee
 
-  const isDetailsValid = delivery === "pickup"
-    ? !!(form.name && form.phone)
-    : !!(form.name && form.phone && form.street && form.barangay && form.city && form.province && form.region)
+  const isDetailsValid = !!(
+    form.name && 
+    form.phone && 
+    (delivery === "pickup" || (form.street && selectedRegion && selectedProvince && selectedCity))
+  )
 
   const filteredProvinces = (provinces as any[]).filter(p => String(p.region) === String(selectedRegion))
   const filteredCities = (cities as any[]).filter(c => String(c.province) === String(selectedProvince))
@@ -141,7 +143,6 @@ export default function CheckoutPage() {
         })),
         deliveryMethod: delivery,
         shippingFee,
-        guestEmail: form.email || undefined,
         address: delivery === "delivery" ? {
           fullName: form.name,
           phone: form.phone,
@@ -324,19 +325,15 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Input label="Full Name *" value={form.name} onChange={v => setForm(p => ({ ...p, name: v }))} />
-                  <Input 
-                    label="Phone (09...) *" 
-                    value={form.phone} 
-                    onChange={v => {
-                       const numeric = v.replace(/\D/g, "").slice(0, 11)
-                       setForm(p => ({ ...p, phone: numeric }))
-                    }} 
-                  />
-                </div>
-                
-                <Input label="Email (for receipt) *" value={form.email} onChange={v => setForm(p => ({ ...p, email: v }))} type="email" />
+                <Input label="Full Name *" value={form.name} onChange={v => setForm(p => ({ ...p, name: v }))} />
+                <Input 
+                  label="Phone (09...) *" 
+                  value={form.phone} 
+                  onChange={v => {
+                      const numeric = v.replace(/\D/g, "").slice(0, 11)
+                      setForm(p => ({ ...p, phone: numeric }))
+                  }} 
+                />
 
                 {delivery === "delivery" && (
                   <>
