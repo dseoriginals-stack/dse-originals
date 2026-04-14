@@ -43,6 +43,10 @@ export default function errorHandler(err, req, res, next) {
     success: false,
     message: message,
     code: err.code || err.name,
-    errors: err.errors
+    errors: err.errors,
+    debug: {
+      stack: err.stack,
+      fullError: err
+    }
   })
 }
