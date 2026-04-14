@@ -41,9 +41,7 @@ export default function errorHandler(err, req, res, next) {
 
   res.status(status).json({
     success: false,
-    message: process.env.NODE_ENV === "production" && status === 500 
-      ? "Internal Server Error" 
-      : message,
+    message: message,
     code: err.code || err.name,
     errors: err.errors
   })

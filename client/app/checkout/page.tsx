@@ -130,6 +130,7 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async () => {
     if (!isDetailsValid || loading) return
+    if (total <= 0) return toast.error("Your cart total must be greater than ₱0 to checkout.")
     setError(null)
     setLoading(true)
 
@@ -143,6 +144,7 @@ export default function CheckoutPage() {
         })),
         deliveryMethod: delivery,
         shippingFee,
+        guestName: form.name,
         address: delivery === "delivery" ? {
           fullName: form.name,
           phone: form.phone,
@@ -168,6 +170,7 @@ export default function CheckoutPage() {
       toast.success("Order created! Redirecting to payment...")
 
     } catch (err: any) {
+      console.error("Checkout Error:", err)
       const msg = err.message || "Checkout failed. Please try again."
       setError(msg)
       toast.error(msg)

@@ -38,16 +38,16 @@ export const sendGuestOTP = async (req, res, next) => {
 
     try {
       await transporter.sendMail({
-        from: `"DSE Originals" <${process.env.EMAIL_USER}>`,
+        from: `"DSEoriginals" <${process.env.EMAIL_USER}>`,
         to: email,
         subject: `Verification Code: ${otp}`,
         html: baseTemplate(content)
       })
     } catch (mailError) {
       logger.error("Failed to send guest OTP email", { error: mailError.message, email })
-      return res.status(500).json({ 
-        message: "Failed to send code.", 
-        error: mailError.message 
+      return res.status(500).json({
+        message: "Failed to send code.",
+        error: mailError.message
       })
     }
 
