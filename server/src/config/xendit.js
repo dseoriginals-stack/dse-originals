@@ -15,7 +15,6 @@ export async function createInvoice({
   success_url,
   failure_url,
 }) {
-  // v7 uses a different method signature
   const invoice = await invoiceClient.createInvoice({
     data: {
       externalId: external_id,
