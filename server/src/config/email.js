@@ -30,10 +30,10 @@ export async function sendVerificationEmail(email, token) {
   await sgMail.send({
     to: email,
     from: process.env.EMAIL_FROM,
-    subject: "Verify your email - DSE Originals",
+    subject: "Verify your email - DSEoriginals",
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: auto;">
-        <h2>Welcome to DSE Originals!</h2>
+        <h2>Welcome to DSEoriginals!</h2>
         <p>Please click the button below to verify your email address and activate your account:</p>
         <a href="${verifyUrl}" style="display: inline-block; padding: 12px 24px; background-color: #274C77; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">Verify Email</a>
         <p style="margin-top: 20px; font-size: 12px; color: #666;">If the button doesn't work, copy and paste this link into your browser: <br/> ${verifyUrl}</p>

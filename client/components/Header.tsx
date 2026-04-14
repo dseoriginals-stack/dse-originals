@@ -25,7 +25,7 @@ export default function Header() {
   return (
     <>
       <header className="sticky top-0 z-50 bg-[#274C77]/80 backdrop-blur-2xl border-b border-white/5 shadow-[0_10px_30px_rgba(0,0,0,0.1)] transition-all duration-300">
-        
+
         {/* PROMO BAND */}
         <div className="bg-[#1B3B60] text-white py-1.5 overflow-hidden relative border-b border-white/5">
           <motion.div
@@ -35,7 +35,7 @@ export default function Header() {
           >
             <span>• Get Discounts from Loyalty Points</span>
             <span>• Premium Faith-Inspired Collective</span>
-            <span>• Official DSE Originals Store</span>
+            <span>• Official DSEoriginals Store</span>
             <span>• Shipping Available</span>
             <span>• Hope • Faith • Love </span>
           </motion.div>
@@ -43,10 +43,10 @@ export default function Header() {
 
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex h-16 items-center justify-between">
-            
+
             {/* MOBILE TOGGLE */}
             <div className="md:hidden">
-              <button 
+              <button
                 onClick={() => setMenuOpen(true)}
                 className="text-white p-2 hover:bg-white/10 rounded-xl transition-all"
               >
@@ -73,9 +73,9 @@ export default function Header() {
                   >
                     {item.label}
                     {active && (
-                      <motion.div 
+                      <motion.div
                         layoutId="nav_underline"
-                        className="absolute bottom-0 left-0 w-full h-1 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)]" 
+                        className="absolute bottom-0 left-0 w-full h-1 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)]"
                       />
                     )}
                   </Link>
@@ -85,7 +85,7 @@ export default function Header() {
 
             {/* UTILITY ICONS */}
             <div className="flex items-center gap-6">
-              
+
               {/* CART */}
               <Link href="/cart" id="cart-icon" className="relative group text-white">
                 <ShoppingCart size={22} className="group-hover:scale-110 transition-transform" />

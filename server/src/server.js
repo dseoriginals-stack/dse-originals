@@ -53,9 +53,9 @@ app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
-    
+
     const isVercel = origin.endsWith(".vercel.app");
-    
+
     if (allowedOrigins.includes(origin) || isVercel) {
       callback(null, true)
     } else {
@@ -117,7 +117,7 @@ app.post("/webhooks/xendit", handleXenditWebhook)
 // ROOT
 // =========================
 app.get("/", (_req, res) => {
-  res.send("🚀 DSE Originals API Running")
+  res.send("🚀 DSEoriginals API Running")
 })
 
 // =========================
@@ -126,7 +126,7 @@ app.get("/", (_req, res) => {
 app.get("/api/health", (_req, res) => {
   res.json({
     status: "OK",
-    service: "DSE Originals API",
+    service: "DSEoriginals API",
     timestamp: new Date(),
   })
 })

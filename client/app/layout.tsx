@@ -9,8 +9,8 @@ const outfit = Outfit({
 })
 
 export const metadata = {
-  title: "DSE Originals | Elevated Faith-Inspired Apparel",
-  description: "DSE Originals offers premium, faith-inspired clothing and essentials designed with a modern aesthetic.",
+  title: "DSEoriginals",
+  description: "DSEoriginals offers premium, faith-inspired clothing and essentials designed with a modern aesthetic.",
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",

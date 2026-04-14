@@ -27,7 +27,7 @@ const baseTemplate = (content) => `
 
       <!-- HEADER -->
       <div style="background:#274C77;color:white;padding:20px 30px;">
-        <h2 style="margin:0;">DSE Originals</h2>
+        <h2 style="margin:0;">DSEoriginals</h2>
       </div>
 
       <!-- BODY -->
@@ -38,7 +38,7 @@ const baseTemplate = (content) => `
       <!-- FOOTER -->
       <div style="background:#f8fafc;padding:20px 30px;font-size:12px;color:#64748b;">
         <p style="margin:0;">Need help? Contact support anytime.</p>
-        <p style="margin-top:6px;">© ${new Date().getFullYear()} DSE Originals</p>
+        <p style="margin-top:6px;">© ${new Date().getFullYear()} DSEoriginals</p>
       </div>
 
     </div>
@@ -111,7 +111,7 @@ export const sendOrderPaidEmail = async (to, order) => {
   `
 
   await transporter.sendMail({
-    from: `"DSE Originals" <${process.env.EMAIL_USER}>`,
+    from: `"DSEoriginals" <${process.env.EMAIL_USER}>`,
     to,
     subject: "Payment Confirmed",
     html: baseTemplate(content)
@@ -125,7 +125,7 @@ SHIPPED EMAIL
 */
 
 export const sendShippedEmail = async (to, order) => {
-  const trackingLink = order.trackingNo 
+  const trackingLink = order.trackingNo
     ? `https://www.jtexpress.ph/index/query/gzquery.html?bills=${order.trackingNo}`
     : `${process.env.CLIENT_URL}/track?id=${order.id}&email=${to}`
 
@@ -165,7 +165,7 @@ export const sendShippedEmail = async (to, order) => {
   `
 
   await transporter.sendMail({
-    from: `"DSE Originals" <${process.env.EMAIL_USER}>`,
+    from: `"DSEoriginals" <${process.env.EMAIL_USER}>`,
     to,
     subject: `Tracking Updated for Order #${order.id.slice(-6).toUpperCase()}`,
     html: baseTemplate(content)
@@ -200,7 +200,7 @@ export const sendAbandonedCartEmail = async (to, cart, recoveryUrl) => {
   `
 
   await transporter.sendMail({
-    from: `"DSE Originals" <${process.env.EMAIL_USER}>`,
+    from: `"DSEoriginals" <${process.env.EMAIL_USER}>`,
     to,
     subject: "Complete your order before it's gone",
     html: baseTemplate(content)

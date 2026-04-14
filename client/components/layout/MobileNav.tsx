@@ -30,7 +30,7 @@ export default function MobileNav({ open, close }: { open: boolean, close: () =>
           >
             <div className="p-6">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand-primary)]/40 mb-6 px-1">
-                DSE Originals
+                DSEoriginals
               </p>
 
               <div className="flex flex-col">

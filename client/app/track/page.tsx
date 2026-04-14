@@ -4,12 +4,12 @@ import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { api } from "@/lib/api"
-import { 
-  Search, 
-  Package, 
-  CreditCard, 
-  Truck, 
-  CheckCircle2, 
+import {
+  Search,
+  Package,
+  CreditCard,
+  Truck,
+  CheckCircle2,
   Calendar,
   ChevronRight,
   MapPin,
@@ -54,10 +54,10 @@ function TrackOrderContent() {
   async function handleTrack(e?: React.FormEvent) {
     if (e) e.preventDefault()
     if (!orderId || !email) return
-    
+
     setLoading(true)
     setError("")
-    
+
     try {
       const res = await api.get(`/orders/track?id=${orderId}&email=${email}`)
       setOrder(res)
@@ -83,11 +83,11 @@ function TrackOrderContent() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
               <h1 className="text-4xl font-bold tracking-tight text-slate-900">Track Order</h1>
-              <p className="mt-2 text-slate-500">Stay updated on your DSE Originals shipment.</p>
+              <p className="mt-2 text-slate-500">Stay updated on your DSEoriginals shipment.</p>
             </div>
             {!order && (
               <div className="flex -space-x-2">
-                {[1,2,3].map(i => (
+                {[1, 2, 3].map(i => (
                   <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-bold">
                     DSE
                   </div>
@@ -101,7 +101,7 @@ function TrackOrderContent() {
       <div className="container max-w-4xl mx-auto px-6 -mt-8">
         <AnimatePresence mode="wait">
           {!order ? (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -155,7 +155,7 @@ function TrackOrderContent() {
               </form>
             </motion.div>
           ) : (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               className="grid grid-cols-1 lg:grid-cols-3 gap-8"
@@ -179,7 +179,7 @@ function TrackOrderContent() {
                   <div className="relative space-y-12 pl-4">
                     {/* Connecting Line */}
                     <div className="absolute left-[2.35rem] top-2 bottom-2 w-0.5 bg-slate-100" />
-                    
+
                     {steps.map((step, index) => {
                       const isCompleted = index < currentStepIndex
                       const isCurrent = index === currentStepIndex
@@ -188,9 +188,8 @@ function TrackOrderContent() {
 
                       return (
                         <div key={step.status} className="relative flex gap-6">
-                          <div className={`relative z-10 w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-md ${
-                            isUpcoming ? 'bg-white border border-slate-100 text-slate-300' : `${step.color} text-white`
-                          } ${isCurrent ? 'ring-4 ring-offset-2 ring-slate-100 scale-110' : ''}`}>
+                          <div className={`relative z-10 w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-md ${isUpcoming ? 'bg-white border border-slate-100 text-slate-300' : `${step.color} text-white`
+                            } ${isCurrent ? 'ring-4 ring-offset-2 ring-slate-100 scale-110' : ''}`}>
                             {isCompleted ? <CheckCircle2 className="w-6 h-6" /> : <Icon className="w-6 h-6" />}
                           </div>
                           <div className="flex-1 pt-1">
@@ -199,8 +198,8 @@ function TrackOrderContent() {
                             </h3>
                             <p className="text-sm text-slate-500 mt-1">{step.desc}</p>
                             {isCurrent && (
-                              <motion.div 
-                                layoutId="activeStep" 
+                              <motion.div
+                                layoutId="activeStep"
                                 className="mt-3 inline-flex items-center gap-2 text-xs font-bold text-slate-900 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100"
                               >
                                 <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
@@ -233,8 +232,8 @@ function TrackOrderContent() {
                         </div>
                       </div>
                     )) || (
-                      <p className="text-slate-400 italic text-center py-4">No logged events yet.</p>
-                    )}
+                        <p className="text-slate-400 italic text-center py-4">No logged events yet.</p>
+                      )}
                   </div>
                 </div>
               </div>
@@ -268,7 +267,7 @@ function TrackOrderContent() {
                       <p className="text-2xl font-black">₱{Number(order.total).toLocaleString()}</p>
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setOrder(null)}
                     className="w-full mt-8 py-3 bg-white/5 border border-white/10 rounded-xl text-sm font-medium hover:bg-white/10 transition-colors"
                   >

@@ -3,22 +3,22 @@
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen py-24 px-6 bg-[var(--bg-surface)]">
-      
+
       {/* Background Decorators */}
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[var(--brand-primary)]/5 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
 
       <div className="max-w-3xl mx-auto bg-white/90 backdrop-blur-md rounded-3xl border border-[var(--border-light)] p-10 md:p-14 shadow-sm">
-        
+
         <h1 className="text-3xl md:text-5xl font-extrabold text-[var(--text-heading)] tracking-tight mb-8">
           Privacy Policy
         </h1>
-        
+
         <div className="space-y-8 text-[var(--text-muted)] font-medium leading-relaxed">
-          
+
           <section>
             <h2 className="text-xl font-bold text-[var(--text-heading)] mb-3">1. Information We Collect</h2>
             <p>
-              At DSE Originals, we value your privacy and security. We collect minimal data required to process your orders efficiently, including your name, email address, shipping destination, and securely encrypted payment details.
+              At DSEoriginals, we value your privacy and security. We collect minimal data required to process your orders efficiently, including your name, email address, shipping destination, and securely encrypted payment details.
             </p>
           </section>
 
@@ -32,7 +32,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-xl font-bold text-[var(--text-heading)] mb-3">3. Secure Transactions</h2>
             <p>
-              All payment transactions run through highly secure, encrypted gateways. We do not store your raw credit card information on our servers. 
+              All payment transactions run through highly secure, encrypted gateways. We do not store your raw credit card information on our servers.
             </p>
           </section>
 

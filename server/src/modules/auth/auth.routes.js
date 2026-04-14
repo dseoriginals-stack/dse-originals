@@ -10,7 +10,12 @@ import logger from "../../config/logger.js"
 import { sendPasswordResetEmail, sendVerificationEmail } from "../../config/email.js"
 import authenticate from "../../middleware/auth.middleware.js"
 
+import { sendGuestOTP, verifyGuestOTP } from "./otp.controller.js"
+
 const router = express.Router()
+
+router.post("/guest/send-otp", sendGuestOTP)
+router.post("/guest/verify-otp", verifyGuestOTP)
 
 /* =============================
    ENV CHECK (PREVENT CRASH)

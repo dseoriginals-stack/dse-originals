@@ -42,9 +42,9 @@ import { useSearchParams } from "next/navigation"
 export default function AccountPage() {
   return (
     <Suspense fallback={
-       <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center">
-         <div className="w-12 h-12 border-4 border-[var(--brand-primary)] border-t-transparent rounded-full animate-spin" />
-       </div>
+      <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[var(--brand-primary)] border-t-transparent rounded-full animate-spin" />
+      </div>
     }>
       <AccountContent />
     </Suspense>
@@ -149,7 +149,7 @@ function AccountContent() {
               </div>
               <div className="min-w-0">
                 <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
-                  <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand-primary)] opacity-60">DSE Originals Elite</span>
+                  <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand-primary)] opacity-60">DSEoriginals Elite</span>
                   <ShieldCheck size={14} className="text-[var(--brand-primary)]" />
                 </div>
                 <h1 className="text-3xl md:text-4xl font-[1000] text-[var(--text-heading)] tracking-tighter leading-tight md:leading-none truncate max-w-[280px] sm:max-w-none">
@@ -925,12 +925,12 @@ function AddressModal({ isOpen, onClose, onSuccess, initialData }: any) {
                 <input required value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all text-[var(--text-heading)]" />
               </div>
             </div>
- 
+
             <div className="space-y-1">
               <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Street Address</label>
               <input required value={form.street} onChange={e => setForm({ ...form, street: e.target.value })} className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all text-[var(--text-heading)]" />
             </div>
- 
+
             <div className="grid grid-cols-2 gap-4">
               <select
                 required
@@ -945,7 +945,7 @@ function AddressModal({ isOpen, onClose, onSuccess, initialData }: any) {
                 <option value="">Region</option>
                 {(regions as any[]).map((r: any) => <option key={r.key} value={r.key}>{r.name}</option>)}
               </select>
- 
+
               <select
                 required
                 disabled={!selectedRegion}
@@ -961,7 +961,7 @@ function AddressModal({ isOpen, onClose, onSuccess, initialData }: any) {
                 {filteredProvinces.map((p: any) => <option key={p.key} value={p.key}>{p.name}</option>)}
               </select>
             </div>
- 
+
             <div className="grid grid-cols-2 gap-4">
               <select
                 required
@@ -973,7 +973,7 @@ function AddressModal({ isOpen, onClose, onSuccess, initialData }: any) {
                 <option value="">City</option>
                 {filteredCities.map((c: any) => <option key={c.key} value={c.name}>{c.name}</option>)}
               </select>
- 
+
               <input placeholder="Barangay" required value={form.barangay} onChange={e => setForm({ ...form, barangay: e.target.value })} className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none text-[var(--text-heading)]" />
             </div>
 
