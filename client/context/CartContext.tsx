@@ -162,7 +162,9 @@ export function CartProvider({
       const loadAndMerge = async () => {
         try {
           if (guestItems.length > 0) {
-            for (const item of guestItems) {
+            // Post items from oldest to newest so they appear in correct order when reversed by server
+            const itemsToMerge = [...guestItems].reverse()
+            for (const item of itemsToMerge) {
               try {
                 await api.post("/cart", {
                   variantId: item.variantId,
@@ -284,7 +286,7 @@ export function CartProvider({
               : p
           )
         }
-        return [...prev, item]
+        return [item, ...prev]
       })
       setSelectedItems(prev => prev.includes(item.variantId) ? prev : [...prev, item.variantId])
       setIsCartOpen(true)
