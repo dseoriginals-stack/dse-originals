@@ -7,7 +7,7 @@ import logger from "../config/logger.js"
  * and fulfillment action for an order. Ensures a full audit trail.
  */
 
-export const logOrderEvent = async (orderId, type, message = "") => {
+export const createOrderEvent = async (orderId, type, message = "") => {
   try {
     const event = await prisma.orderEvent.create({
       data: {
@@ -26,4 +26,4 @@ export const logOrderEvent = async (orderId, type, message = "") => {
   }
 }
 
-export default { logOrderEvent }
+export default { createOrderEvent }
