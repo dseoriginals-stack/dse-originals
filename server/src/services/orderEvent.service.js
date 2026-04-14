@@ -26,4 +26,7 @@ export const createOrderEvent = async (orderId, type, message = "") => {
   }
 }
 
-export default { createOrderEvent }
+// Alias for backward compatibility
+export const logOrderEvent = createOrderEvent
+
+export default { createOrderEvent, logOrderEvent }
