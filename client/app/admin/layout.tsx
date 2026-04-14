@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic"
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, BarChart3, Package, ShoppingCart, Users, LogOut, MessageSquare, BookOpen, Bell, Menu, X } from "lucide-react"
+import { LayoutDashboard, BarChart3, Package, ShoppingCart, CreditCard, Users, LogOut, MessageSquare, BookOpen, Bell, Menu, X } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 import { useEffect, useState } from "react"
 import NotificationPanel from "@/components/admin/NotificationPanel"
