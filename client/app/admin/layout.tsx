@@ -44,7 +44,7 @@ export default function AdminLayout({
     }
 
     // Staff path protection
-    const allowedStaffPaths = ["/admin", "/admin/products", "/admin/orders"]
+    const allowedStaffPaths = ["/admin", "/admin/products", "/admin/orders", "/admin/payments"]
     if (user.role === "staff" && pathname !== "/admin" && !allowedStaffPaths.some(p => pathname.startsWith(p))) {
       router.push("/admin")
     }

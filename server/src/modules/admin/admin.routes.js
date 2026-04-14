@@ -14,6 +14,8 @@ router.get("/stats", adminController.getAdminStats)
 
 router.get("/orders", adminController.getOrders)
 
+router.get("/payments", adminController.getPayments)
+
 router.patch("/orders/:id/status", adminController.updateOrderStatus)
 
 router.get("/products", adminController.getProducts)

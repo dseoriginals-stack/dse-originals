@@ -123,6 +123,47 @@ const getOrders = async () => {
   })
 }
 
+const getPayments = async () => {
+  const [orders, donations] = await Promise.all([
+    prisma.order.findMany({
+      where: { status: "paid" },
+      include: {
+        user: { select: { name: true, email: true } }
+      }
+    }),
+    prisma.donation.findMany({
+      where: { status: "paid" },
+      include: {
+        user: { select: { name: true, email: true } }
+      }
+    })
+  ])
+
+  const orderPayments = orders.map(o => ({
+    id: o.id,
+    type: "Order",
+    customer: o.user?.name || o.guestName || "Guest",
+    email: o.user?.email || o.guestEmail,
+    amount: o.totalAmount,
+    method: "Xendit (Store)",
+    reference: o.paymentId,
+    createdAt: o.createdAt
+  }))
+
+  const donationPayments = donations.map(d => ({
+    id: d.id,
+    type: "Donation",
+    customer: d.name || d.user?.name || "Anonymous",
+    email: d.email || d.user?.email,
+    amount: d.amount,
+    method: "Xendit (Cause)",
+    reference: d.paymentId,
+    createdAt: d.createdAt
+  }))
+
+  return [...orderPayments, ...donationPayments].sort((a, b) => b.createdAt - a.createdAt)
+}
+
 const updateOrderStatus = async (id, status, trackingNo) => {
   return prisma.order.update({
     where: { id },
@@ -192,6 +233,7 @@ const deleteReview = async (id) => {
 export default {
   getAdminStats,
   getOrders,
+  getPayments,
   updateOrderStatus,
   getProducts,
   getUsers,

@@ -21,6 +21,16 @@ const getOrders = async (req, res, next) => {
   }
 }
 
+const getPayments = async (req, res, next) => {
+  try {
+    const payments = await adminService.getPayments()
+    res.json(payments)
+  } catch (err) {
+    logger.error("Admin payments fetch failed", { error: err })
+    next(err)
+  }
+}
+
 const updateOrderStatus = async (req, res, next) => {
   try {
     const { id } = req.params
@@ -105,6 +115,7 @@ const deleteReview = async (req, res, next) => {
 export default {
   getAdminStats,
   getOrders,
+  getPayments,
   updateOrderStatus,
   getProducts,
   getUsers,
