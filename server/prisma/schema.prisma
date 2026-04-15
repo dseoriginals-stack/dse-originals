@@ -17,7 +17,7 @@ model User {
   name           String
   email          String      @unique
   password       String?
-  provider       String      @default("local") // "google" | "local"
+  provider       String      @default("local")
   address        String?
   phone          String?
   role           Role        @default(customer)
@@ -26,19 +26,25 @@ model User {
   tier           LoyaltyTier @default(Faith)
   emailVerified  Boolean     @default(true)
   createdAt      DateTime    @default(now())
-  shopId         String? // optional - staff may belong to a shop
 
-  carts         Cart[]
-  orders        Order[]
+  shopId String?
+
+  carts Cart[]
+
+  // ✅ MAIN USER ORDERS
+  orders Order[] @relation("UserOrders")
+
+  // ✅ STAFF TRACKING
+  approvedOrders  Order[] @relation("ApprovedBy")
+  shippedOrders   Order[] @relation("ShippedBy")
+  deliveredOrders Order[] @relation("DeliveredBy")
+
   refreshTokens RefreshToken[]
   stories       Story[]
   reviews       Review[]
   wishlists     Wishlist[]
   addresses     Address[]
   donations     Donation[]
-  orders        Order[]
-  orders        Order[]
-  orders        Order[]
 
   @@index([email])
   @@index([shopId])
@@ -235,9 +241,9 @@ model Order {
   paymentId  String?     @unique
   trackingNo String?
   status     OrderStatus @default(pending)
-  shopId     String? // optional — used in multi-shop setups
+  shopId     String?
 
-  // Staff traceability
+  // ✅ STAFF TRACKING
   approvedById  String?
   shippedById   String?
   deliveredById String?
@@ -248,10 +254,12 @@ model Order {
 
   createdAt DateTime @default(now())
 
-  user        User? @relation(fields: [userId], references: [id])
-  approvedBy  User? @relation("OrderApprovedBy", fields: [approvedById], references: [id])
-  shippedBy   User? @relation("OrderShippedBy", fields: [shippedById], references: [id])
-  deliveredBy User? @relation("OrderDeliveredBy", fields: [deliveredById], references: [id])
+  // ✅ RELATIONS (FIXED NAMES)
+  user User? @relation("UserOrders", fields: [userId], references: [id])
+
+  approvedBy  User? @relation("ApprovedBy", fields: [approvedById], references: [id])
+  shippedBy   User? @relation("ShippedBy", fields: [shippedById], references: [id])
+  deliveredBy User? @relation("DeliveredBy", fields: [deliveredById], references: [id])
 
   items   OrderItem[]
   events  OrderEvent[]
