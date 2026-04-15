@@ -38,15 +38,17 @@ const uploadFromPath = async (filePath) => {
    SCHEMA
 ================================ */
 
-const productSchema = z.object({
+const updateProductSchema = z.object({
   name: z.string().min(3),
   description: z.string().optional(),
-  price: z.coerce.number().positive().optional(),
-  stock: z.coerce.number().int().nonnegative().optional(),
-  variants: z.string().optional(),
   categoryId: z.string(),
-  isBestseller: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional().default(false),
-  isPopular: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional().default(false)
+
+  price: z.coerce.number().optional(),
+  stock: z.coerce.number().optional(),
+  variants: z.string().optional(),
+
+  isBestseller: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional(),
+  isPopular: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional()
 })
 
 /* ================================
@@ -61,7 +63,7 @@ export const createProduct = async (req, res, next) => {
     // ================================
     // VALIDATE INPUT FIRST
     // ================================
-    const validation = productSchema.safeParse(req.body)
+    const validation = updateProductSchema.safeParse(req.body)
     if (!validation.success) {
       return res.status(400).json({
         message: validation.error?.errors?.[0]?.message || "Invalid input"
@@ -69,7 +71,11 @@ export const createProduct = async (req, res, next) => {
     }
 
     const data = validation.data
-
+    if (!data.variants && (!data.price || data.stock === undefined)) {
+      return res.status(400).json({
+        message: "Provide either variants or price & stock"
+      })
+    }
     // ✅ NEW VALIDATION LOGIC
     if (!data.variants && (!data.price || data.stock === undefined)) {
       return res.status(400).json({
@@ -481,7 +487,7 @@ export const updateProduct = async (req, res, next) => {
   try {
     let variantsFromClient = []
 
-    if (req.body.variants) {
+    if (variants) {
       try {
         variantsFromClient = JSON.parse(req.body.variants)
       } catch (e) {
@@ -499,7 +505,16 @@ export const updateProduct = async (req, res, next) => {
       })
     }
 
-    const { name, price, stock, categoryId, description, isBestseller, isPopular } = validation.data
+    const {
+      name,
+      price,
+      stock,
+      categoryId,
+      description,
+      isBestseller,
+      isPopular,
+      variants
+    } = data
 
     const product = await prisma.product.findUnique({
       where: { id },
