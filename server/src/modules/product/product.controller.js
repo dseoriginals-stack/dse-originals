@@ -485,15 +485,6 @@ export const searchProducts = async (req, res) => {
 
 export const updateProduct = async (req, res, next) => {
   try {
-    let variantsFromClient = []
-
-    if (variants) {
-      try {
-        variantsFromClient = JSON.parse(req.body.variants)
-      } catch (e) {
-        return res.status(400).json({ message: "Invalid variants format" })
-      }
-    }
     const { id } = req.params
 
 
