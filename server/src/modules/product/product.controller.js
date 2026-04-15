@@ -479,7 +479,17 @@ export const searchProducts = async (req, res) => {
 
 export const updateProduct = async (req, res, next) => {
   try {
+    let variantsFromClient = []
+
+    if (req.body.variants) {
+      try {
+        variantsFromClient = JSON.parse(req.body.variants)
+      } catch (e) {
+        return res.status(400).json({ message: "Invalid variants format" })
+      }
+    }
     const { id } = req.params
+
 
     const validation = productSchema.safeParse(req.body)
 
@@ -543,17 +553,20 @@ export const updateProduct = async (req, res, next) => {
             create: [{ url: imageUrl, isPrimary: true }]
           }
         }),
-
-        // ✅ update first variant
-        ...(product.variants.length > 0 && {
+        ...(variantsFromClient.length > 0 && {
           variants: {
-            update: {
-              where: { id: product.variants[0].id },
-              data: {
-                price: new Prisma.Decimal(price),
-                stock
+            deleteMany: {}, // remove old variants
+            create: variantsFromClient.map((v) => ({
+              sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+              price: new Prisma.Decimal(v.price),
+              stock: parseInt(String(v.stock)) || 0,
+              attributes: {
+                create: v.attributes.map((a) => ({
+                  name: a.name,
+                  value: a.value
+                }))
               }
-            }
+            }))
           }
         })
       }
