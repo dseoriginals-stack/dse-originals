@@ -487,9 +487,6 @@ export const updateProduct = async (req, res, next) => {
   try {
     const { id } = req.params
 
-
-    const validation = updateProductSchema.safeParse(req.body)
-
     if (!validation.success) {
       return res.status(400).json({
         message: validation.error?.errors?.[0]?.message || "Invalid input"
