@@ -84,7 +84,7 @@ async function issueTokens(user, req, res, isOAuth = false) {
   })
 
   if (isOAuth) {
-    return res.redirect(`${process.env.CLIENT_URL}/?auth=success`);
+    return res.redirect(`${process.env.CLIENT_URL}/account?login=success`);
   }
 
   return res.json({
@@ -182,12 +182,20 @@ router.get("/google", passport.authenticate("google", {
 }))
 
 router.get("/google/callback", (req, res, next) => {
+
   passport.authenticate("google", { session: false }, async (err, user) => {
+
+    console.log("GOOGLE CALLBACK ERROR:", err)
+    console.log("GOOGLE CALLBACK USER:", user)
+
     if (err || !user) {
       return res.redirect(`${process.env.CLIENT_URL}/account?error=oauth_failed`);
     }
+
     return await issueTokens(user, req, res, true);
+
   })(req, res, next);
+
 });
 
 /* =============================
