@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
@@ -38,6 +38,34 @@ export default function HomePage({ initialProducts }: Props) {
 
     return () => clearInterval(interval)
   }, [])
+
+  /* =========================
+     AUTO-SCROLL FEATURED
+  ========================= */
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const [isHovered, setIsHovered] = useState(false)
+
+  useEffect(() => {
+    if (!carouselRef.current || isHovered) return;
+
+    const interval = setInterval(() => {
+      const container = carouselRef.current;
+      if (!container) return;
+
+      const firstChild = container.children[0] as HTMLElement;
+      const scrollAmount = firstChild ? firstChild.offsetWidth + 16 : 300; // padding approx
+
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      
+      if (container.scrollLeft >= maxScroll - 10) {
+        container.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        container.scrollBy({ left: scrollAmount, behavior: "smooth" });
+      }
+    }, 3500);
+
+    return () => clearInterval(interval);
+  }, [isHovered]);
 
   const featured = useMemo(() => products.filter(p => !p.isBestseller).slice(0, 6), [products])
   const bestsellers = useMemo(() => products.filter(p => p.isBestseller), [products])
@@ -181,7 +209,14 @@ export default function HomePage({ initialProducts }: Props) {
             </motion.div>
           </div>
 
-          <div className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide snap-x pb-6 -mx-4 px-4 md:mx-0 md:px-0">
+          <div 
+            ref={carouselRef}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            onTouchStart={() => setIsHovered(true)}
+            onTouchEnd={() => setIsHovered(false)}
+            className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide snap-x pb-6 -mx-4 px-4 md:mx-0 md:px-0"
+          >
             {featured.map((p, i) => (
               <motion.div
                 key={p.id}

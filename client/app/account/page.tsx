@@ -529,7 +529,7 @@ function AccountLoginForm({ login, oauthError }: any) {
 
   return (
     <div className="flex-1 flex flex-col pt-4 md:pt-0">
-      <h3 className="text-2xl md:text-3xl font-[1000] text-[var(--text-heading)] mb-2 tracking-tighter leading-none">Access DSE Originals</h3>
+      <h3 className="text-2xl md:text-3xl font-[1000] text-[var(--text-heading)] mb-2 tracking-tighter leading-none">Access DSEoriginals</h3>
       <p className="text-[var(--text-muted)] text-[10px] md:text-sm font-bold uppercase tracking-wider mb-6 md:mb-10">Continue with social or login below</p>
       {error && <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-xs font-bold mb-6 flex items-center gap-2 border border-red-100 animate-shake">
         <AlertCircle size={16} /> {error}

@@ -30,7 +30,8 @@ export type ProductCardType = {
   name: string
   price: number
   slug: string
-  image: string
+  image: string | null
   variantId: string
   isBestseller?: boolean
+  variants?: ProductVariant[]
 }

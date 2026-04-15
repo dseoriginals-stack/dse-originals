@@ -72,7 +72,7 @@ export default function ProductCard({
       }}
       className="group block cursor-pointer h-full"
     >
-      <div className="glass-card h-full flex flex-col relative overflow-hidden group-hover:border-[var(--border-focus)] transition-all bg-[var(--bg-card)]">
+      <div className="h-full flex flex-col relative overflow-hidden rounded-2xl md:rounded-3xl bg-white/60 backdrop-blur-md transition-all duration-300 group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
 
         {/* SHINE EFFECT (Removed for flatter design) */}
 
@@ -95,14 +95,14 @@ export default function ProductCard({
         </button>
 
         {/* IMAGE */}
-        <div className="relative aspect-square image-zoom-container bg-[#E7ECEF]/50 w-full">
+        <div className="relative aspect-[4/5] w-full overflow-hidden">
           <Image
             src={imageUrl}
             alt={product.name}
             fill
             priority={priority}
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-            className="object-cover"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
           />
 
           {/* DESKTOP CTA */}
@@ -128,16 +128,16 @@ export default function ProductCard({
         </div>
 
         {/* CONTENT */}
-        <div className="p-3 md:p-5 flex-1 flex flex-col justify-between bg-transparent relative z-10">
+        <div className="px-4 pt-4 pb-5 md:px-5 md:pt-5 md:pb-6 flex-1 flex flex-col justify-between">
           <div>
-            <p className="text-[10px] md:text-xs text-[var(--brand-accent)] uppercase tracking-wider font-semibold mb-1">Collection</p>
-            <h3 className="text-sm md:text-base font-bold text-[var(--text-heading)] line-clamp-2 leading-snug group-hover:text-[var(--brand-accent)] transition-colors">
+            <p className="text-[10px] tracking-[0.18em] text-[var(--text-muted)] uppercase font-semibold mb-1">Collection</p>
+            <h3 className="text-sm md:text-base font-semibold text-[var(--text-heading)] leading-snug line-clamp-2 tracking-tight">
               {product.name}
             </h3>
           </div>
 
           <div className="flex items-end justify-between mt-3 md:mt-4">
-            <span className="text-base md:text-xl font-bold text-[var(--brand-primary)]">
+            <span className="text-base md:text-lg font-semibold text-[var(--text-heading)]">
               ₱{Number(product.price || 0).toLocaleString()}
             </span>
 

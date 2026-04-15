@@ -6,7 +6,7 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { getImageUrl } from "@/lib/image"
-import { ProductCardType } from "@/types/product"
+import { ProductCardType, ProductVariant } from "@/types/product"
 import { useCart } from "@/context/CartContext"
 
 export default function ProductModal({
@@ -21,6 +21,10 @@ export default function ProductModal({
   const [qty, setQty] = useState(1)
   const [loading, setLoading] = useState(false)
   const [added, setAdded] = useState(false)
+
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
+    product.variants?.[0] || null
+  )
 
   const imageUrl = product.image
     ? getImageUrl(product.image)
@@ -42,9 +46,9 @@ export default function ProductModal({
     try {
       await addToCart({
         productId: product.id,
-        variantId: product.variantId,
+        variantId: selectedVariant ? selectedVariant.id : product.variantId,
         name: product.name,
-        price: product.price,
+        price: selectedVariant ? Number(selectedVariant.price) : product.price,
         quantity: qty,
         image: imageUrl,
       })
@@ -107,6 +111,37 @@ export default function ProductModal({
           <p className="text-sm text-[var(--text-muted)] leading-relaxed">
             Experience the highest quality with this premium product, designed exactly with your aesthetic and practical needs in mind.
           </p>
+
+          {/* VARIANTS */}
+          {product.variants && product.variants.length > 0 && (
+            <div>
+              <p className="text-sm text-gray-500 mb-2">Select Variant</p>
+              <div className="flex gap-2 flex-wrap">
+                {product.variants.map((v) => {
+                  const isOut = v.stock === 0
+                  const isActive = selectedVariant?.id === v.id
+
+                  return (
+                    <button
+                      key={v.id}
+                      disabled={isOut}
+                      onClick={() => setSelectedVariant(v)}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 border-2 ${isOut
+                        ? "opacity-40 bg-gray-50 border-gray-100 line-through cursor-not-allowed text-gray-500"
+                        : isActive
+                          ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-md drop-shadow-sm scale-[1.02]"
+                          : "bg-transparent border-[var(--border-light)] text-[var(--text-main)] hover:border-[var(--brand-primary)] hover:bg-[var(--bg-main)]"
+                        }`}
+                    >
+                      {v.attributes && v.attributes.length > 0
+                        ? v.attributes.map((a: any) => a.value).join(" / ")
+                        : "Default Size"}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
 
           {/* QUANTITY */}
           <div>

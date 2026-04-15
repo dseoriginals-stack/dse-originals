@@ -104,6 +104,33 @@ export const createProduct = async (req, res, next) => {
     }
 
     // ================================
+    // GENERATE VARIANTS BASED ON CATEGORY
+    // ================================
+    const catNameLower = category.name.toLowerCase();
+    const catIdLower = String(category.id).toLowerCase();
+    
+    let sizes = [];
+    if (catNameLower.includes('apparel') || catNameLower.includes('dsecollection') || catIdLower.includes('apparel') || catIdLower.includes('dsecollection')) {
+      sizes = ["XS", "S", "M", "L", "XL", "2XL"];
+    } else if (catNameLower.includes('perfume') || catIdLower.includes('perfume')) {
+      sizes = ["30ml", "55ml"];
+    } else {
+      sizes = ["Default Size"];
+    }
+
+    const variantsCreate = sizes.map(size => ({
+      sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}-${size.replace(/[^a-zA-Z0-9]/g, '')}`,
+      name: size === "Default Size" ? "Default" : `Size ${size}`,
+      price: new Prisma.Decimal(price),
+      stock: parseInt(String(stock)) || 0,
+      attributes: size === "Default Size" ? undefined : {
+        create: [
+          { name: "Size", value: size }
+        ]
+      }
+    }));
+
+    // ================================
     // CREATE PRODUCT (WITH SELF-HEALING FALLBACK)
     // ================================
     const slug = await generateSlug(name)
@@ -120,14 +147,7 @@ export const createProduct = async (req, res, next) => {
         }
       }),
       variants: {
-        create: [
-          {
-            sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-            name: "Default",
-            price: new Prisma.Decimal(price),
-            stock: parseInt(String(stock)) || 0
-          }
-        ]
+        create: variantsCreate
       }
     }
 
@@ -235,11 +255,16 @@ export const getProducts = async (req, res) => {
           isBestseller: true,
 
           variants: {
-            take: 1,
             select: {
               id: true,
               price: true,
-              stock: true
+              stock: true,
+              attributes: {
+                select: {
+                  name: true,
+                  value: true
+                }
+              }
             }
           }
         },
@@ -266,7 +291,8 @@ export const getProducts = async (req, res) => {
           
         variantId: p.variants.length > 0
           ? p.variants[0].id
-          : ""
+          : "",
+        variants: p.variants
       })),
       pagination: {
         total,
@@ -308,7 +334,11 @@ export const getProductBySlugController = async (req, res) => {
           orderBy: { isPrimary: "desc" }
         },
 
-        variants: true,
+        variants: {
+          include: {
+            attributes: true
+          }
+        },
 
         category: {
           select: { id: true, name: true }
@@ -379,10 +409,16 @@ export const searchProducts = async (req, res) => {
         },
 
         variants: {
-          take: 1,
           select: {
             id: true,
-            price: true
+            price: true,
+            stock: true,
+            attributes: {
+              select: {
+                name: true,
+                value: true
+              }
+            }
           }
         }
       }
@@ -395,7 +431,8 @@ export const searchProducts = async (req, res) => {
         slug: p.slug,
         image: p.images?.[0]?.url || null,
         price: Number(p.variants?.[0]?.price || 0),
-        variantId: p.variants?.[0]?.id || ""
+        variantId: p.variants?.[0]?.id || "",
+        variants: p.variants
       }))
     })
   } catch (err) {

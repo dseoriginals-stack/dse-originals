@@ -148,7 +148,7 @@ export default function ProductClient() {
     <div className="max-w-[1300px] mx-auto py-6 md:py-10 px-4 md:px-8 pb-28">
 
       <div className="grid lg:grid-cols-2 gap-6 md:gap-10">
-        
+
         {/* IMAGE */}
         <div>
           <div className="relative bg-[var(--bg-surface)] rounded-2xl md:rounded-3xl border border-[var(--border-light)] shadow-xl w-full aspect-square overflow-hidden flex items-center justify-center group">
@@ -171,11 +171,10 @@ export default function ProductClient() {
                 <button
                   key={i}
                   onClick={() => setActiveImage(img.url)}
-                  className={`relative overflow-hidden rounded-lg w-14 h-14 flex-shrink-0 transition-all ${
-                    isActive
-                      ? "ring-2 ring-[var(--brand-primary)] ring-offset-2 opacity-100 shadow-sm"
-                      : "border border-[var(--border-light)] opacity-60 hover:opacity-100"
-                  }`}
+                  className={`relative overflow-hidden rounded-lg w-14 h-14 flex-shrink-0 transition-all ${isActive
+                    ? "ring-2 ring-[var(--brand-primary)] ring-offset-2 opacity-100 shadow-sm"
+                    : "border border-[var(--border-light)] opacity-60 hover:opacity-100"
+                    }`}
                 >
                   <Image
                     src={getImageUrl(img.url)}
@@ -209,32 +208,31 @@ export default function ProductClient() {
 
           {/* VARIANTS */}
           <div>
-             <h3 className="text-[10px] font-bold text-[var(--text-heading)] uppercase tracking-[0.15em] mb-2.5">Select Variant</h3>
-             <div className="flex gap-2 flex-wrap">
-               {product.variants.map((v) => {
-                 const isOut = v.stock === 0
-                 const isActive = variant?.id === v.id
+            <h3 className="text-[10px] font-bold text-[var(--text-heading)] uppercase tracking-[0.15em] mb-2.5">Select Variant</h3>
+            <div className="flex gap-2 flex-wrap">
+              {product.variants.map((v) => {
+                const isOut = v.stock === 0
+                const isActive = variant?.id === v.id
 
-                 return (
-                   <button
-                     key={v.id}
-                     disabled={isOut}
-                     onClick={() => setVariant(v)}
-                     className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 border-2 ${
-                       isOut
-                         ? "opacity-40 bg-gray-50 border-gray-100 line-through cursor-not-allowed text-gray-500"
-                         : isActive
-                         ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-md drop-shadow-sm scale-[1.02]"
-                         : "bg-transparent border-[var(--border-light)] text-[var(--text-main)] hover:border-[var(--brand-primary)] hover:bg-[var(--bg-main)]"
-                     }`}
-                   >
-                     {v.attributes?.length
-                       ? v.attributes.map((a: any) => a.value).join(" / ")
-                       : "Default Size"}
-                   </button>
-                 )
-               })}
-             </div>
+                return (
+                  <button
+                    key={v.id}
+                    disabled={isOut}
+                    onClick={() => setVariant(v)}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 border-2 ${isOut
+                      ? "opacity-40 bg-gray-50 border-gray-100 line-through cursor-not-allowed text-gray-500"
+                      : isActive
+                        ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-md drop-shadow-sm scale-[1.02]"
+                        : "bg-transparent border-[var(--border-light)] text-[var(--text-main)] hover:border-[var(--brand-primary)] hover:bg-[var(--bg-main)]"
+                      }`}
+                  >
+                    {v.attributes?.length
+                      ? v.attributes.map((a: any) => a.value).join(" / ")
+                      : "Default Size"}
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
           {/* STOCK */}
@@ -314,7 +312,7 @@ export default function ProductClient() {
       <div className="fixed bottom-0 left-0 right-0 glass-header border-t p-4 md:hidden pb-safe">
         <div className="flex gap-4 items-center max-w-lg mx-auto">
           <div className="flex-1">
-             <div className="text-xs text-[var(--text-muted)] font-bold uppercase tracking-wider">Total</div>
+            <div className="text-xs text-[var(--text-muted)] font-bold uppercase tracking-wider">Total</div>
             <div className="font-bold text-base text-[var(--brand-primary)]">₱{Number(price * qty).toLocaleString()}</div>
           </div>
 

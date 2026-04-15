@@ -25,6 +25,7 @@ export function transformProductToCard(
     image,
     price,
     variantId: p.variantId || variant?.id || "",
-    isBestseller: !!p.isBestseller
+    isBestseller: !!p.isBestseller,
+    variants: p.variants || product.variants || []
   }
 }
