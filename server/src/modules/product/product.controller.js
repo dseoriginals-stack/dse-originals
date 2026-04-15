@@ -488,7 +488,7 @@ export const updateProduct = async (req, res, next) => {
     const { id } = req.params
 
 
-    const validation = productSchema.safeParse(req.body)
+    const validation = updateProductSchema.safeParse(req.body)
 
     if (!validation.success) {
       return res.status(400).json({
