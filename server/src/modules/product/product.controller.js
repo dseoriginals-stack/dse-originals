@@ -13,7 +13,6 @@ import {
 /* ================================
    HELPERS
 ================================ */
-
 const uploadFromPath = async (filePath) => {
   try {
     const result = await cloudinary.uploader.upload(filePath, {
@@ -487,11 +486,15 @@ export const updateProduct = async (req, res, next) => {
   try {
     const { id } = req.params
 
+    // Validate input
+    const validation = updateProductSchema.safeParse(req.body)
     if (!validation.success) {
       return res.status(400).json({
         message: validation.error?.errors?.[0]?.message || "Invalid input"
       })
     }
+
+    const data = validation.data
 
     const {
       name,
@@ -504,6 +507,16 @@ export const updateProduct = async (req, res, next) => {
       variants
     } = data
 
+    let variantsFromClient = []
+
+    if (variants) {
+      try {
+        variantsFromClient = JSON.parse(variants)
+      } catch (e) {
+        return res.status(400).json({ message: "Invalid variants format" })
+      }
+    }
+
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
@@ -515,64 +528,81 @@ export const updateProduct = async (req, res, next) => {
       return res.status(404).json({ message: "Product not found" })
     }
 
-    // ✅ Validate category exists
+    // Validate category exists
     if (categoryId) {
-      const cat = await prisma.category.findUnique({ where: { id: categoryId } })
-      if (!cat) return res.status(400).json({ message: "Invalid Category" })
+      const cat = await prisma.category.findFirst({
+        where: {
+          OR: [{ id: categoryId }, { slug: categoryId }]
+        }
+      })
+
+      if (!cat) {
+        return res.status(400).json({ message: "Invalid Category" })
+      }
     }
 
     let imageUrl = null
 
-    // ✅ upload new image if exists
+    // Upload new image if exists
     if (req.file) {
       try {
         const result = await uploadFromPath(req.file.path)
-
         if (result?.secure_url) {
           imageUrl = result.secure_url
         }
-
       } catch (err) {
         console.error("⚠️ CLOUDINARY UPDATE FAILED:", err.message)
       }
     }
 
-    const updated = await prisma.product.update({
-      where: { id },
-      data: {
-        name,
-        description,
-        isBestseller: !!isBestseller,
-        isPopular: !!isPopular,
+    const updateData = {
+      name,
+      description,
+      isBestseller: !!isBestseller,
+      isPopular: !!isPopular,
+      ...(categoryId && { categoryId })
+    }
 
-        ...(categoryId && {
-          categoryId: categoryId
-        }),
+    // Replace image if uploaded
+    if (imageUrl) {
+      updateData.images = {
+        deleteMany: {},
+        create: [{ url: imageUrl, isPrimary: true }]
+      }
+    }
 
-        // ✅ replace image if new one uploaded
-        ...(imageUrl && {
-          images: {
-            deleteMany: {}, // remove old
-            create: [{ url: imageUrl, isPrimary: true }]
-          }
-        }),
-        ...(variantsFromClient.length > 0 && {
-          variants: {
-            deleteMany: {}, // remove old variants
-            create: variantsFromClient.map((v) => ({
-              sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-              price: new Prisma.Decimal(v.price),
-              stock: parseInt(String(v.stock)) || 0,
-              attributes: {
-                create: v.attributes.map((a) => ({
-                  name: a.name,
-                  value: a.value
-                }))
-              }
+    // Replace variants if sent
+    if (variantsFromClient.length > 0) {
+      updateData.variants = {
+        deleteMany: {},
+        create: variantsFromClient.map((v) => ({
+          sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          price: new Prisma.Decimal(v.price),
+          stock: parseInt(String(v.stock)) || 0,
+          attributes: {
+            create: (v.attributes || []).map((a) => ({
+              name: a.name,
+              value: a.value
             }))
           }
-        })
+        }))
       }
+    } else if (price !== undefined || stock !== undefined) {
+      updateData.variants = {
+        deleteMany: {},
+        create: [
+          {
+            sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            price: new Prisma.Decimal(price || 0),
+            stock: parseInt(String(stock)) || 0
+          }
+        ]
+      }
+    }
+
+    const updated = await prisma.product.update({
+      where: { id },
+      data: updateData
     })
 
     await deleteCache("products:*")
@@ -581,12 +611,14 @@ export const updateProduct = async (req, res, next) => {
     res.json(updated)
   } catch (err) {
     console.error("❌ UPDATE PRODUCT ERROR:", err)
+
     if (err.message?.includes("Unknown argument")) {
       return res.status(500).json({
         message: "System sync in progress. Please wait 2 minutes for backend update.",
         details: "Prisma schema mismatch"
       })
     }
+
     next(err)
   }
 }

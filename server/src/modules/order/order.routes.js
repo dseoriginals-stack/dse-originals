@@ -1,7 +1,7 @@
 import express from "express"
 
 import prisma from "../../config/prisma.js"
-import authenticate from "../../middleware/auth.middleware.js"
+import authenticate, { authorize } from "../../middleware/auth.middleware.js"
 import requireRole from "../../middleware/role.middleware.js"
 
 import * as controller from "./order.controller.js"
@@ -22,12 +22,13 @@ router.get(
 )
 
 /* =============================
-   CHECKOUT
+  CHECKOUT
 ============================= */
 
-router.post("/checkout", controller.createOrder)
+// Authenticated checkout (for logged-in users)
+router.post("/checkout", authenticate, controller.createOrder)
 
-// optional order creation endpoint
+// Optional guest order creation endpoint
 router.post("/", controller.createOrder)
 
 /* =============================
@@ -37,7 +38,7 @@ router.post("/", controller.createOrder)
 router.get(
   "/",
   authenticate,
-  requireRole("admin"),
+  authorize("admin", "staff"),
   controller.getAllOrders
 )
 
@@ -46,6 +47,28 @@ router.put(
   authenticate,
   requireRole("staff"),
   controller.updateOrderStatus
+)
+
+/* Staff actions: approve / ship / deliver */
+router.patch(
+  "/:id/approve",
+  authenticate,
+  requireRole("staff"),
+  controller.approveOrder
+)
+
+router.patch(
+  "/:id/ship",
+  authenticate,
+  requireRole("staff"),
+  controller.shipOrder
+)
+
+router.patch(
+  "/:id/deliver",
+  authenticate,
+  requireRole("staff"),
+  controller.deliverOrder
 )
 
 /* =============================
@@ -115,9 +138,5 @@ router.get("/:id/tracking", authenticate, async (req, res) => {
 ============================= */
 
 router.post("/webhook", handleXenditWebhook)
-
-router.get("/", authenticate, requireRole("admin"), controller.getAllOrders) 
-
-
 
 export default router

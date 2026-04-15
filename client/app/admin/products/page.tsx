@@ -181,6 +181,7 @@ export default function AdminProducts() {
 
   function handleEdit(product: Product) {
     setEditing(product)
+
     setForm({
       name: product.name,
       description: product.description,
@@ -191,6 +192,30 @@ export default function AdminProducts() {
       isPopular: product.isPopular,
       image: null
     })
+
+    if (product.variants?.length) {
+      const firstAttr = product.variants[0]?.attributes?.[0]?.value || "M"
+      const firstAttrName = product.variants[0]?.attributes?.[0]?.name || "Size"
+
+      setVariantType(firstAttrName.toLowerCase() === "volume" ? "volume" : "size")
+
+      const options = product.variants.map((v: any) => v.attributes?.[0]?.value).filter(Boolean)
+      setVariantOptions(options)
+
+      const mapped: Record<string, { price: string; stock: string }> = {}
+      product.variants.forEach((v: any) => {
+        const key = v.attributes?.[0]?.value
+        if (key) {
+          mapped[key] = {
+            price: String(v.price ?? ""),
+            stock: String(v.stock ?? "")
+          }
+        }
+      })
+
+      setVariantData(mapped)
+    }
+
     setPreview(product.image || null)
     setShowModal(true)
   }

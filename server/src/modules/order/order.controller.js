@@ -284,14 +284,24 @@ export const getAllOrders = async (req, res, next) => {
 
     const { status } = req.query
 
+    const where = {
+      ...(status && { status })
+    }
+
+    // If staff, limit to shop if present on user and order
+    if (req.user?.role === "staff" && req.user?.shopId) {
+      where.shopId = req.user.shopId
+    }
+
     const orders = await prisma.order.findMany({
-      where: {
-        ...(status && { status })
-      },
+      where,
       include: {
         items: true,
         user: true,
-        address: true
+        address: true,
+        approvedBy: { select: { id: true, name: true } },
+        shippedBy: { select: { id: true, name: true } },
+        deliveredBy: { select: { id: true, name: true } }
       },
       orderBy: {
         createdAt: "desc"
@@ -583,6 +593,139 @@ export const trackOrder = async (req, res, next) => {
 
     res.json(safeData)
 
+  } catch (err) {
+    next(err)
+  }
+}
+
+
+/* ============================
+STAFF ACTIONS: APPROVE / SHIP / DELIVER
+============================ */
+
+export const approveOrder = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    if (req.user.role !== "staff") return res.status(403).json({ message: "Forbidden" })
+
+    const result = await prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({ where: { id } })
+      if (!order) throw new Error("Order not found")
+
+      // shop scoping (if available)
+      if (req.user.shopId && order.shopId && req.user.shopId !== order.shopId) {
+        throw new Error("Forbidden: order not in your shop")
+      }
+
+      if (order.status === "approved") {
+        throw new Error("Order already approved")
+      }
+
+      if (order.status !== "pending" && order.status !== "paid") {
+        throw new Error("Cannot approve order in current state")
+      }
+
+      const updated = await tx.order.update({
+        where: { id },
+        data: {
+          status: "approved",
+          approvedById: req.user.id,
+          approvedAt: new Date()
+        }
+      })
+
+      await createOrderEvent(id, "approved", `Order approved by staff ${req.user.id}`)
+
+      return updated
+    })
+
+    res.json(result)
+  } catch (err) {
+    next(err)
+  }
+}
+
+export const shipOrder = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    if (req.user.role !== "staff") return res.status(403).json({ message: "Forbidden" })
+
+    const result = await prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({ where: { id } })
+      if (!order) throw new Error("Order not found")
+
+      if (req.user.shopId && order.shopId && req.user.shopId !== order.shopId) {
+        throw new Error("Forbidden: order not in your shop")
+      }
+
+      if (order.status !== "approved") {
+        throw new Error("Order must be approved before shipping")
+      }
+
+      const updated = await tx.order.update({
+        where: { id },
+        data: {
+          status: "shipped",
+          shippedById: req.user.id,
+          shippedAt: new Date()
+        }
+      })
+
+      await createOrderEvent(id, "shipped", `Order shipped by staff ${req.user.id}`)
+
+      return updated
+    })
+
+    // Send shipped email (best-effort)
+    try {
+      const fullOrder = await prisma.order.findUnique({ where: { id }, include: { user: true } })
+      const toEmail = fullOrder.user?.email || fullOrder.guestEmail
+      if (toEmail) await sendShippedEmail(toEmail, fullOrder)
+    } catch (e) {
+      logger.warn("Failed to send shipped email", { err: e })
+    }
+
+    res.json(result)
+  } catch (err) {
+    next(err)
+  }
+}
+
+export const deliverOrder = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    if (req.user.role !== "staff") return res.status(403).json({ message: "Forbidden" })
+
+    const result = await prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({ where: { id } })
+      if (!order) throw new Error("Order not found")
+
+      if (req.user.shopId && order.shopId && req.user.shopId !== order.shopId) {
+        throw new Error("Forbidden: order not in your shop")
+      }
+
+      if (order.status !== "shipped") {
+        throw new Error("Order must be shipped before delivery")
+      }
+
+      const updated = await tx.order.update({
+        where: { id },
+        data: {
+          status: "delivered",
+          deliveredById: req.user.id,
+          deliveredAt: new Date()
+        }
+      })
+
+      await createOrderEvent(id, "delivered", `Order delivered by staff ${req.user.id}`)
+
+      return updated
+    })
+
+    res.json(result)
   } catch (err) {
     next(err)
   }

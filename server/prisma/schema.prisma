@@ -13,19 +13,20 @@ datasource db {
 //////////////////////////////////////////////////////
 
 model User {
-  id            String   @id @default(uuid())
-  name          String
-  email         String   @unique
-  password      String?
-  provider      String   @default("local") // "google" | "local"
-  address       String?
-  phone         String?
-  role          Role     @default(customer)
-  luckyPoints    Int          @default(0)
-  lifetimePoints Int          @default(0)
-  tier           LoyaltyTier  @default(Faith)
-  emailVerified  Boolean      @default(true)
-  createdAt     DateTime @default(now())
+  id             String      @id @default(uuid())
+  name           String
+  email          String      @unique
+  password       String?
+  provider       String      @default("local") // "google" | "local"
+  address        String?
+  phone          String?
+  role           Role        @default(customer)
+  luckyPoints    Int         @default(0)
+  lifetimePoints Int         @default(0)
+  tier           LoyaltyTier @default(Faith)
+  emailVerified  Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  shopId         String? // optional - staff may belong to a shop
 
   carts         Cart[]
   orders        Order[]
@@ -35,8 +36,12 @@ model User {
   wishlists     Wishlist[]
   addresses     Address[]
   donations     Donation[]
+  orders        Order[]
+  orders        Order[]
+  orders        Order[]
 
   @@index([email])
+  @@index([shopId])
 }
 
 model EmailVerificationToken {
@@ -227,13 +232,27 @@ model Order {
   deliveryMethod String
   pickupTime     DateTime?
 
-  paymentId  String? @unique
+  paymentId  String?     @unique
   trackingNo String?
+  status     OrderStatus @default(pending)
+  shopId     String? // optional — used in multi-shop setups
 
-  status    OrderStatus @default(pending)
-  createdAt DateTime    @default(now())
+  // Staff traceability
+  approvedById  String?
+  shippedById   String?
+  deliveredById String?
 
-  user    User?         @relation(fields: [userId], references: [id])
+  approvedAt  DateTime?
+  shippedAt   DateTime?
+  deliveredAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  user        User? @relation(fields: [userId], references: [id])
+  approvedBy  User? @relation("OrderApprovedBy", fields: [approvedById], references: [id])
+  shippedBy   User? @relation("OrderShippedBy", fields: [shippedById], references: [id])
+  deliveredBy User? @relation("OrderDeliveredBy", fields: [deliveredById], references: [id])
+
   items   OrderItem[]
   events  OrderEvent[]
   address OrderAddress?
@@ -243,6 +262,10 @@ model Order {
 
   @@index([userId])
   @@index([status])
+  @@index([shopId])
+  @@index([approvedById])
+  @@index([shippedById])
+  @@index([deliveredById])
   @@index([createdAt])
   @@index([guestEmail])
   @@index([guestName])
@@ -367,16 +390,16 @@ model Story {
 //////////////////////////////////////////////////////
 
 model Donation {
-  id          String   @id @default(uuid())
-  amount      Decimal  @db.Decimal(10, 2)
-  email       String
-  name        String?
-  status      String   @default("pending") // pending, paid, cancelled
-  paymentId   String?  @unique // Xendit Invoice ID
-  invoiceUrl  String?
-  userId      String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(uuid())
+  amount     Decimal  @db.Decimal(10, 2)
+  email      String
+  name       String?
+  status     String   @default("pending") // pending, paid, cancelled
+  paymentId  String?  @unique // Xendit Invoice ID
+  invoiceUrl String?
+  userId     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   user User? @relation(fields: [userId], references: [id])
 }
@@ -487,6 +510,7 @@ enum Role {
 
 enum OrderStatus {
   pending
+  approved
   accepted
   paid
   shipped
