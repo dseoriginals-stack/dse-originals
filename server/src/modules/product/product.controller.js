@@ -41,9 +41,10 @@ const uploadFromPath = async (filePath) => {
 const productSchema = z.object({
   name: z.string().min(3),
   description: z.string().optional(),
-  price: z.coerce.number().positive(),
+  price: z.coerce.number().positive().optional(),
+  stock: z.coerce.number().int().nonnegative().optional(),
+  variants: z.string().optional(),
   categoryId: z.string(),
-  stock: z.coerce.number().int().nonnegative(),
   isBestseller: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional().default(false),
   isPopular: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional().default(false)
 })
@@ -61,6 +62,20 @@ export const createProduct = async (req, res, next) => {
     // VALIDATE INPUT FIRST
     // ================================
     const validation = productSchema.safeParse(req.body)
+    if (!validation.success) {
+      return res.status(400).json({
+        message: validation.error?.errors?.[0]?.message || "Invalid input"
+      })
+    }
+
+    const data = validation.data
+
+    // ✅ NEW VALIDATION LOGIC
+    if (!data.variants && (!data.price || data.stock === undefined)) {
+      return res.status(400).json({
+        message: "Provide either variants or price & stock"
+      })
+    }
 
     if (!validation.success) {
       return res.status(400).json({
@@ -69,9 +84,26 @@ export const createProduct = async (req, res, next) => {
       })
     }
 
-    const { name, price, stock, categoryId, description, isBestseller, isPopular } =
-      validation.data
+    const {
+      name,
+      price,
+      stock,
+      categoryId,
+      description,
+      isBestseller,
+      isPopular,
+      variants
+    } = data
 
+    let variantsFromClient = []
+
+    if (variants) {
+      try {
+        variantsFromClient = JSON.parse(variants)
+      } catch (e) {
+        return res.status(400).json({ message: "Invalid variants format" })
+      }
+    }
     // ================================
     // CHECK CATEGORY
     // ================================
@@ -106,29 +138,33 @@ export const createProduct = async (req, res, next) => {
     // ================================
     // GENERATE VARIANTS BASED ON CATEGORY
     // ================================
-    const catNameLower = category.name.toLowerCase();
     const catIdLower = String(category.id).toLowerCase();
-    
-    let sizes = [];
-    if (catNameLower.includes('apparel') || catNameLower.includes('dsecollection') || catIdLower.includes('apparel') || catIdLower.includes('dsecollection')) {
-      sizes = ["XS", "S", "M", "L", "XL", "2XL"];
-    } else if (catNameLower.includes('perfume') || catIdLower.includes('perfume')) {
-      sizes = ["30ml", "55ml"];
-    } else {
-      sizes = ["Default Size"];
-    }
 
-    const variantsCreate = sizes.map(size => ({
-      sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}-${size.replace(/[^a-zA-Z0-9]/g, '')}`,
-      name: size === "Default Size" ? "Default" : `Size ${size}`,
-      price: new Prisma.Decimal(price),
-      stock: parseInt(String(stock)) || 0,
-      attributes: size === "Default Size" ? undefined : {
-        create: [
-          { name: "Size", value: size }
-        ]
-      }
-    }));
+    let variantsCreate = []
+
+    if (variantsFromClient.length > 0) {
+      // ✅ USE FRONTEND DATA
+      variantsCreate = variantsFromClient.map((v) => ({
+        sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        price: new Prisma.Decimal(v.price),
+        stock: parseInt(String(v.stock)) || 0,
+        attributes: {
+          create: v.attributes.map((a) => ({
+            name: a.name,
+            value: a.value
+          }))
+        }
+      }))
+    } else {
+      // ⚠️ FALLBACK (optional)
+      variantsCreate = [
+        {
+          sku: `SKU-${Date.now()}`,
+          price: new Prisma.Decimal(price),
+          stock: parseInt(String(stock)) || 0
+        }
+      ]
+    }
 
     // ================================
     // CREATE PRODUCT (WITH SELF-HEALING FALLBACK)
@@ -217,15 +253,15 @@ export const getProducts = async (req, res) => {
       }),
       ...(minPrice || maxPrice
         ? {
-            variants: {
-              some: {
-                price: {
-                  ...(minPrice && { gte: new Prisma.Decimal(minPrice) }),
-                  ...(maxPrice && { lte: new Prisma.Decimal(maxPrice) })
-                }
+          variants: {
+            some: {
+              price: {
+                ...(minPrice && { gte: new Prisma.Decimal(minPrice) }),
+                ...(maxPrice && { lte: new Prisma.Decimal(maxPrice) })
               }
             }
           }
+        }
         : {})
     }
 
@@ -288,7 +324,7 @@ export const getProducts = async (req, res) => {
           ? Number(p.variants[0].price)
           : 0,
         isBestseller: p.isBestseller,
-          
+
         variantId: p.variants.length > 0
           ? p.variants[0].id
           : "",
@@ -468,8 +504,8 @@ export const updateProduct = async (req, res, next) => {
 
     // ✅ Validate category exists
     if (categoryId) {
-        const cat = await prisma.category.findUnique({ where: { id: categoryId } })
-        if (!cat) return res.status(400).json({ message: "Invalid Category" })
+      const cat = await prisma.category.findUnique({ where: { id: categoryId } })
+      if (!cat) return res.status(400).json({ message: "Invalid Category" })
     }
 
     let imageUrl = null
@@ -530,10 +566,10 @@ export const updateProduct = async (req, res, next) => {
   } catch (err) {
     console.error("❌ UPDATE PRODUCT ERROR:", err)
     if (err.message?.includes("Unknown argument")) {
-        return res.status(500).json({ 
-            message: "System sync in progress. Please wait 2 minutes for backend update.",
-            details: "Prisma schema mismatch" 
-        })
+      return res.status(500).json({
+        message: "System sync in progress. Please wait 2 minutes for backend update.",
+        details: "Prisma schema mismatch"
+      })
     }
     next(err)
   }
