@@ -288,13 +288,6 @@ export const getAllOrders = async (req, res, next) => {
       ...(status && { status })
     }
 
-    // If staff, limit to shop if present on user and order
-    /*
-    if (req.user?.role === "staff" && req.user?.shopId) {
-      where.shopId = req.user.shopId
-    }
-    */
-
     const orders = await prisma.order.findMany({
       where,
       include: {
@@ -615,10 +608,11 @@ export const approveOrder = async (req, res, next) => {
       const order = await tx.order.findUnique({ where: { id } })
       if (!order) throw new Error("Order not found")
 
-      // shop scoping (if available)
-      // if (req.user.shopId && order.shopId && req.user.shopId !== order.shopId) {
+      /*
+      if (req.user.shopId && order.shopId && req.user.shopId !== order.shopId) {
         throw new Error("Forbidden: order not in your shop")
       }
+      */
 
       if (order.status === "approved") {
         throw new Error("Order already approved")
@@ -658,9 +652,11 @@ export const shipOrder = async (req, res, next) => {
       const order = await tx.order.findUnique({ where: { id } })
       if (!order) throw new Error("Order not found")
 
-      // if (req.user.shopId && order.shopId && req.user.shopId !== order.shopId) {
+      /*
+      if (req.user.shopId && order.shopId && req.user.shopId !== order.shopId) {
         throw new Error("Forbidden: order not in your shop")
       }
+      */
 
       if (order.status !== "approved") {
         throw new Error("Order must be approved before shipping")
@@ -705,9 +701,11 @@ export const deliverOrder = async (req, res, next) => {
       const order = await tx.order.findUnique({ where: { id } })
       if (!order) throw new Error("Order not found")
 
-      // if (req.user.shopId && order.shopId && req.user.shopId !== order.shopId) {
+      /*
+      if (req.user.shopId && order.shopId && req.user.shopId !== order.shopId) {
         throw new Error("Forbidden: order not in your shop")
       }
+      */
 
       if (order.status !== "shipped") {
         throw new Error("Order must be shipped before delivery")
