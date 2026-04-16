@@ -12,8 +12,12 @@ import {
   ArrowLeft,
   ShoppingBag,
   ShieldCheck,
-  Truck
+  Truck,
+  Star,
+  Gift,
+  Coins
 } from "lucide-react"
+import { useAuth } from "@/context/AuthContext"
 import Link from "next/link"
 import toast from "react-hot-toast"
 
@@ -31,9 +35,13 @@ export default function CartPage() {
     selectedCount
   } = useCart()
 
-  const isAllSelected = cart.length > 0 && selectedItems.length === cart.length
-  const hasSelection = selectedItems.length > 0
-  const progress = Math.min((selectedSubtotal / FREE_SHIPPING_THRESHOLD) * 100, 100)
+  const { user } = useAuth() as any
+  const points = user?.luckyPoints || 0
+  
+  // Logic: 1 point = ₱1.00 discount (Staff can adjust this)
+  const [usePoints, setUsePoints] = useState(false)
+  const pointsDiscount = usePoints ? Math.min(points, selectedSubtotal) : 0
+  const finalTotal = selectedSubtotal - pointsDiscount
 
   if (!cart || cart.length === 0) {
     return (
@@ -74,31 +82,54 @@ export default function CartPage() {
           {/* LEFT: ITEMS LIST */}
           <div className="lg:col-span-2 space-y-4">
 
-            {/* FREE SHIPPING BANNER */}
-            <div className="bg-[var(--bg-card)] rounded-3xl p-6 border border-[var(--border-light)] shadow-sm mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Truck className={`w-5 h-5 ${selectedSubtotal >= FREE_SHIPPING_THRESHOLD ? 'text-emerald-500' : 'text-[var(--brand-primary)]'}`} />
-                  <span className="text-sm font-bold text-[var(--text-heading)]">
-                    {selectedSubtotal >= FREE_SHIPPING_THRESHOLD ? "Free Shipping Unlocked!" : "Free Shipping Goal"}
-                  </span>
-                </div>
-                <span className="text-xs font-black text-[var(--text-muted)]">
-                  {selectedSubtotal >= FREE_SHIPPING_THRESHOLD ? "CONGRATS" : `₱${(FREE_SHIPPING_THRESHOLD - selectedSubtotal).toLocaleString()} away`}
-                </span>
-              </div>
-              <div className="h-2 w-full bg-[var(--bg-main)] rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progress}%` }}
-                  className={`h-full rounded-full transition-all duration-700 ${selectedSubtotal >= FREE_SHIPPING_THRESHOLD ? 'bg-emerald-500' : 'bg-[var(--brand-primary)]'}`}
-                />
-              </div>
-              <p className="text-xs text-[var(--text-muted)] mt-3 font-medium">
-                {selectedSubtotal >= FREE_SHIPPING_THRESHOLD
-                  ? "Your entire selection qualifies for free nationwide delivery! 🚚"
-                  : "Add more faith-inspired items to your selection for free shipping."}
-              </p>
+            {/* LOYALTY POINTS DASHBOARD */}
+            <div className="bg-[var(--brand-primary)] rounded-[2.5rem] p-6 text-white shadow-2xl shadow-[var(--brand-primary)]/20 relative overflow-hidden mb-8 group">
+               {/* Background Glow */}
+               <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-white/10 transition-colors duration-700"></div>
+
+               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                  <div className="flex items-center gap-5">
+                     <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner">
+                        <Coins className="w-8 h-8 text-[var(--brand-soft)] animate-pulse" />
+                     </div>
+                     <div>
+                        <h2 className="text-xl font-black tracking-tight">DSE Loyalty Rewards</h2>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">You have <span className="text-[var(--brand-soft)]">{points.toLocaleString()}</span> points available</p>
+                     </div>
+                  </div>
+
+                  <button 
+                    onClick={() => {
+                        if (points === 0) {
+                            toast.error("You don't have enough points yet!")
+                            return
+                        }
+                        setUsePoints(!usePoints)
+                    }}
+                    className={`px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-500 shadow-lg ${
+                      usePoints 
+                      ? "bg-white text-[var(--brand-primary)] shadow-white/20 scale-[0.98]" 
+                      : "bg-[var(--brand-soft)] text-[var(--brand-primary)] hover:bg-white hover:scale-105"
+                    }`}
+                  >
+                    {usePoints ? "Points Applied" : "Redeem Points"}
+                  </button>
+               </div>
+
+               <div className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-4 border-t border-white/10 pt-6">
+                  <div className="space-y-1">
+                     <p className="text-[8px] font-black uppercase tracking-widest opacity-50">Points Value</p>
+                     <p className="text-sm font-black text-[var(--brand-soft)]">₱{points.toLocaleString()}.00</p>
+                  </div>
+                  <div className="space-y-1">
+                     <p className="text-[8px] font-black uppercase tracking-widest opacity-50">Points in Use</p>
+                     <p className="text-sm font-black text-emerald-400">-{usePoints ? `₱${pointsDiscount.toLocaleString()}` : "₱0"}</p>
+                  </div>
+                  <div className="space-y-1 hidden md:block">
+                     <p className="text-[8px] font-black uppercase tracking-widest opacity-50">Tier Status</p>
+                     <p className="text-sm font-black text-white">{user?.tier || "Faith"} Member</p>
+                  </div>
+               </div>
             </div>
 
             {/* SELECT ALL */}
@@ -217,9 +248,18 @@ export default function CartPage() {
                   </div>
 
                   <div className="flex justify-between items-center group">
-                    <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest group-hover:text-[var(--brand-accent)] transition-colors">Shipping Fee</span>
-                    <span className="text-xs font-bold text-[var(--text-muted)] italic">Calculated Next</span>
+                    <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest group-hover:text-[var(--brand-accent)] transition-colors">Voucher / Discount</span>
+                    <span className="text-xs font-bold text-emerald-500 italic">No Voucher Active</span>
                   </div>
+
+                  {usePoints && (
+                    <div className="flex justify-between items-center py-2 px-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                      <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-1">
+                        <Gift size={12} /> Points Reward
+                      </span>
+                      <span className="text-sm font-black text-emerald-700">-₱{pointsDiscount.toLocaleString()}</span>
+                    </div>
+                  )}
 
                   <div className="pt-6 border-t border-dashed border-[var(--border-light)]">
                     <div className="flex justify-between items-end">
@@ -227,7 +267,7 @@ export default function CartPage() {
                         <span className="text-[10px] font-black text-[var(--text-heading)] uppercase tracking-[0.2em]">Estimated Total</span>
                         <div className="h-1 w-8 bg-[var(--brand-accent)] rounded-full mt-1"></div>
                       </div>
-                      <span className="text-3xl font-black text-[var(--brand-primary)]">₱{selectedSubtotal.toLocaleString()}</span>
+                      <span className="text-3xl font-black text-[var(--brand-primary)]">₱{finalTotal.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
