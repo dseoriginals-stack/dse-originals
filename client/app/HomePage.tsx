@@ -84,15 +84,40 @@ export default function HomePage({ initialProducts }: Props) {
       const cat = (p.category || "").toLowerCase()
       const tags = (p.tags || []).map(t => t.toLowerCase())
       const name = (p.name || "").toLowerCase()
-      // Keywords for Apparel including specific product names/branding from screenshot
-      const apparelKeywords = ["apparel", "clothing", "shirt", "tee", "wear", "faith", "hope", "slvrgn", "hoodie"]
-      return apparelKeywords.some(key => name.includes(key) || cat.includes(key) || tags.includes(key))
+      const keywords = ["apparel", "clothing", "shirt", "tee", "wear", "faith", "hope", "slvrgn", "hoodie"]
+      return keywords.some(key => name.includes(key) || cat.includes(key) || tags.includes(key))
     })
   }, [products])
 
   const bestsellers = useMemo(() => products.filter(p => p.isBestseller), [products])
 
-  // Split into two sets for the infinite effect
+  // Refs for auto-glide
+  const pRef = useRef<HTMLDivElement>(null)
+  const aRef = useRef<HTMLDivElement>(null)
+  const [isPaused, setIsPaused] = useState(false)
+
+  useEffect(() => {
+    if (isPaused) return;
+    
+    const interval = setInterval(() => {
+      [pRef, aRef].forEach(ref => {
+        if (ref.current) {
+          const container = ref.current;
+          const maxScroll = container.scrollWidth - container.clientWidth;
+          
+          if (container.scrollLeft >= maxScroll - 10) {
+            container.scrollTo({ left: 0, behavior: "smooth" });
+          } else {
+            container.scrollBy({ left: 300, behavior: "smooth" });
+          }
+        }
+      });
+    }, 4500);
+
+    return () => clearInterval(interval);
+  }, [isPaused]);
+
+  // Split into two sets for a deeper loop
   const perfumeDisplay = [...perfumeProducts, ...perfumeProducts]
   const apparelDisplay = [...apparelProducts, ...apparelProducts]
 
@@ -189,10 +214,10 @@ export default function HomePage({ initialProducts }: Props) {
       {/* ================= CONTENT ================= */}
       <div className="max-w-7xl mx-auto px-4 relative z-10 pb-12">
 
-        {/* FEATURED PRODUCTS (SPLIT) */}
-        <section className="py-12 md:py-20">
-
-          <div className="flex flex-col sm:flex-row justify-between sm:items-end mb-10 md:mb-16 gap-6">
+        {/* FEATURED PRODUCTS */}
+        <section className="py-12 md:py-20 overflow-hidden">
+          
+          <div className="flex flex-col sm:flex-row justify-between sm:items-end mb-10 md:mb-16 gap-6 px-4">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -202,11 +227,11 @@ export default function HomePage({ initialProducts }: Props) {
               <div className="flex items-center gap-3 mb-4">
                 <div className="h-[2px] w-12 bg-[var(--brand-primary)]"></div>
                 <p className="text-sm font-black tracking-[0.3em] text-[var(--brand-primary)] uppercase">
-                  Curated Selection
+                  Featured
                 </p>
               </div>
               <h2 className="text-3xl md:text-5xl font-[1000] text-[var(--text-heading)] tracking-tighter">
-                Featured Products
+                Originals Collection
               </h2>
             </motion.div>
 
@@ -220,7 +245,7 @@ export default function HomePage({ initialProducts }: Props) {
             >
               <Link
                 href="/products"
-                className="group relative inline-flex items-center gap-3 bg-[var(--brand-primary)] text-white px-10 py-4 rounded-full font-[1000] text-[10px] uppercase tracking-[0.2em] shadow-[0_10px_40px_rgba(27,59,96,0.25)] hover:shadow-[0_15px_50px_rgba(27,59,96,0.4)] transition-all duration-500 overflow-hidden"
+                className="group relative inline-flex items-center gap-3 bg-[var(--brand-primary)] text-white px-10 py-4 rounded-full font-[1000] text-[10px] uppercase tracking-[0.2em] shadow-xl overflow-hidden"
               >
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <span className="relative z-10">Explore Full Catalog</span>
@@ -229,9 +254,9 @@ export default function HomePage({ initialProducts }: Props) {
             </motion.div>
           </div>
 
-          <div className="space-y-16 md:space-y-24">
-
-            {/* FEATURED PERFUME - INFINITE MARQUEE */}
+          <div className="space-y-16 md:space-y-32">
+            
+            {/* FEATURED PERFUME - HYBRID CAROUSEL */}
             {perfumeProducts.length > 0 && (
               <div className="space-y-8">
                 <div className="flex items-center gap-4 px-4">
@@ -239,32 +264,28 @@ export default function HomePage({ initialProducts }: Props) {
                   <div className="flex-1 h-[1px] bg-gray-100"></div>
                 </div>
                 
-                <div className="relative w-full overflow-hidden">
-                  <motion.div 
-                    className="flex gap-4 md:gap-8"
-                    animate={{ x: ["0%", "-50%"] }}
-                    transition={{
-                      x: {
-                        duration: 35,
-                        repeat: Infinity,
-                        ease: "linear",
-                      },
-                    }}
+                <div className="relative w-full">
+                  <div 
+                    ref={pRef}
+                    onMouseEnter={() => setIsPaused(true)}
+                    onMouseLeave={() => setIsPaused(false)}
+                    onTouchStart={() => setIsPaused(true)}
+                    className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x pb-4 px-4"
                   >
                     {perfumeDisplay.map((p, i) => (
                       <div
                         key={`${p.id}-${i}`}
-                        className="min-w-[46vw] sm:min-w-[280px] md:min-w-[320px] flex-shrink-0"
+                        className="min-w-[46vw] sm:min-w-[280px] md:min-w-[300px] snap-start flex-shrink-0"
                       >
                         <ProductCard product={transformProductToCard(p)} />
                       </div>
                     ))}
-                  </motion.div>
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* FEATURED APPAREL - INFINITE MARQUEE */}
+            {/* FEATURED APPAREL - HYBRID CAROUSEL */}
             {apparelProducts.length > 0 && (
               <div className="space-y-8">
                 <div className="flex items-center gap-4 px-4">
@@ -272,27 +293,23 @@ export default function HomePage({ initialProducts }: Props) {
                   <div className="flex-1 h-[1px] bg-gray-100"></div>
                 </div>
                 
-                <div className="relative w-full overflow-hidden">
-                  <motion.div 
-                    className="flex gap-4 md:gap-8"
-                    animate={{ x: ["-50%", "0%"] }}
-                    transition={{
-                      x: {
-                        duration: 35,
-                        repeat: Infinity,
-                        ease: "linear",
-                      },
-                    }}
+                <div className="relative w-full">
+                  <div
+                    ref={aRef}
+                    onMouseEnter={() => setIsPaused(true)}
+                    onMouseLeave={() => setIsPaused(false)}
+                    onTouchStart={() => setIsPaused(true)}
+                    className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x pb-4 px-4"
                   >
                     {apparelDisplay.map((p, i) => (
                       <div
                         key={`${p.id}-${i}`}
-                        className="min-w-[46vw] sm:min-w-[280px] md:min-w-[300px] flex-shrink-0"
+                        className="min-w-[46vw] sm:min-w-[280px] md:min-w-[300px] snap-start flex-shrink-0"
                       >
                         <ProductCard product={transformProductToCard(p)} />
                       </div>
                     ))}
-                  </motion.div>
+                  </div>
                 </div>
               </div>
             )}
