@@ -100,16 +100,25 @@ export default function CartPage() {
                         <Coins className="w-8 h-8 text-[var(--brand-soft)] animate-pulse" />
                      </div>
                      <div>
-                        <h2 className="text-xl font-black tracking-tight">DSE {canRedeem ? "Reward Unlocked" : "Lucky Points"}</h2>
+                        <h2 className="text-xl font-black tracking-tight">{!user ? "Join the Circle" : canRedeem ? "Reward Unlocked" : "Lucky Points"}</h2>
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">
-                          {canRedeem 
-                            ? `You have ${points.toLocaleString()} points ready to use!` 
-                            : `${points.toLocaleString()} / 50 points earned so far`}
+                          {!user 
+                            ? "Register to start earning Lucky Points" 
+                            : canRedeem 
+                              ? `You have ${points.toLocaleString()} points ready to use!` 
+                              : `${points.toLocaleString()} / 50 points earned so far`}
                         </p>
                      </div>
                   </div>
 
-                  {canRedeem ? (
+                  {!user ? (
+                    <Link 
+                      href="/login?redirect=/cart"
+                      className="px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest bg-[var(--brand-soft)] text-[var(--brand-primary)] hover:bg-white transition-all shadow-lg hover:scale-105"
+                    >
+                      Login to Earn
+                    </Link>
+                  ) : canRedeem ? (
                     <button 
                       onClick={() => setUsePoints(!usePoints)}
                       className={`px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-500 shadow-lg ${
@@ -137,7 +146,7 @@ export default function CartPage() {
                <div className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-4 border-t border-white/10 pt-6">
                   <div className="space-y-1">
                      <p className="text-[8px] font-black uppercase tracking-widest opacity-50">Points Value</p>
-                     <p className="text-sm font-black text-[var(--brand-soft)]">₱{points.toLocaleString()}.00</p>
+                     <p className="text-sm font-black text-[var(--brand-soft)]">{!user ? "Exclusive" : `₱${points.toLocaleString()}.00`}</p>
                   </div>
                   <div className="space-y-1">
                      <p className="text-[8px] font-black uppercase tracking-widest opacity-50">Points in Use</p>
@@ -145,7 +154,7 @@ export default function CartPage() {
                   </div>
                   <div className="space-y-1 hidden md:block">
                      <p className="text-[8px] font-black uppercase tracking-widest opacity-50">Tier Status</p>
-                     <p className="text-sm font-black text-white">{user?.tier || "Faith"} Member</p>
+                     <p className="text-sm font-black text-white">{!user ? "Member Only" : `${user?.tier || "Faith"} Member`}</p>
                   </div>
                </div>
             </div>
