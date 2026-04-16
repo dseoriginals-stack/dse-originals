@@ -113,10 +113,10 @@ export default function CartPage() {
 
                   {!user ? (
                     <Link 
-                      href="/login?redirect=/cart"
-                      className="px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest bg-[var(--brand-soft)] text-[var(--brand-primary)] hover:bg-white transition-all shadow-lg hover:scale-105"
+                      href="/account"
+                      className="px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-[var(--brand-soft)] text-[var(--brand-primary)] hover:bg-white transition-all shadow-lg hover:scale-105 text-center"
                     >
-                      Login to Earn
+                      Login to unlock loyalty points
                     </Link>
                   ) : canRedeem ? (
                     <button 
