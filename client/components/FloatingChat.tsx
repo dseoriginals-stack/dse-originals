@@ -1,59 +1,101 @@
 "use client"
 
-import { MessageCircle } from "lucide-react"
+import { MessageCircle, Mail, Facebook, LifeBuoy } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useState } from "react"
 
 export default function FloatingChat() {
-  const [isHovered, setIsHovered] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
-  // OFFICIAL FB PAGE LINK
   const FB_PAGE_URL = "https://www.facebook.com/DSEoriginals"
+  const SUPPORT_EMAIL = "mailto:support@dseoriginals.com"
+
+  const menuItems = [
+    { 
+      id: 'fb',
+      icon: <Facebook size={20} />, 
+      href: FB_PAGE_URL, 
+      label: "Facebook Page",
+      color: "bg-gradient-to-tr from-[#006AFF] to-[#00B2FF]"
+    },
+    { 
+      id: 'email',
+      icon: <Mail size={20} />, 
+      href: SUPPORT_EMAIL, 
+      label: "Email Support",
+      color: "bg-gradient-to-tr from-[#4F46E5] to-[#7C3AED]"
+    }
+  ]
 
   return (
-    <div className="fixed bottom-8 right-8 z-[9999]">
-      <AnimatePresence>
-        {isHovered && (
-          <motion.div
-            initial={{ opacity: 0, x: 20, scale: 0.8 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: 20, scale: 0.8 }}
-            className="absolute bottom-full right-0 mb-4 bg-white/90 backdrop-blur-xl border border-white/20 px-4 py-2 rounded-2xl shadow-2xl shadow-blue-500/10 pointer-events-none"
-          >
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 whitespace-nowrap">
-              Contact us on FB<span className="text-[var(--brand-primary)]">.</span>
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div 
+      className="fixed bottom-8 right-8 z-[9999]"
+      onMouseEnter={() => setIsOpen(true)}
+      onMouseLeave={() => setIsOpen(false)}
+    >
+      <div className="flex flex-col items-end gap-3 px-2 pb-2">
+        <AnimatePresence>
+          {isOpen && (
+            <div className="flex flex-col items-end gap-3 mb-2">
+              {menuItems.map((item, i) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 20, scale: 0.5 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.5 }}
+                  transition={{ 
+                    delay: (menuItems.length - 1 - i) * 0.1,
+                    type: "spring",
+                    stiffness: 260,
+                    damping: 20
+                  }}
+                  className="flex items-center gap-3 group"
+                >
+                  <span className="
+                    bg-white/90 backdrop-blur-xl border border-white/20 
+                    px-3 py-1.5 rounded-xl text-[10px] font-black uppercase 
+                    tracking-widest text-slate-500 shadow-xl opacity-0 
+                    group-hover:opacity-100 transition-opacity
+                  ">
+                    {item.label}
+                  </span>
+                  <a
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`
+                      w-12 h-12 flex items-center justify-center rounded-2xl 
+                      text-white shadow-2xl transition-transform hover:scale-110
+                      active:scale-95 ${item.color}
+                    `}
+                  >
+                    {item.icon}
+                  </a>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </AnimatePresence>
 
-      <motion.a
-        href={FB_PAGE_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        initial={{ scale: 0, rotate: -20 }}
-        animate={{ scale: 1, rotate: 0 }}
-        whileHover={{ 
-          scale: 1.1, 
-          y: -5,
-          rotate: [0, -5, 5, 0],
-          transition: { duration: 0.3 }
-        }}
-        whileTap={{ scale: 0.9 }}
-        className="
-          flex h-16 w-16 items-center justify-center rounded-[1.75rem]
-          bg-gradient-to-tr from-[#006AFF] to-[#00B2FF]
-          text-white shadow-[0_12px_24px_rgba(0,106,255,0.3)]
-          ring-4 ring-white/20
-        "
-      >
-        <MessageCircle size={32} strokeWidth={2.5} />
-        
-        {/* Pulsing notification dot */}
-        <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-emerald-400 border-2 border-white animate-pulse" />
-      </motion.a>
+        <motion.div
+          animate={{ 
+            rotate: isOpen ? 90 : 0,
+            scale: isOpen ? 1.1 : 1
+          }}
+          className="
+            relative h-16 w-16 flex items-center justify-center rounded-[1.75rem]
+            bg-white/80 backdrop-blur-3xl border-4 border-white
+            text-[#274C77] shadow-[0_20px_40px_rgba(39,76,119,0.15)]
+            cursor-pointer group
+          "
+        >
+          <LifeBuoy size={32} className="group-hover:text-[var(--brand-primary)] transition-colors" />
+          
+          {/* Status highlight */}
+          <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-emerald-400 border-4 border-white animate-pulse" />
+        </motion.div>
+      </div>
     </div>
   )
 }
+
