@@ -76,7 +76,7 @@ export default function HomePage({ initialProducts }: Props) {
       // Keywords for Perfumes including specific product names from screenshot
       const perfumeKeywords = ["perfume", "scent", "fragrance", "eau", "spray", "heaven", "sacred", "embrace", "serenity", "ml", "frag"]
       return perfumeKeywords.some(key => name.includes(key) || cat.includes(key) || tags.includes(key))
-    }).slice(0, 8)
+    })
   }, [products])
 
   const apparelProducts = useMemo(() => {
@@ -87,7 +87,7 @@ export default function HomePage({ initialProducts }: Props) {
       // Keywords for Apparel including specific product names/branding from screenshot
       const apparelKeywords = ["apparel", "clothing", "shirt", "tee", "wear", "faith", "hope", "slvrgn", "hoodie"]
       return apparelKeywords.some(key => name.includes(key) || cat.includes(key) || tags.includes(key))
-    }).slice(0, 8)
+    })
   }, [products])
 
   const bestsellers = useMemo(() => products.filter(p => p.isBestseller), [products])
