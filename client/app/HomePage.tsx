@@ -171,9 +171,6 @@ export default function HomePage({ initialProducts }: Props) {
 
       </section>
 
-      {/* ================= MISSION SECTION ================= */}
-      <MissionSection />
-
       {/* ================= CONTENT ================= */}
       <div className="max-w-7xl mx-auto px-4 relative z-10 pb-12">
 
@@ -285,6 +282,10 @@ export default function HomePage({ initialProducts }: Props) {
         </section>
 
       </div>
+
+      {/* ================= MISSION SECTION ================= */}
+      <MissionSection />
+
     </main>
   )
 }
