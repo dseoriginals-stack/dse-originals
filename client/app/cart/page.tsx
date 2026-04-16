@@ -100,8 +100,10 @@ export default function CartPage() {
                         <Coins className="w-8 h-8 text-[var(--brand-soft)] animate-pulse" />
                      </div>
                      <div>
-                        <h2 className="text-xl font-black tracking-tight">{!user ? "Join the Circle" : canRedeem ? "Reward Unlocked" : "Lucky Points"}</h2>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">
+                        <h2 className="text-xl font-black tracking-tight text-white leading-tight">
+                          {!user ? "Join the Circle" : canRedeem ? "Reward Unlocked" : "Lucky Points"}
+                        </h2>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand-soft)] mt-1">
                           {!user 
                             ? "Register to start earning Lucky Points" 
                             : canRedeem 
@@ -262,7 +264,7 @@ export default function CartPage() {
             <div className="lg:sticky lg:top-24 space-y-6">
               <div className="bg-[var(--bg-card)] rounded-[2.5rem] p-8 border border-[var(--border-light)] shadow-xl shadow-[var(--brand-primary)]/5 overflow-hidden relative">
                 {/* Decorative Elements */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--bg-main)] rounded-full -mr-16 -mt-16 flex items-center justify-center pt-8 pr-8">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--bg-main)] rounded-full -mr-12 -mt-12 flex items-center justify-center pt-6 pr-6">
                   <ShoppingBag className="w-12 h-12 text-[var(--brand-soft)]/20" />
                 </div>
 
