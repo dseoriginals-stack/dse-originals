@@ -1,9 +1,11 @@
 "use client"
 
 import { useCart } from "@/context/CartContext"
+import { useWishlist } from "@/context/WishlistContext"
 import { useState } from "react"
 import { ProductCardType } from "@/types/product"
 import { Heart, Check, ShoppingBag } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -20,7 +22,9 @@ export default function ProductCard({
 }) {
   const router = useRouter()
   const { addToCart } = useCart()
-
+  const { toggleWishlist, isInWishlist } = useWishlist()
+  
+  const isWishlisted = isInWishlist(product.id)
   const [loading, setLoading] = useState(false)
   const [added, setAdded] = useState(false)
 
@@ -88,10 +92,24 @@ export default function ProductCard({
           onClick={(e) => {
             e.preventDefault()
             e.stopPropagation()
+            toggleWishlist(product.id)
           }}
-          className="absolute top-4 right-4 z-10 bg-white/60 backdrop-blur-md rounded-full p-2 hover:bg-[var(--brand-accent)] hover:text-white text-[var(--brand-primary)] transition-all duration-300 shadow-md border border-[var(--border-light)] group/heart"
+          className={`absolute top-4 right-4 z-10 rounded-full p-2 backdrop-blur-md transition-all duration-300 shadow-md border group/heart ${
+            isWishlisted 
+            ? 'bg-[var(--brand-primary)] border-transparent text-white' 
+            : 'bg-white/60 border-[var(--border-light)] text-[var(--brand-primary)] hover:bg-[var(--brand-accent)] hover:text-white'
+          }`}
         >
-          <Heart size={16} className="group-hover/heart:scale-110 transition-transform" />
+          <motion.div
+            whileTap={{ scale: 1.5 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <Heart 
+              size={16} 
+              fill={isWishlisted ? "currentColor" : "none"}
+              className={`${isWishlisted ? 'animate-heart-beat' : 'group-hover/heart:scale-110'} transition-all`} 
+            />
+          </motion.div>
         </button>
 
         {/* IMAGE */}

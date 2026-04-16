@@ -6,6 +6,7 @@ import { AuthProvider } from "@/context/AuthContext"
 import { Toaster } from "react-hot-toast"
 import AnimatedBackground from "@/components/AnimatedBackground"
 import { CartProvider } from "@/context/CartContext"
+import { WishlistProvider } from "@/context/WishlistContext"
 import Footer from "@/components/Footer"
 import FloatingChat from "@/components/FloatingChat"
 import RecentPurchasePopup from "@/components/RecentPurchasePopup"
@@ -22,7 +23,8 @@ export default function RootClientLayout({
   return (
     <AuthProvider>
       <CartProvider>
-        <Providers>
+        <WishlistProvider>
+          <Providers>
 
           <div className="fixed inset-0 -z-10">
             <AnimatedBackground />
@@ -60,7 +62,8 @@ export default function RootClientLayout({
             }}
           />
 
-        </Providers>
+          </Providers>
+        </WishlistProvider>
       </CartProvider>
     </AuthProvider>
   )
