@@ -20,7 +20,8 @@ export type ProductFull = {
   description?: string
   status?: string
   isBestseller?: boolean
-
+  category?: string
+  tags?: string[]
   images: ProductImage[]
   variants: ProductVariant[]
 }
