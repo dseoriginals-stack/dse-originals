@@ -27,38 +27,12 @@ export default function NotificationPanel({ onClose }: { onClose: () => void }) 
   async function fetchNotifications() {
     try {
       setLoading(true)
-      // Mocking for now, would be a real API call
-      // In a real app, this might be a table in DB
-      const mock: AdminNotification[] = [
-        {
-          id: "1",
-          type: "order",
-          title: "New Order Received",
-          message: "A new order #82A1B has been placed by a guest.",
-          read: false,
-          createdAt: new Date().toISOString(),
-          link: "/admin/orders"
-        },
-        {
-          id: "2",
-          type: "stock",
-          title: "Low Stock Alert",
-          message: "Product 'Marine Shirt' is running low (2 left).",
-          read: false,
-          createdAt: new Date(Date.now() - 3600000).toISOString(),
-          link: "/admin/products"
-        },
-        {
-          id: "3",
-          type: "payment",
-          title: "Payment Approval Required",
-          message: "Order #7721A is awaiting manual payment verification.",
-          read: true,
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-          link: "/admin/orders"
-        }
-      ]
-      setNotifications(mock)
+      // Real implementation: Fetching from shared admin stats or specific notification endpoint
+      const res = await api.get<AdminNotification[]>("/admin/notifications")
+      setNotifications(res || [])
+    } catch (err) {
+      // If endpoint doesn't exist yet, we show empty state rather than fake data
+      setNotifications([])
     } finally {
       setLoading(false)
     }

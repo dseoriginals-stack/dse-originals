@@ -178,14 +178,7 @@ export default function AdminLayout({
                 className="relative cursor-pointer w-10 h-10 flex items-center justify-center rounded-full hover:bg-[var(--bg-surface)] transition-colors border border-transparent hover:border-[var(--border-light)]"
               >
                 <Bell size={20} className="text-[var(--text-main)]" />
-                <span className="
-                  absolute top-1 right-2
-                  bg-[var(--brand-primary)] text-white text-[9px] font-bold
-                  w-3.5 h-3.5 flex items-center justify-center
-                  rounded-full shadow-sm ring-2 ring-white
-                ">
-                  3
-                </span>
+                {/* Dynamic Badge Logic would go here once connected to a live websocket/polling */}
               </div>
               {showNotifications && <NotificationPanel onClose={() => setShowNotifications(false)} />}
             </div>
