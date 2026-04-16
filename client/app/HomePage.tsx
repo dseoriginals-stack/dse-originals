@@ -211,12 +211,16 @@ export default function HomePage({ initialProducts }: Props) {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               <Link
                 href="/products"
-                className="btn-outline inline-flex items-center gap-2 hover:bg-[var(--brand-soft)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] text-[var(--brand-primary)] border-[var(--brand-primary)] !px-8 !py-3 font-black uppercase tracking-widest text-xs"
+                className="group relative inline-flex items-center gap-3 bg-[var(--brand-primary)] text-white px-10 py-4 rounded-full font-[1000] text-[10px] uppercase tracking-[0.2em] shadow-[0_10px_40px_rgba(27,59,96,0.25)] hover:shadow-[0_15px_50px_rgba(27,59,96,0.4)] transition-all duration-500 overflow-hidden"
               >
-                Explore Full Catalog <ArrowRight size={16} />
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-900 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <span className="relative z-10">Explore Full Catalog</span>
+                <ArrowRight size={18} className="relative z-10 group-hover:translate-x-1 transition-transform" />
               </Link>
             </motion.div>
           </div>
