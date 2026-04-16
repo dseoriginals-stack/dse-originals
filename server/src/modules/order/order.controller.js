@@ -730,3 +730,78 @@ export const deliverOrder = async (req, res, next) => {
     next(err)
   }
 }
+
+/* ============================
+   CREATE MANUAL ORDER (POS)
+   ============================ */
+export const createManualOrder = async (req, res, next) => {
+  try {
+    const { 
+      items, 
+      guestName, 
+      paymentMethod = "cash", 
+      status = "paid" 
+    } = req.body
+
+    const staffId = req.user.id
+
+    if (!items || items.length === 0) {
+      return res.status(400).json({ message: "No items provided" })
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      let totalAmount = 0
+      const orderItems = []
+
+      for (const item of items) {
+        const variant = await tx.productVariant.findUnique({
+          where: { id: item.variantId },
+          include: { product: true }
+        })
+
+        if (!variant || variant.stock < item.quantity) {
+          throw new Error(`Insufficient stock for ${variant?.product?.name || 'item'}`)
+        }
+
+        // Deduct stock immediately
+        await tx.productVariant.update({
+          where: { id: item.variantId },
+          data: { stock: { decrement: item.quantity } }
+        })
+
+        totalAmount += Number(item.price) * item.quantity
+
+        orderItems.push({
+          variantId: variant.id,
+          productName: variant.product.name,
+          quantity: item.quantity,
+          price: item.price
+        })
+      }
+
+      // Create the manual order
+      return tx.order.create({
+        data: {
+          totalAmount,
+          status,
+          paymentMethod,
+          isManual: true,
+          guestName: guestName || "Walk-in Customer",
+          deliveryMethod: "pickup",
+          approvedById: staffId,
+          approvedAt: new Date(),
+          items: {
+            create: orderItems
+          }
+        },
+        include: { items: true }
+      })
+    })
+
+    await createOrderEvent(result.id, "paid", "Manual Walk-in Sale completed")
+
+    res.json(result)
+  } catch (err) {
+    next(err)
+  }
+}

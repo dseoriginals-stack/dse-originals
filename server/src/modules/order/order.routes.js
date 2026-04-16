@@ -31,6 +31,14 @@ router.post("/checkout", authenticate, controller.createOrder)
 // Optional guest order creation endpoint
 router.post("/", controller.createOrder)
 
+// Staff Walk-in Orders (Manual)
+router.post(
+  "/manual", 
+  authenticate, 
+  requireRole("staff"), 
+  controller.createManualOrder
+)
+
 /* =============================
    ADMIN / STAFF ROUTES
 ============================= */

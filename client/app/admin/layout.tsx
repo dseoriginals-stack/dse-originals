@@ -12,6 +12,7 @@ import AdminSearch from "@/components/admin/AdminSearch"
 
 const nav = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { name: "Walk-in Order", href: "/admin/manual-sale", icon: CreditCard },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { name: "Products", href: "/admin/products", icon: Package },
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
@@ -44,7 +45,7 @@ export default function AdminLayout({
     }
 
     // Staff path protection
-    const allowedStaffPaths = ["/admin", "/admin/products", "/admin/orders", "/admin/payments"]
+    const allowedStaffPaths = ["/admin", "/admin/products", "/admin/orders", "/admin/payments", "/admin/manual-sale"]
     if (user.role === "staff" && pathname !== "/admin" && !allowedStaffPaths.some(p => pathname.startsWith(p))) {
       router.push("/admin")
     }
@@ -95,7 +96,7 @@ export default function AdminLayout({
 
           {nav.filter(item => {
             if (isStaff) {
-              return ["Dashboard", "Products", "Orders", "Payments"].includes(item.name)
+              return ["Dashboard", "Products", "Orders", "Payments", "Walk-in Order"].includes(item.name)
             }
             return true
           }).map(item => {
