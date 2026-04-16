@@ -68,7 +68,16 @@ export default function HomePage({ initialProducts }: Props) {
     return () => clearInterval(interval);
   }, [isHovered]);
 
-  const featured = useMemo(() => products.filter(p => !p.isBestseller).slice(0, 6), [products])
+  const perfumeProducts = useMemo(() => 
+    products.filter(p => p.category?.toLowerCase() === "perfume" || p.tags?.some(t => t.toLowerCase() === "perfume")).slice(0, 8),
+    [products]
+  )
+  
+  const apparelProducts = useMemo(() => 
+    products.filter(p => p.category?.toLowerCase() === "apparel" || p.tags?.some(t => t.toLowerCase() === "apparel")).slice(0, 8),
+    [products]
+  )
+
   const bestsellers = useMemo(() => products.filter(p => p.isBestseller), [products])
 
   return (
@@ -78,7 +87,7 @@ export default function HomePage({ initialProducts }: Props) {
       <section className="relative w-full h-[65vh] md:h-[75vh] overflow-hidden -mt-[56px]">
 
         {/* Background Images */}
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
             initial={{ opacity: 0 }}
@@ -98,8 +107,6 @@ export default function HomePage({ initialProducts }: Props) {
           </motion.div>
         </AnimatePresence>
 
-        {/* No gradient overlays - preserving full image brightness as requested */}
-
         {/* Content */}
         <div className="absolute inset-0 z-20 flex flex-col items-start justify-center px-6 md:px-20 max-w-7xl mx-auto">
 
@@ -111,7 +118,7 @@ export default function HomePage({ initialProducts }: Props) {
           >
             <Sparkles size={16} className="text-[var(--brand-soft)]" />
             <span className="text-xs font-bold tracking-widest uppercase text-white">
-              New Collection 2026
+              Limited Drop 2026
             </span>
           </motion.div>
 
@@ -120,19 +127,18 @@ export default function HomePage({ initialProducts }: Props) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
             className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight max-w-2xl leading-[1.1] text-white"
-            style={{ textShadow: "0px 2px 6px rgba(0,0,0,0.6), 0px 1px 2px rgba(0,0,0,0.8)" }}
+            style={{ textShadow: "0px 2px 10px rgba(0,0,0,0.4)" }}
           >
-            Elevate Your <br className="hidden sm:block" /> <span className="text-[var(--brand-soft)]">Everyday Style</span>
+            Presence in <br className="hidden sm:block" /> <span className="text-[var(--brand-soft)]">Every Detail.</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-            className="text-sm md:text-base text-white max-w-lg mt-4 mb-7 font-medium"
-            style={{ textShadow: "0px 1px 4px rgba(0,0,0,0.6), 0px 1px 2px rgba(0,0,0,0.8)" }}
+            className="text-sm md:text-base text-white/90 max-w-lg mt-4 mb-7 font-medium"
           >
-            Discover premium apparel and essentials meticulously crafted for confidence, presence, and purpose.
+            From signature scents that capture the room to precision-cut apparel that defines it. Elevate your identity.
           </motion.p>
 
           <motion.div
@@ -143,16 +149,9 @@ export default function HomePage({ initialProducts }: Props) {
           >
             <Link
               href="/products"
-              className="btn-premium w-full sm:w-auto flex justify-center !px-5 !py-2.5 md:!px-7 md:!py-3 shadow-[0_8px_30px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
+              className="btn-premium w-full sm:w-auto flex justify-center !px-5 !py-2.5 md:!px-7 md:!py-3 shadow-2xl"
             >
-              Shop Collection <ArrowRight size={18} />
-            </Link>
-
-            <Link 
-              href="/stories"
-              className="btn-outline w-full sm:w-auto flex justify-center !px-5 !py-2.5 md:!px-7 md:!py-3 border-white/40 bg-black/20 backdrop-blur-md !text-white hover:!bg-white hover:!text-[var(--text-heading)] transition-all"
-            >
-              View Stories
+              Shop All Originals <ArrowRight size={18} />
             </Link>
           </motion.div>
 
@@ -164,7 +163,7 @@ export default function HomePage({ initialProducts }: Props) {
             <button
               key={i}
               onClick={() => setCurrentSlide(i)}
-              className={`transition-all duration-300 rounded-full ${i === currentSlide ? "w-8 h-2.5 bg-white shadow-[0_0_10px_rgba(255,255,255,0.4)]" : "w-2.5 h-2.5 bg-white/40 hover:bg-white/80"}`}
+              className={`transition-all duration-300 rounded-full ${i === currentSlide ? "w-8 h-2.5 bg-white shadow-lg" : "w-2.5 h-2.5 bg-white/40"}`}
             />
           ))}
         </div>
@@ -174,111 +173,105 @@ export default function HomePage({ initialProducts }: Props) {
       {/* ================= CONTENT ================= */}
       <div className="max-w-7xl mx-auto px-4 relative z-10 pb-12">
 
-        {/* FEATURED */}
-        <section className="py-8 md:py-14">
-
-          <div className="flex flex-col sm:flex-row justify-between sm:items-end mb-5 md:mb-8 gap-3">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="h-[2px] w-8 bg-[var(--brand-primary)]"></div>
-                <p className="text-sm font-bold tracking-[0.2em] text-[var(--brand-primary)] uppercase">
-                  Curated Selection
-                </p>
-              </div>
-              <h2 className="text-2xl md:text-3xl font-bold text-[var(--text-heading)]">
-                Featured Products
-              </h2>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <Link
-                href="/products"
-                className="btn-outline inline-flex items-center gap-2 hover:bg-[var(--brand-soft)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] text-[var(--brand-primary)] border-[var(--brand-primary)]"
-              >
-                View All <ArrowRight size={16} />
-              </Link>
-            </motion.div>
-          </div>
-
-          <div 
-            ref={carouselRef}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            onTouchStart={() => setIsHovered(true)}
-            onTouchEnd={() => setIsHovered(false)}
-            className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide snap-x pb-6 -mx-4 px-4 md:mx-0 md:px-0"
-          >
-            {featured.map((p, i) => (
+        {/* PERFUME SECTION */}
+        {perfumeProducts.length > 0 && (
+          <section className="py-12 md:py-20">
+            <div className="flex flex-col md:flex-row justify-between md:items-end mb-8 md:mb-12 gap-6">
               <motion.div
-                key={p.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="min-w-[44vw] sm:min-w-[200px] md:min-w-[240px] snap-start"
               >
-                <ProductCard product={transformProductToCard(p)} />
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-[2px] w-12 bg-[var(--brand-primary)]"></div>
+                  <p className="text-xs font-black tracking-[0.3em] text-[var(--brand-primary)] uppercase">The Scent Gallery</p>
+                </div>
+                <h2 className="text-3xl md:text-5xl font-[1000] text-[var(--text-heading)] tracking-tighter leading-none">Signature Perfumes</h2>
               </motion.div>
-            ))}
-          </div>
+              <Link href="/products?category=perfume" className="text-sm font-black uppercase tracking-widest text-[var(--brand-primary)] hover:underline flex items-center gap-2">
+                Explore Vault <ArrowRight size={16} />
+              </Link>
+            </div>
 
-        </section>
+            <div 
+              ref={carouselRef}
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+              className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x pb-8 -mx-4 px-4 md:mx-0 md:px-0"
+            >
+              {perfumeProducts.map((p, i) => (
+                <motion.div
+                  key={p.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="min-w-[65vw] sm:min-w-[300px] md:min-w-[340px] snap-start"
+                >
+                  <ProductCard product={transformProductToCard(p)} />
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        )}
 
-        {/* Divider */}
-        <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--border-light)] to-transparent my-8"></div>
+        {/* APPAREL SECTION */}
+        {apparelProducts.length > 0 && (
+          <section className="py-12 md:py-20">
+            <div className="flex flex-col md:flex-row justify-between md:items-end mb-8 md:mb-12 gap-6">
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-[2px] w-12 bg-black"></div>
+                  <p className="text-xs font-black tracking-[0.3em] text-black uppercase">Apparel Collective</p>
+                </div>
+                <h2 className="text-3xl md:text-5xl font-[1000] text-[var(--text-heading)] tracking-tighter leading-none">Essential Wear</h2>
+              </motion.div>
+              <Link href="/products?category=apparel" className="text-sm font-black uppercase tracking-widest text-[var(--text-heading)] hover:underline flex items-center gap-2">
+                Shop Collective <ArrowRight size={16} />
+              </Link>
+            </div>
+
+            <div className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x pb-8 -mx-4 px-4 md:mx-0 md:px-0">
+              {apparelProducts.map((p, i) => (
+                <motion.div
+                  key={p.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="min-w-[65vw] sm:min-w-[300px] md:min-w-[340px] snap-start"
+                >
+                  <ProductCard product={transformProductToCard(p)} />
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* BESTSELLERS */}
-        <section className="py-8 md:py-14">
-
-          <div className="mb-6 md:mb-8">
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="text-center flex flex-col items-center"
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="h-[2px] w-8 bg-[var(--brand-accent)]"></div>
-                <p className="text-sm font-bold tracking-[0.2em] text-[var(--brand-accent)] uppercase">
-                  Most Loved
-                </p>
-                <div className="h-[2px] w-8 bg-[var(--brand-accent)]"></div>
-              </div>
-              <h2 className="text-2xl md:text-3xl font-bold text-[var(--text-heading)] mb-2">
-                Bestsellers
-              </h2>
-              <p className="text-[var(--text-muted)] max-w-2xl mx-auto">
-                Explore the pieces that our community can't get enough of. Perfectly designed for any occasion.
-              </p>
-            </motion.div>
+        <section className="py-12 md:py-20">
+          <div className="text-center mb-10 md:mb-16">
+            <p className="text-xs font-black tracking-[0.4em] text-[var(--brand-accent)] uppercase mb-4">Trending Now</p>
+            <h2 className="text-3xl md:text-5xl font-[1000] text-[var(--text-heading)] tracking-tighter">Community Favorites</h2>
           </div>
 
-          <div className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide snap-x pb-6 -mx-4 px-4 md:mx-0 md:px-0">
-            {bestsellers.map((p, i) => (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+            {bestsellers.slice(0, 4).map((p, i) => (
               <motion.div 
                  key={p.id} 
                  initial={{ opacity: 0, scale: 0.95 }}
                  whileInView={{ opacity: 1, scale: 1 }}
                  viewport={{ once: true }}
-                 transition={{ duration: 0.5, delay: i * 0.05 }}
-                 className="min-w-[44vw] sm:min-w-[200px] md:min-w-[240px] snap-start"
+                 transition={{ delay: i * 0.05 }}
               >
                 <ProductCard product={transformProductToCard(p)} />
               </motion.div>
             ))}
           </div>
-
         </section>
 
       </div>
