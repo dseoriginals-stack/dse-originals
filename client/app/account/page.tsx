@@ -254,6 +254,34 @@ function AccountContent() {
                   </div>
                 </div>
 
+                {/* RESELLER INVITATION CARD */}
+                <div className="bg-gradient-to-br from-[#274C77] to-[#1B3B60] rounded-3xl md:rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden group shadow-2xl shadow-[var(--brand-primary)]/20">
+                  {/* Decorative Glows */}
+                  <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-[80px] -mr-40 -mt-40 group-hover:bg-white/10 transition-colors duration-700" />
+                  <div className="absolute bottom-0 left-0 w-40 h-40 bg-[var(--brand-accent)]/10 rounded-full blur-[60px] -ml-20 -mb-20" />
+                  
+                  <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
+                    <div className="text-center lg:text-left space-y-4">
+                      <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-xl border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand-soft)]">
+                        <TrendingUp size={14} /> Partnership Opportunity
+                      </div>
+                      <h3 className="text-3xl md:text-4xl font-[1000] tracking-tighter leading-tight">Want to be a reseller?</h3>
+                      <p className="text-white/60 text-sm md:text-base font-bold max-w-lg leading-relaxed">
+                        Join our mission and start your entrepreneurial journey with DSEoriginals. Low investment, high returns, and full marketing support.
+                      </p>
+                    </div>
+
+                    <Link 
+                      href="/reseller" 
+                      className="group/btn relative px-10 py-6 bg-[var(--brand-soft)] text-[var(--brand-primary)] rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:bg-white hover:scale-105 active:scale-95 transition-all duration-300 w-full lg:w-auto text-center overflow-hidden"
+                    >
+                      <span className="relative z-10 flex items-center justify-center gap-2">
+                        Get Started <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
+                      </span>
+                    </Link>
+                  </div>
+                </div>
+
                 <div>
                   <h3 className="text-xl font-black text-[var(--text-heading)] mb-6">Recent Activity</h3>
                   {orders.length === 0 ? (
