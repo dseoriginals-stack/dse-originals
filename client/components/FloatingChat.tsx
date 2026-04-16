@@ -3,32 +3,41 @@
 import { MessageCircle, Mail, Facebook, LifeBuoy } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useState } from "react"
+import toast from "react-hot-toast"
 
 export default function FloatingChat() {
   const [isOpen, setIsOpen] = useState(false)
 
   const FB_PAGE_URL = "https://www.facebook.com/DSEoriginals"
-  const SUPPORT_EMAIL = "mailto:support@dseoriginals.com"
+  const SUPPORT_EMAIL = "support@dseoriginals.com"
+
+  const handleAction = (item: any) => {
+    if (item.id === 'email') {
+      navigator.clipboard.writeText(SUPPORT_EMAIL)
+      toast.success("Email address copied!")
+    } else {
+      window.open(item.href, "_blank", "noopener,noreferrer")
+    }
+  }
 
   const menuItems = [
-    { 
+    {
       id: 'fb',
-      icon: <Facebook size={20} />, 
-      href: FB_PAGE_URL, 
+      icon: <Facebook size={20} />,
+      href: FB_PAGE_URL,
       label: "Facebook Page",
       color: "bg-gradient-to-tr from-[#006AFF] to-[#00B2FF]"
     },
-    { 
+    {
       id: 'email',
-      icon: <Mail size={20} />, 
-      href: SUPPORT_EMAIL, 
-      label: "Email Support",
+      icon: <Mail size={20} />,
+      label: "support@dseoriginals.com",
       color: "bg-gradient-to-tr from-[#4F46E5] to-[#7C3AED]"
     }
   ]
 
   return (
-    <div 
+    <div
       className="fixed bottom-8 right-8 z-[9999]"
       onMouseEnter={() => setIsOpen(true)}
       onMouseLeave={() => setIsOpen(false)}
@@ -43,7 +52,7 @@ export default function FloatingChat() {
                   initial={{ opacity: 0, y: 20, scale: 0.5 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.5 }}
-                  transition={{ 
+                  transition={{
                     delay: (menuItems.length - 1 - i) * 0.1,
                     type: "spring",
                     stiffness: 260,
@@ -59,9 +68,8 @@ export default function FloatingChat() {
                   ">
                     {item.label}
                   </span>
-                  <a
-                    href={item.href}
-                    {...(item.id === 'fb' ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                  <button
+                    onClick={() => handleAction(item)}
                     className={`
                       w-12 h-12 flex items-center justify-center rounded-2xl 
                       text-white shadow-2xl transition-transform hover:scale-110
@@ -69,7 +77,7 @@ export default function FloatingChat() {
                     `}
                   >
                     {item.icon}
-                  </a>
+                  </button>
                 </motion.div>
               ))}
             </div>
@@ -77,7 +85,7 @@ export default function FloatingChat() {
         </AnimatePresence>
 
         <motion.div
-          animate={{ 
+          animate={{
             rotate: isOpen ? 90 : 0,
             scale: isOpen ? 1.1 : 1
           }}
@@ -89,7 +97,7 @@ export default function FloatingChat() {
           "
         >
           <LifeBuoy size={32} className="group-hover:text-[var(--brand-primary)] transition-colors" />
-          
+
           {/* Status highlight */}
           <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-emerald-400 border-4 border-white animate-pulse" />
         </motion.div>
