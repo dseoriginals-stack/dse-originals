@@ -19,8 +19,9 @@ export default function RecentPurchasePopup() {
     const fetchProducts = async () => {
       try {
         const res = await api.get("/products?limit=10")
-        if (res && Array.isArray(res)) {
-          setProducts(res)
+        const productList = res?.data || res
+        if (Array.isArray(productList)) {
+          setProducts(productList)
         }
       } catch (e) {
         console.error("Popup fetch failed", e)
@@ -49,9 +50,9 @@ export default function RecentPurchasePopup() {
       setTimeout(() => setIsVisible(false), 6000)
     }
 
-    // Initial delay + Periodic interval (15-25s)
-    const initialTimer = setTimeout(triggerPopup, 10000)
-    const interval = setInterval(triggerPopup, 20000 + Math.random() * 5000)
+    // Initial delay (4s) + Periodic interval (15-25s)
+    const initialTimer = setTimeout(triggerPopup, 4000)
+    const interval = setInterval(triggerPopup, 15000 + Math.random() * 5000)
 
     return () => {
       clearTimeout(initialTimer)
