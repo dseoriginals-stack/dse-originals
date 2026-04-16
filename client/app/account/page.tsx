@@ -265,7 +265,7 @@ function AccountContent() {
                       <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-xl border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand-soft)]">
                         <TrendingUp size={14} /> Partnership Opportunity
                       </div>
-                      <h3 className="text-3xl md:text-4xl font-[1000] tracking-tighter leading-tight">Want to be a reseller?</h3>
+                      <h3 className="text-3xl md:text-4xl font-[1000] tracking-tighter leading-tight text-white">Want to be a reseller?</h3>
                       <p className="text-white/60 text-sm md:text-base font-bold max-w-lg leading-relaxed">
                         Join our mission and start your entrepreneurial journey with DSEoriginals. Low investment, high returns, and full marketing support.
                       </p>
@@ -280,19 +280,6 @@ function AccountContent() {
                       </span>
                     </Link>
                   </div>
-                </div>
-
-                <div>
-                  <h3 className="text-xl font-black text-[var(--text-heading)] mb-6">Recent Activity</h3>
-                  {orders.length === 0 ? (
-                    <div className="p-10 bg-[var(--bg-surface)] rounded-[2rem] text-center italic text-gray-400 font-bold text-sm">No recent transactions found</div>
-                  ) : (
-                    <div className="space-y-4">
-                      {orders.slice(0, 3).map((o: any) => (
-                        <OrderSummaryCard key={o.id} order={o} onClick={() => { setSelectedOrder(o); setActiveTab('orders'); }} />
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
             )}
