@@ -104,7 +104,7 @@ export default function ProductModal({
 
           {/* PRICE */}
           <div className="text-xl font-bold text-[var(--brand-primary)]">
-            ₱{Number(product.price).toLocaleString()}
+            ₱{Number(selectedVariant?.price || product.price).toLocaleString()}
           </div>
 
           {/* DESCRIPTION (placeholder for now) */}
