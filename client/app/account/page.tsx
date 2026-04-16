@@ -9,6 +9,7 @@ import {
   Settings,
   LogOut,
   ChevronRight,
+  ChevronDown,
   TrendingUp,
   CreditCard,
   Truck,
