@@ -73,8 +73,12 @@ export default function HomePage({ initialProducts }: Props) {
       const cat = (p.category || "").toLowerCase()
       const tags = (p.tags || []).map(t => t.toLowerCase())
       const name = (p.name || "").toLowerCase()
-      // Extremely greedy keywords to capture all scents
-      const keywords = ["perfume", "scent", "fragrance", "eau", "spray", "heaven", "sacred", "embrace", "serenity", "ml", "frag", "dse", "angelic", "collection"]
+      // Extremely greedy keywords based on flagship product list
+      const keywords = [
+        "perfume", "scent", "fragrance", "eau", "spray", "heaven", "sacred", 
+        "embrace", "serenity", "ml", "frag", "dse", "angelic", "collection",
+        "incensum", "eterna", "lume", "whisper", "credu", "bleu", "celestial", "aura", "angel's"
+      ]
       return keywords.some(key => name.includes(key) || cat.includes(key) || tags.includes(key))
     })
   }, [products])
