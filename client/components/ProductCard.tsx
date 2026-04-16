@@ -155,15 +155,22 @@ export default function ProductCard({
           </div>
 
           <div className="flex items-end justify-between mt-3 md:mt-4">
-            <span className="text-base md:text-lg font-semibold text-[var(--text-heading)]">
-              ₱{Number(product.price || 0).toLocaleString()}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-base md:text-lg font-bold text-[var(--text-heading)]">
+                {product.price > 0 ? `₱${product.price.toLocaleString()}` : "Price on Request"}
+              </span>
+              {product.stock > 0 ? (
+                <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest mt-1">In Stock</span>
+              ) : (
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic">Exclusive Series</span>
+              )}
+            </div>
 
             {/* MOBILE CTA */}
             <button
               onClick={handleAdd}
-              disabled={loading}
-              className="md:hidden flex items-center justify-center w-8 h-8 rounded-full bg-[var(--brand-primary)] text-white shadow-sm disabled:opacity-50 active:scale-95 transition-all hover:bg-[#1B3B60]"
+              disabled={loading || product.stock === 0}
+              className="md:hidden flex items-center justify-center w-8 h-8 rounded-full bg-[var(--brand-primary)] text-white shadow-sm disabled:opacity-30 active:scale-95 transition-all"
             >
               {added ? <Check size={14} /> : <ShoppingBag size={14} />}
             </button>

@@ -4,19 +4,26 @@ export function transformProductToCard(
   product: ProductFull
 ): ProductCardType {
 
-  const p = product as any // ✅ allow mixed API shapes
-  const variant = product.variants?.[0]
+  const p = product as any
+  const variants = product.variants || []
+  const variant = variants?.[0]
 
+  // Improve image finding
   const image =
-    p.image || // from /products
+    p.image || 
     product.images?.find(i => i.isPrimary)?.url ||
     product.images?.[0]?.url ||
     null
 
-  const price =
-    p.price !== undefined
-      ? Number(p.price)
-      : Number(variant?.price || 0)
+  // Improve price finding (pick lowest active price if possible)
+  let price = p.price !== undefined ? Number(p.price) : 0
+  if (price === 0 && variants.length > 0) {
+    const prices = variants.map(v => Number(v.price)).filter(p => p > 0)
+    price = prices.length > 0 ? Math.min(...prices) : Number(variant?.price || 0)
+  }
+
+  // Calculate total stock
+  const stock = variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0)
 
   return {
     id: product.id,
@@ -24,8 +31,9 @@ export function transformProductToCard(
     slug: product.slug,
     image,
     price,
+    stock,
     variantId: p.variantId || variant?.id || "",
     isBestseller: !!p.isBestseller,
-    variants: p.variants || product.variants || []
+    variants
   }
 }

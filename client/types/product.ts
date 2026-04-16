@@ -32,6 +32,7 @@ export type ProductCardType = {
   slug: string
   image: string | null
   variantId: string
+  stock: number
   isBestseller?: boolean
   variants?: ProductVariant[]
 }
