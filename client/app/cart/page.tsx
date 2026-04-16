@@ -1,6 +1,8 @@
 "use client"
 
+import { useState } from "react"
 import { useCart } from "@/context/CartContext"
+import { useAuth } from "@/context/AuthContext"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   X,
@@ -17,9 +19,9 @@ import {
   Gift,
   Coins
 } from "lucide-react"
-import { useAuth } from "@/context/AuthContext"
 import Link from "next/link"
 import toast from "react-hot-toast"
+import { getImageUrl } from "@/lib/image"
 
 const FREE_SHIPPING_THRESHOLD = 3000
 
@@ -42,6 +44,9 @@ export default function CartPage() {
   const [usePoints, setUsePoints] = useState(false)
   const pointsDiscount = usePoints ? Math.min(points, selectedSubtotal) : 0
   const finalTotal = selectedSubtotal - pointsDiscount
+
+  const isAllSelected = cart.length > 0 && selectedItems.length === cart.length
+  const hasSelection = selectedItems.length > 0
 
   if (!cart || cart.length === 0) {
     return (
@@ -171,9 +176,9 @@ export default function CartPage() {
                     </div>
 
                     {/* IMAGE */}
-                    <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl overflow-hidden bg-[var(--bg-surface)] border border-[var(--border-light)] shadow-inner flex-shrink-0">
+                    <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl overflow-hidden bg-[var(--bg-surface)] border border-[var(--border-light)] shadow-inner flex-shrink-0 relative">
                       <img
-                        src={item.image || "/placeholder.png"}
+                        src={getImageUrl(item.image)}
                         alt={item.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       />
