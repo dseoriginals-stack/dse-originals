@@ -37,22 +37,27 @@ export default function RecentPurchasePopup() {
       const randomProduct = products[Math.floor(Math.random() * products.length)]
       const randomLocation = LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)]
       const randomTime = Math.floor(Math.random() * 58) + 1
+      
+      // Randomly decide if it's a "Purchase" or a "Suggestion" (60/40 split)
+      const type = Math.random() > 0.4 ? 'purchase' : 'suggestion'
 
       setCurrent({
         ...randomProduct,
+        type,
         location: randomLocation,
-        timeAgo: `${randomTime} min ago`
+        timeAgo: `${randomTime} min ago`,
+        suggestionText: "Elevate your mission with this essential piece."
       })
       
       setIsVisible(true)
 
       // Auto-hide after 6 seconds
-      setTimeout(() => setIsVisible(false), 6000)
+      setTimeout(() => setIsVisible(false), 6500)
     }
 
     // Initial delay (4s) + Periodic interval (15-25s)
     const initialTimer = setTimeout(triggerPopup, 4000)
-    const interval = setInterval(triggerPopup, 15000 + Math.random() * 5000)
+    const interval = setInterval(triggerPopup, 18000 + Math.random() * 7000)
 
     return () => {
       clearTimeout(initialTimer)
@@ -87,14 +92,22 @@ export default function RecentPurchasePopup() {
 
           {/* Content */}
           <div className="flex-1 min-w-0 pr-4">
-            <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-[#274C77] mb-0.5 md:mb-1">
-              Recent Purchase<span className="text-emerald-400">.</span>
+            <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest mb-0.5 md:mb-1">
+              {current.type === 'purchase' ? (
+                <span className="text-[#274C77]">Recent Purchase<span className="text-emerald-400">.</span></span>
+              ) : (
+                <span className="text-[var(--brand-primary)]">DSE Recommends<span className="text-indigo-400 font-black">!</span></span>
+              )}
             </p>
             <h4 className="text-[11px] md:text-sm font-bold text-slate-800 line-clamp-1 leading-tight">
               {current.name}
             </h4>
             <p className="text-[9px] md:text-[11px] font-medium text-slate-500">
-              Someone in <span className="text-slate-700 font-bold">{current.location}</span> bought this {current.timeAgo}
+              {current.type === 'purchase' ? (
+                <>Someone in <span className="text-slate-700 font-bold">{current.location}</span> bought this {current.timeAgo}</>
+              ) : (
+                <span className="italic opacity-80">{current.suggestionText}</span>
+              )}
             </p>
           </div>
 
