@@ -289,9 +289,11 @@ export const getAllOrders = async (req, res, next) => {
     }
 
     // If staff, limit to shop if present on user and order
+    /*
     if (req.user?.role === "staff" && req.user?.shopId) {
       where.shopId = req.user.shopId
     }
+    */
 
     const orders = await prisma.order.findMany({
       where,
@@ -614,7 +616,7 @@ export const approveOrder = async (req, res, next) => {
       if (!order) throw new Error("Order not found")
 
       // shop scoping (if available)
-      if (req.user.shopId && order.shopId && req.user.shopId !== order.shopId) {
+      // if (req.user.shopId && order.shopId && req.user.shopId !== order.shopId) {
         throw new Error("Forbidden: order not in your shop")
       }
 
@@ -656,7 +658,7 @@ export const shipOrder = async (req, res, next) => {
       const order = await tx.order.findUnique({ where: { id } })
       if (!order) throw new Error("Order not found")
 
-      if (req.user.shopId && order.shopId && req.user.shopId !== order.shopId) {
+      // if (req.user.shopId && order.shopId && req.user.shopId !== order.shopId) {
         throw new Error("Forbidden: order not in your shop")
       }
 
@@ -703,7 +705,7 @@ export const deliverOrder = async (req, res, next) => {
       const order = await tx.order.findUnique({ where: { id } })
       if (!order) throw new Error("Order not found")
 
-      if (req.user.shopId && order.shopId && req.user.shopId !== order.shopId) {
+      // if (req.user.shopId && order.shopId && req.user.shopId !== order.shopId) {
         throw new Error("Forbidden: order not in your shop")
       }
 

@@ -1,37 +1,25 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase-browser"
 import { useRouter } from "next/navigation"
-import { api } from "@/lib/api"
+import { useAuth } from "@/context/AuthContext"
 
 export default function StaffLayout({ children }: any) {
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
+  const { user, loading } = useAuth()
 
   useEffect(() => {
-    const checkStaff = async () => {
-      const { data } = await supabase.auth.getUser()
+    if (loading) return
 
-      if (!data.user) {
-        router.push("/auth/login")
-        return
-      }
-
-      const session = await supabase.auth.getSession()
-      const token = session.data.session?.access_token
-
-      const user = await api.get("/auth/sync")
-
-      if (user.role !== "staff") {
-        router.push("/")
-      } else {
-        setLoading(false)
-      }
+    if (!user) {
+      router.push("/account?error=staff_required")
+      return
     }
 
-    checkStaff()
-  }, [router])
+    if (user.role !== "staff" && user.role !== "admin") {
+      router.push("/")
+    }
+  }, [user, loading, router])
 
   if (loading) return <div>Loading...</div>
 

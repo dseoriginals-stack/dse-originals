@@ -27,7 +27,7 @@ model User {
   emailVerified  Boolean     @default(true)
   createdAt      DateTime    @default(now())
 
-  shopId String?
+  // shopId String?
 
   carts Cart[]
 
@@ -47,7 +47,7 @@ model User {
   donations     Donation[]
 
   @@index([email])
-  @@index([shopId])
+  // @@index([shopId])
 }
 
 model EmailVerificationToken {
@@ -241,7 +241,7 @@ model Order {
   paymentId  String?     @unique
   trackingNo String?
   status     OrderStatus @default(pending)
-  shopId     String?
+  // shopId     String?
 
   // ✅ STAFF TRACKING
   approvedById  String?
@@ -270,7 +270,7 @@ model Order {
 
   @@index([userId])
   @@index([status])
-  @@index([shopId])
+  // @@index([shopId])
   @@index([approvedById])
   @@index([shippedById])
   @@index([deliveredById])

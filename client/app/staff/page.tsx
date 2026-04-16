@@ -1,22 +1,24 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase-browser"
 import { api } from "@/lib/api"
+import { useAuth } from "@/context/AuthContext"
 
 export default function StaffOrders() {
   const [orders, setOrders] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchOrders()
   }, [])
 
   const fetchOrders = async () => {
-    const session = await supabase.auth.getSession()
-    const token = session.data.session?.access_token
-
-    const data = await api.get("/orders")
-    setOrders(data)
+    try {
+      const data = await api.get("/orders/my-orders") // Using my-orders for now
+      setOrders(data || [])
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

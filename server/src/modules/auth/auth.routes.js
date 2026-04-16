@@ -50,6 +50,19 @@ const generateRefreshToken = (user) => {
    ISSUE TOKENS
 ============================= */
 
+function getClientURL(req) {
+  const referer = req.headers.referer
+  if (referer && (referer.includes("localhost") || referer.includes("vercel.app"))) {
+    try {
+      const url = new URL(referer)
+      return `${url.protocol}//${url.host}`
+    } catch {
+      return process.env.CLIENT_URL || "http://localhost:3000"
+    }
+  }
+  return process.env.CLIENT_URL || "https://dseoriginals.com"
+}
+
 async function issueTokens(user, req, res, isOAuth = false) {
   const accessToken = generateAccessToken(user)
   const refreshToken = generateRefreshToken(user)
@@ -69,22 +82,25 @@ async function issueTokens(user, req, res, isOAuth = false) {
     },
   })
 
-  res.cookie("accessToken", accessToken, {
+  // ✅ DYNAMIC COOKIE SECURITY
+  // If we are on Production but the client is Localhost, we must NOT use 'none' for sameSite
+  // because sameSite=none REQUIRES Secure=true, which fails on HTTP Localhost.
+  const origin = req.headers.origin || req.headers.referer || ""
+  const isLocalClient = origin.includes("localhost")
+  
+  const cookieOptions = {
     httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? "none" : "lax",
+    secure: isProd && !isLocalClient, // Only secure if Prod AND not local client
+    sameSite: (isProd && !isLocalClient) ? "none" : "lax",
     path: "/",
-  })
+  }
 
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? "none" : "lax",
-    path: "/",
-  })
+  res.cookie("accessToken", accessToken, cookieOptions)
+  res.cookie("refreshToken", refreshToken, cookieOptions)
 
   if (isOAuth) {
-    return res.redirect(`${process.env.CLIENT_URL}/account?login=success`);
+    const targetUrl = getClientURL(req)
+    return res.redirect(`${targetUrl}/account?login=success`);
   }
 
   return res.json({
@@ -103,11 +119,11 @@ async function issueTokens(user, req, res, isOAuth = false) {
 ============================= */
 
 /* =============================
-   REGISTER (DISABLED - MOVED TO GOOGLE ONLY)
-   ============================= */
-router.post("/register", (req, res) => {
+   REGISTER (DISABLED)
+============================= */
+router.post("/register", async (req, res) => {
   return res.status(403).json({
-    message: "Manual registration is disabled. Please use 'Continue with Google'."
+    message: "Manual registration is disabled. Please click 'Continue with Google' to create an account."
   })
 })
 
@@ -119,18 +135,13 @@ router.post("/register", (req, res) => {
 
 router.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body
-
-    if (!email || !password) {
-      return res.status(400).json({
-        message: "Email and password are required",
-      })
-    }
+    const validatedData = loginSchema.parse(req.body)
+    const { email, password } = validatedData
 
     const user = await prisma.user.findFirst({
       where: {
         email: {
-          equals: email,
+          equals: email.trim(),
           mode: "insensitive",
         },
       },

@@ -52,7 +52,7 @@ export default function AccountPage() {
 }
 
 function AccountContent() {
-  const { user, loading, logout, login, updateUser } = useAuth()
+  const { user, loading, logout, login, updateUser } = useAuth() as any
   const [orders, setOrders] = useState<any[]>([])
   const [loadingOrders, setLoadingOrders] = useState(false)
   const [activeTab, setActiveTab] = useState("overview")
@@ -69,10 +69,14 @@ function AccountContent() {
 
   useEffect(() => {
     const error = searchParams.get("error")
+    const success = searchParams.get("login") === "success"
+
     if (error === "no_account") {
       setOauthError("Account access denied. Please use the Google login button.")
     } else if (error === "oauth_failed") {
       setOauthError("Social authentication failed. Please try again.")
+    } else if (success) {
+      toast.success("Welcome back! Synchronizing profile...")
     }
   }, [searchParams])
 
@@ -538,7 +542,8 @@ function AccountLoginForm({ login, oauthError }: any) {
       <div className="mb-6">
         <button
           onClick={() => {
-            window.location.href = `${process.env.NEXT_PUBLIC_API_URL || "https://dse-originals.onrender.com"}/api/auth/google`
+            const apiBase = (process.env.NEXT_PUBLIC_API_URL || "https://dse-backend-g5qf.onrender.com").replace(/\/$/, "")
+            window.location.href = `${apiBase}/api/auth/google`
           }}
           className="w-full flex items-center justify-center gap-3 px-4 py-4 md:py-5 rounded-3xl bg-[var(--brand-primary)] hover:bg-[#1B3B60] text-white shadow-xl shadow-[#274C77]/20 transition-all font-[900] text-sm md:text-base uppercase tracking-widest group"
         >
