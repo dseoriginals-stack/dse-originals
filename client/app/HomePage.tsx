@@ -57,7 +57,7 @@ export default function HomePage({ initialProducts }: Props) {
       const scrollAmount = firstChild ? firstChild.offsetWidth + 16 : 300; // padding approx
 
       const maxScroll = container.scrollWidth - container.clientWidth;
-      
+
       if (container.scrollLeft >= maxScroll - 10) {
         container.scrollTo({ left: 0, behavior: "smooth" });
       } else {
@@ -78,7 +78,7 @@ export default function HomePage({ initialProducts }: Props) {
       return perfumeKeywords.some(key => name.includes(key) || cat.includes(key) || tags.includes(key))
     }).slice(0, 8)
   }, [products])
-  
+
   const apparelProducts = useMemo(() => {
     return products.filter(p => {
       const cat = (p.category || "").toLowerCase()
@@ -187,7 +187,7 @@ export default function HomePage({ initialProducts }: Props) {
 
         {/* FEATURED PRODUCTS (SPLIT) */}
         <section className="py-12 md:py-20">
-          
+
           <div className="flex flex-col sm:flex-row justify-between sm:items-end mb-10 md:mb-16 gap-6">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
@@ -218,7 +218,7 @@ export default function HomePage({ initialProducts }: Props) {
                 href="/products"
                 className="group relative inline-flex items-center gap-3 bg-[var(--brand-primary)] text-white px-10 py-4 rounded-full font-[1000] text-[10px] uppercase tracking-[0.2em] shadow-[0_10px_40px_rgba(27,59,96,0.25)] hover:shadow-[0_15px_50px_rgba(27,59,96,0.4)] transition-all duration-500 overflow-hidden"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-900 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <span className="relative z-10">Explore Full Catalog</span>
                 <ArrowRight size={18} className="relative z-10 group-hover:translate-x-1 transition-transform" />
               </Link>
@@ -226,7 +226,7 @@ export default function HomePage({ initialProducts }: Props) {
           </div>
 
           <div className="space-y-16 md:space-y-24">
-            
+
             {/* FEATURED PERFUME - Dedicated Carousel */}
             {perfumeProducts.length > 0 && (
               <div className="space-y-6">
@@ -234,7 +234,7 @@ export default function HomePage({ initialProducts }: Props) {
                   <h3 className="text-xl font-black text-[var(--text-heading)] tracking-tight">Featured Perfume</h3>
                   <div className="flex-1 h-[1px] bg-gray-100"></div>
                 </div>
-                <div 
+                <div
                   ref={carouselRef}
                   onMouseEnter={() => setIsHovered(true)}
                   onMouseLeave={() => setIsHovered(false)}
@@ -247,7 +247,7 @@ export default function HomePage({ initialProducts }: Props) {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: i * 0.1 }}
-                      className="min-w-[65vw] sm:min-w-[280px] md:min-w-[320px] snap-start"
+                      className="min-w-[46vw] sm:min-w-[280px] md:min-w-[320px] snap-start"
                     >
                       <ProductCard product={transformProductToCard(p)} />
                     </motion.div>
@@ -271,7 +271,7 @@ export default function HomePage({ initialProducts }: Props) {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: i * 0.1 }}
-                      className="min-w-[65vw] sm:min-w-[280px] md:min-w-[320px] snap-start"
+                      className="min-w-[46vw] sm:min-w-[280px] md:min-w-[320px] snap-start"
                     >
                       <ProductCard product={transformProductToCard(p)} />
                     </motion.div>
@@ -296,12 +296,12 @@ export default function HomePage({ initialProducts }: Props) {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {bestsellers.slice(0, 4).map((p, i) => (
-              <motion.div 
-                 key={p.id} 
-                 initial={{ opacity: 0, scale: 0.95 }}
-                 whileInView={{ opacity: 1, scale: 1 }}
-                 viewport={{ once: true }}
-                 transition={{ delay: i * 0.05 }}
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
               >
                 <ProductCard product={transformProductToCard(p)} />
               </motion.div>
