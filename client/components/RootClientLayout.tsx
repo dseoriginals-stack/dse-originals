@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast"
 import AnimatedBackground from "@/components/AnimatedBackground"
 import { CartProvider } from "@/context/CartContext"
 import Footer from "@/components/Footer"
+import FloatingChat from "@/components/FloatingChat"
 import { usePathname } from "next/navigation"
 
 export default function RootClientLayout({
@@ -30,6 +31,7 @@ export default function RootClientLayout({
             <Header />
             <main className="flex-1">{children}</main>
             {!isAdmin && <Footer />}
+            {!isAdmin && <FloatingChat />}
           </div>
 
           <Toaster 
