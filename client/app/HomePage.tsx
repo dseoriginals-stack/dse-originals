@@ -68,15 +68,23 @@ export default function HomePage({ initialProducts }: Props) {
     return () => clearInterval(interval);
   }, [isHovered]);
 
-  const perfumeProducts = useMemo(() => 
-    products.filter(p => p.category?.toLowerCase() === "perfume" || p.tags?.some(t => t.toLowerCase() === "perfume")).slice(0, 8),
-    [products]
-  )
+  const perfumeProducts = useMemo(() => {
+    return products.filter(p => {
+      const cat = p.category?.toLowerCase() || ""
+      const tags = p.tags?.map(t => t.toLowerCase()) || []
+      const name = p.name?.toLowerCase() || ""
+      return cat.includes("perfume") || tags.includes("perfume") || name.includes("perfume") || cat.includes("scent") || cat.includes("fragrance")
+    }).slice(0, 8)
+  }, [products])
   
-  const apparelProducts = useMemo(() => 
-    products.filter(p => p.category?.toLowerCase() === "apparel" || p.tags?.some(t => t.toLowerCase() === "apparel")).slice(0, 8),
-    [products]
-  )
+  const apparelProducts = useMemo(() => {
+    return products.filter(p => {
+      const cat = p.category?.toLowerCase() || ""
+      const tags = p.tags?.map(t => t.toLowerCase()) || []
+      const name = p.name?.toLowerCase() || ""
+      return cat.includes("apparel") || cat.includes("clothing") || cat.includes("shirt") || tags.includes("apparel") || tags.includes("clothing") || tags.includes("shirt")
+    }).slice(0, 8)
+  }, [products])
 
   const bestsellers = useMemo(() => products.filter(p => p.isBestseller), [products])
 
@@ -211,8 +219,8 @@ export default function HomePage({ initialProducts }: Props) {
 
           <div className="space-y-16 md:space-y-24">
             
-            {/* FEATURED PERFUME */}
-            {perfumeProducts.length > 0 && (
+            {/* FEATURED PERFUME (or Fallback if no specific categories found) */}
+            {perfumeProducts.length > 0 ? (
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
                   <h3 className="text-xl font-black text-[var(--text-heading)] tracking-tight">Featured Perfume</h3>
@@ -238,10 +246,25 @@ export default function HomePage({ initialProducts }: Props) {
                   ))}
                 </div>
               </div>
+            ) : (
+              // If no perfumes, show a generic featured row so the section isn't empty
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <h3 className="text-xl font-black text-[var(--text-heading)] tracking-tight">Featured Collection</h3>
+                  <div className="flex-1 h-[1px] bg-gray-100"></div>
+                </div>
+                <div className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x pb-4 -mx-4 px-4 md:mx-0 md:px-0">
+                  {products.slice(0, 6).map((p, i) => (
+                    <motion.div key={p.id} className="min-w-[65vw] sm:min-w-[280px] md:min-w-[320px] snap-start">
+                      <ProductCard product={transformProductToCard(p)} />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
             )}
 
-            {/* FEATURED APPAREL */}
-            {apparelProducts.length > 0 && (
+            {/* FEATURED APPAREL (Only if not already shown in fallback) */}
+            {apparelProducts.length > 0 && perfumeProducts.length > 0 && (
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
                   <h3 className="text-xl font-black text-[var(--text-heading)] tracking-tight">Featured Apparel</h3>
