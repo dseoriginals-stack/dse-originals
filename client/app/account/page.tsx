@@ -853,6 +853,58 @@ function OrderDetailedCard({ order, isSelected, onSelect }: { order: any, isSele
 ADDRESS MODAL
 ============================ */
 
+function PremiumSelect({ label, value, options, onChange, disabled, icon: Icon }: any) {
+  const [isOpen, setIsOpen] = useState(false)
+  const displayValue = options.find((o: any) => String(o.key || o.name) === String(value))?.name || label
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full px-6 py-4 bg-gray-50 border-2 rounded-2xl font-bold flex items-center justify-between transition-all outline-none ${disabled ? 'opacity-40 cursor-not-allowed' : 'hover:border-[var(--brand-primary)] focus:bg-white'} ${isOpen ? 'border-[var(--brand-primary)] bg-white ring-4 ring-[var(--brand-primary)]/5' : 'border-transparent'}`}
+      >
+        <div className="flex items-center gap-3">
+          {Icon && <Icon size={16} className="text-gray-400" />}
+          <span className={`text-[13px] ${value ? 'text-[var(--text-heading)]' : 'text-gray-400'}`}>{displayValue}</span>
+        </div>
+        <ChevronDown size={14} className={`text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <div className="fixed inset-0 z-[110]" onClick={() => setIsOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              className="absolute left-0 right-0 top-[calc(100%+8px)] z-[120] bg-white rounded-3xl border border-gray-100 shadow-2xl overflow-hidden max-h-[300px] overflow-y-auto custom-scrollbar"
+            >
+              <div className="p-2">
+                {options.map((opt: any) => (
+                  <button
+                    key={opt.key || opt.name}
+                    type="button"
+                    onClick={() => {
+                      onChange(opt.key || opt.name, opt.name)
+                      setIsOpen(false)
+                    }}
+                    className={`w-full text-left px-5 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${String(opt.key || opt.name) === String(value) ? 'bg-[var(--brand-primary)] text-white' : 'text-gray-500 hover:bg-gray-50'}`}
+                  >
+                    {opt.name}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 function AddressModal({ isOpen, onClose, onSuccess, initialData }: any) {
   const [form, setForm] = useState({
     label: initialData?.label || "Home",
@@ -872,7 +924,6 @@ function AddressModal({ isOpen, onClose, onSuccess, initialData }: any) {
 
   useEffect(() => {
     if (initialData) {
-      // Find keys for phil library
       const r = (regions as any[]).find((x: any) => x.name === initialData.region)
       if (r) setSelectedRegion(r.key)
       const p = (provinces as any[]).find((x: any) => x.name === initialData.province)
@@ -905,113 +956,108 @@ function AddressModal({ isOpen, onClose, onSuccess, initialData }: any) {
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md"
       onClick={onClose}
     >
       <motion.div
         initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-        className="bg-white w-full max-w-xl rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        className="bg-white w-full max-w-xl rounded-[3rem] shadow-[0_40px_100px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col max-h-[90vh]"
         onClick={e => e.stopPropagation()}
       >
-        <div className="p-8 md:p-10 overflow-y-auto custom-scrollbar flex-1">
-          <div className="flex justify-between items-center mb-10">
-            <div>
-              <h3 className="text-2xl font-[1000] text-[var(--text-heading)] mb-1 tracking-tighter">{initialData ? 'Update Location' : 'New Identity Point'}</h3>
-              <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest">Configure shipping destination</p>
-            </div>
+        <div className="p-8 md:p-12 overflow-y-auto custom-scrollbar flex-1">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-[1000] text-[var(--text-heading)] mb-1 tracking-tighter">{initialData ? 'Update Logistics' : 'Add Identity Point'}</h3>
+            <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Provision shipment destination</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex gap-2 mb-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="flex items-center justify-center gap-3">
               {['Home', 'Work'].map(l => (
                 <button
                   key={l} type="button"
                   onClick={() => setForm({ ...form, label: l })}
-                  className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${form.label === l ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white shadow-lg' : 'bg-white border-gray-100 text-gray-400'}`}
+                  className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border-2 transition-all flex items-center gap-2 ${form.label === l ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white shadow-xl shadow-[var(--brand-primary)]/20' : 'bg-white border-gray-100 text-gray-400 hover:border-gray-200'}`}
                 >
-                  {l === 'Work' ? <Briefcase size={12} className="inline mr-2" /> : <Home size={12} className="inline mr-2" />}
+                  {l === 'Work' ? <Briefcase size={14} /> : <Home size={14} />}
                   {l}
                 </button>
               ))}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Full Name</label>
-                <input required value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all text-[var(--text-heading)]" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">Full Identity Name</label>
+                <input required value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-[1.25rem] font-bold outline-none transition-all text-[var(--text-heading)] shadow-inner" placeholder="e.g. Maria Clara" />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Phone Number</label>
-                <input required value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all text-[var(--text-heading)]" />
+              <div className="space-y-2">
+                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">Contact Terminal</label>
+                <input required value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-[1.25rem] font-bold outline-none transition-all text-[var(--text-heading)] shadow-inner" placeholder="09XX XXX XXXX" />
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Street Address</label>
-              <input required value={form.street} onChange={e => setForm({ ...form, street: e.target.value })} className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none transition-all text-[var(--text-heading)]" />
+            <div className="space-y-2">
+              <label className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">Precise Street Landmark</label>
+              <input required value={form.street} onChange={e => setForm({ ...form, street: e.target.value })} className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-[1.25rem] font-bold outline-none transition-all text-[var(--text-heading)] shadow-inner" placeholder="Bldg No, Street Name, Landmark" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <select
-                required
-                value={selectedRegion}
-                onChange={e => {
-                  const key = e.target.value
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <PremiumSelect 
+                label="Region" 
+                value={selectedRegion} 
+                options={regions} 
+                icon={TrendingUp}
+                onChange={(key: string, name: string) => {
                   setSelectedRegion(key)
-                  setForm({ ...form, region: (regions as any[]).find((x: any) => x.key === key)?.name || "", province: "", city: "" })
+                  setForm({ ...form, region: name, province: "", city: "" })
+                  setSelectedProvince("")
                 }}
-                className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl font-bold outline-none text-[var(--text-heading)]"
-              >
-                <option value="">Region</option>
-                {(regions as any[]).map((r: any) => <option key={r.key} value={r.key}>{r.name}</option>)}
-              </select>
+              />
 
-              <select
-                required
+              <PremiumSelect 
+                label="Province" 
+                value={selectedProvince} 
+                options={filteredProvinces} 
                 disabled={!selectedRegion}
-                value={selectedProvince}
-                onChange={e => {
-                  const key = e.target.value
+                icon={MapPin}
+                onChange={(key: string, name: string) => {
                   setSelectedProvince(key)
-                  setForm({ ...form, province: (provinces as any[]).find((x: any) => x.key === key)?.name || "", city: "" })
+                  setForm({ ...form, province: name, city: "" })
                 }}
-                className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl font-bold outline-none disabled:opacity-50 text-[var(--text-heading)]"
-              >
-                <option value="">Province</option>
-                {filteredProvinces.map((p: any) => <option key={p.key} value={p.key}>{p.name}</option>)}
-              </select>
+              />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <select
-                required
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <PremiumSelect 
+                label="City / Municipality" 
+                value={form.city} 
+                options={filteredCities} 
                 disabled={!selectedProvince}
-                value={form.city}
-                onChange={e => setForm({ ...form, city: e.target.value })}
-                className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl font-bold outline-none disabled:opacity-50 text-[var(--text-heading)]"
-              >
-                <option value="">City</option>
-                {filteredCities.map((c: any) => <option key={c.key} value={c.name}>{c.name}</option>)}
-              </select>
+                icon={Search}
+                onChange={(key: string, name: string) => {
+                  setForm({ ...form, city: name })
+                }}
+              />
 
-              <input placeholder="Barangay" required value={form.barangay} onChange={e => setForm({ ...form, barangay: e.target.value })} className="w-full px-6 py-3.5 bg-gray-50 border-2 border-transparent focus:border-[var(--brand-primary)] rounded-2xl font-bold outline-none text-[var(--text-heading)]" />
+              <div className="relative">
+                <input placeholder="Barangay" required value={form.barangay} onChange={e => setForm({ ...form, barangay: e.target.value })} className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-[1.25rem] font-bold outline-none transition-all text-[var(--text-heading)] shadow-inner" />
+              </div>
             </div>
 
             <button
               type="button"
               onClick={() => setForm({ ...form, isDefault: !form.isDefault })}
-              className="flex items-center gap-3 py-2 group"
+              className="flex items-center gap-3 py-2 group mx-auto"
             >
-              <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all ${form.isDefault ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)]' : 'border-gray-200'}`}>
-                {form.isDefault && <CheckCircle2 size={12} className="text-white" />}
+              <div className={`w-6 h-6 rounded-xl border-2 flex items-center justify-center transition-all ${form.isDefault ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] shadow-lg shadow-[var(--brand-primary)]/20' : 'border-gray-100 group-hover:border-[var(--brand-primary)]'}`}>
+                {form.isDefault && <CheckCircle2 size={14} className="text-white" />}
               </div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-[var(--brand-primary)] transition">Set as default location</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 group-hover:text-[var(--text-heading)] transition">Set as Primary Location</span>
             </button>
 
             <div className="flex gap-4 pt-6">
-              <button type="button" onClick={onClose} className="flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-[var(--text-heading)] transition">Cancel</button>
-              <button disabled={loading} className="flex-[2] btn-premium !py-4 !rounded-2xl shadow-xl shadow-[var(--brand-primary)]/20 uppercase tracking-widest font-black">
-                {loading ? <Loader2 className="animate-spin mx-auto" size={18} /> : (initialData ? 'Update Destination' : 'Activate Location')}
+              <button type="button" onClick={onClose} className="flex-1 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-red-500 transition-colors">Discard</button>
+              <button disabled={loading} className="flex-[2] py-5 bg-[var(--brand-primary)] text-white rounded-[1.5rem] shadow-2xl shadow-[var(--brand-primary)]/30 uppercase tracking-[0.3em] font-black text-[11px] hover:scale-[1.02] active:scale-95 transition-all">
+                {loading ? <Loader2 className="animate-spin mx-auto" size={20} /> : (initialData ? 'Update Destination' : 'Activate Location')}
               </button>
             </div>
           </form>
