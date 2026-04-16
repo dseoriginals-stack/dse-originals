@@ -61,8 +61,7 @@ export default function FloatingChat() {
                   </span>
                   <a
                     href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    {...(item.id === 'fb' ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                     className={`
                       w-12 h-12 flex items-center justify-center rounded-2xl 
                       text-white shadow-2xl transition-transform hover:scale-110
