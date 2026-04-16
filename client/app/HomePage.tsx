@@ -73,9 +73,9 @@ export default function HomePage({ initialProducts }: Props) {
       const cat = (p.category || "").toLowerCase()
       const tags = (p.tags || []).map(t => t.toLowerCase())
       const name = (p.name || "").toLowerCase()
-      // Keywords for Perfumes including specific product names from screenshot
-      const perfumeKeywords = ["perfume", "scent", "fragrance", "eau", "spray", "heaven", "sacred", "embrace", "serenity", "ml", "frag", "dse"]
-      return perfumeKeywords.some(key => name.includes(key) || cat.includes(key) || tags.includes(key))
+      // Extremely greedy keywords to capture all scents
+      const keywords = ["perfume", "scent", "fragrance", "eau", "spray", "heaven", "sacred", "embrace", "serenity", "ml", "frag", "dse", "angelic", "collection"]
+      return keywords.some(key => name.includes(key) || cat.includes(key) || tags.includes(key))
     })
   }, [products])
 
@@ -91,6 +91,10 @@ export default function HomePage({ initialProducts }: Props) {
   }, [products])
 
   const bestsellers = useMemo(() => products.filter(p => p.isBestseller), [products])
+
+  // Split into two sets for the infinite effect
+  const perfumeDisplay = [...perfumeProducts, ...perfumeProducts]
+  const apparelDisplay = [...apparelProducts, ...apparelProducts]
 
   return (
     <main className="w-full">
@@ -227,55 +231,68 @@ export default function HomePage({ initialProducts }: Props) {
 
           <div className="space-y-16 md:space-y-24">
 
-            {/* FEATURED PERFUME - Dedicated Carousel */}
+            {/* FEATURED PERFUME - INFINITE MARQUEE */}
             {perfumeProducts.length > 0 && (
-              <div className="space-y-6">
-                <div className="flex items-center gap-4">
+              <div className="space-y-8">
+                <div className="flex items-center gap-4 px-4">
                   <h3 className="text-xl font-black text-[var(--text-heading)] tracking-tight">Featured Perfume</h3>
                   <div className="flex-1 h-[1px] bg-gray-100"></div>
                 </div>
-                <div
-                  ref={carouselRef}
-                  onMouseEnter={() => setIsHovered(true)}
-                  onMouseLeave={() => setIsHovered(false)}
-                  className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x pb-4 -mx-4 px-4 md:mx-0 md:px-0"
-                >
-                  {perfumeProducts.map((p, i) => (
-                    <motion.div
-                      key={p.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.1 }}
-                      className="min-w-[46vw] sm:min-w-[280px] md:min-w-[300px] snap-start"
-                    >
-                      <ProductCard product={transformProductToCard(p)} />
-                    </motion.div>
-                  ))}
+                
+                <div className="relative w-full overflow-hidden">
+                  <motion.div 
+                    className="flex gap-4 md:gap-8"
+                    animate={{ x: ["0%", "-50%"] }}
+                    transition={{
+                      x: {
+                        duration: 35,
+                        repeat: Infinity,
+                        ease: "linear",
+                      },
+                    }}
+                  >
+                    {perfumeDisplay.map((p, i) => (
+                      <div
+                        key={`${p.id}-${i}`}
+                        className="min-w-[46vw] sm:min-w-[280px] md:min-w-[320px] flex-shrink-0"
+                      >
+                        <ProductCard product={transformProductToCard(p)} />
+                      </div>
+                    ))}
+                  </motion.div>
                 </div>
               </div>
             )}
 
-            {/* FEATURED APPAREL - Dedicated Carousel */}
+            {/* FEATURED APPAREL - INFINITE MARQUEE */}
             {apparelProducts.length > 0 && (
-              <div className="space-y-6">
-                <div className="flex items-center gap-4">
+              <div className="space-y-8">
+                <div className="flex items-center gap-4 px-4">
                   <h3 className="text-xl font-black text-[var(--text-heading)] tracking-tight">Featured Apparel</h3>
                   <div className="flex-1 h-[1px] bg-gray-100"></div>
                 </div>
-                <div className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x pb-4 -mx-4 px-4 md:mx-0 md:px-0">
-                  {apparelProducts.map((p, i) => (
-                    <motion.div
-                      key={p.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.1 }}
-                      className="min-w-[46vw] sm:min-w-[280px] md:min-w-[300px] snap-start"
-                    >
-                      <ProductCard product={transformProductToCard(p)} />
-                    </motion.div>
-                  ))}
+                
+                <div className="relative w-full overflow-hidden">
+                  <motion.div 
+                    className="flex gap-4 md:gap-8"
+                    animate={{ x: ["-50%", "0%"] }}
+                    transition={{
+                      x: {
+                        duration: 35,
+                        repeat: Infinity,
+                        ease: "linear",
+                      },
+                    }}
+                  >
+                    {apparelDisplay.map((p, i) => (
+                      <div
+                        key={`${p.id}-${i}`}
+                        className="min-w-[46vw] sm:min-w-[280px] md:min-w-[300px] flex-shrink-0"
+                      >
+                        <ProductCard product={transformProductToCard(p)} />
+                      </div>
+                    ))}
+                  </motion.div>
                 </div>
               </div>
             )}
