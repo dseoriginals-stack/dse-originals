@@ -260,12 +260,28 @@ export default function HomePage({ initialProducts }: Props) {
 
           <div className="space-y-16 md:space-y-32">
             
-            {/* FEATURED PERFUME - HYBRID CAROUSEL */}
+            {/* FEATURED PERFUME - HYBRID CAROUSEL WITH NAV */}
             {perfumeProducts.length > 0 && (
-              <div className="space-y-8">
-                <div className="flex items-center gap-4 px-4">
-                  <h3 className="text-xl font-black text-[var(--text-heading)] tracking-tight">Featured Perfume</h3>
-                  <div className="flex-1 h-[1px] bg-gray-100"></div>
+              <div className="space-y-8 relative group/carousel">
+                <div className="flex items-center justify-between px-4">
+                  <div className="flex items-center gap-4 flex-1">
+                    <h3 className="text-xl font-black text-[var(--text-heading)] tracking-tight">Featured Perfume</h3>
+                    <div className="flex-1 h-[1px] bg-gray-100"></div>
+                  </div>
+                  <div className="hidden md:flex items-center gap-2 ml-4">
+                    <button 
+                      onClick={() => pRef.current?.scrollBy({ left: -400, behavior: "smooth" })}
+                      className="p-3 rounded-full border border-gray-100 hover:bg-white hover:shadow-xl hover:border-white transition-all text-gray-400 hover:text-[var(--brand-primary)]"
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+                    <button 
+                      onClick={() => pRef.current?.scrollBy({ left: 400, behavior: "smooth" })}
+                      className="p-3 rounded-full border border-gray-100 hover:bg-white hover:shadow-xl hover:border-white transition-all text-gray-400 hover:text-[var(--brand-primary)]"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="relative w-full">
@@ -274,7 +290,7 @@ export default function HomePage({ initialProducts }: Props) {
                     onMouseEnter={() => setIsPaused(true)}
                     onMouseLeave={() => setIsPaused(false)}
                     onTouchStart={() => setIsPaused(true)}
-                    className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x pb-4 px-4"
+                    className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x pb-8 px-4"
                   >
                     {perfumeDisplay.map((p, i) => (
                       <div
@@ -285,16 +301,43 @@ export default function HomePage({ initialProducts }: Props) {
                       </div>
                     ))}
                   </div>
+                  
+                  {/* Subtle Scroll Hint Indicator (Mobile) */}
+                  <div className="md:hidden flex justify-center mt-2">
+                    <div className="h-1 w-24 bg-gray-100 rounded-full overflow-hidden">
+                      <motion.div 
+                        className="h-full bg-[var(--brand-primary)] w-1/3"
+                        animate={{ x: ["-100%", "200%"] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* FEATURED APPAREL - HYBRID CAROUSEL */}
+            {/* FEATURED APPAREL - HYBRID CAROUSEL WITH NAV */}
             {apparelProducts.length > 0 && (
-              <div className="space-y-8">
-                <div className="flex items-center gap-4 px-4">
-                  <h3 className="text-xl font-black text-[var(--text-heading)] tracking-tight">Featured Apparel</h3>
-                  <div className="flex-1 h-[1px] bg-gray-100"></div>
+              <div className="space-y-8 relative group/carousel">
+                <div className="flex items-center justify-between px-4">
+                  <div className="flex items-center gap-4 flex-1">
+                    <h3 className="text-xl font-black text-[var(--text-heading)] tracking-tight">Featured Apparel</h3>
+                    <div className="flex-1 h-[1px] bg-gray-100"></div>
+                  </div>
+                  <div className="hidden md:flex items-center gap-2 ml-4">
+                    <button 
+                      onClick={() => aRef.current?.scrollBy({ left: -400, behavior: "smooth" })}
+                      className="p-3 rounded-full border border-gray-100 hover:bg-white hover:shadow-xl hover:border-white transition-all text-gray-400 hover:text-[var(--brand-primary)]"
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+                    <button 
+                      onClick={() => aRef.current?.scrollBy({ left: 400, behavior: "smooth" })}
+                      className="p-3 rounded-full border border-gray-100 hover:bg-white hover:shadow-xl hover:border-white transition-all text-gray-400 hover:text-[var(--brand-primary)]"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="relative w-full">
@@ -303,7 +346,7 @@ export default function HomePage({ initialProducts }: Props) {
                     onMouseEnter={() => setIsPaused(true)}
                     onMouseLeave={() => setIsPaused(false)}
                     onTouchStart={() => setIsPaused(true)}
-                    className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x pb-4 px-4"
+                    className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x pb-8 px-4"
                   >
                     {apparelDisplay.map((p, i) => (
                       <div
@@ -313,6 +356,17 @@ export default function HomePage({ initialProducts }: Props) {
                         <ProductCard product={transformProductToCard(p)} />
                       </div>
                     ))}
+                  </div>
+
+                   {/* Subtle Scroll Hint Indicator (Mobile) */}
+                   <div className="md:hidden flex justify-center mt-2">
+                    <div className="h-1 w-24 bg-gray-100 rounded-full overflow-hidden">
+                      <motion.div 
+                        className="h-full bg-[var(--brand-primary)] w-1/3"
+                        animate={{ x: ["-100%", "200%"] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
