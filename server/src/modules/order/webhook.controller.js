@@ -96,14 +96,13 @@ export const handleXenditWebhook = async (req, res) => {
         FINALIZE STOCK (reservation → deduction)
         */
         for (const item of lockedOrder.items) {
-
-          await tx.product.update({
-            where: { id: item.productId },
+          // decrement from VARIANT stock, not product
+          await tx.productVariant.update({
+            where: { id: item.variantId },
             data: {
               stock: { decrement: item.quantity }
             }
           })
-
         }
 
         /*
