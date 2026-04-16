@@ -74,7 +74,7 @@ export default function HomePage({ initialProducts }: Props) {
       const tags = (p.tags || []).map(t => t.toLowerCase())
       const name = (p.name || "").toLowerCase()
       // Keywords for Perfumes including specific product names from screenshot
-      const perfumeKeywords = ["perfume", "scent", "fragrance", "eau", "spray", "heaven", "sacred", "embrace", "serenity", "ml", "frag"]
+      const perfumeKeywords = ["perfume", "scent", "fragrance", "eau", "spray", "heaven", "sacred", "embrace", "serenity", "ml", "frag", "dse"]
       return perfumeKeywords.some(key => name.includes(key) || cat.includes(key) || tags.includes(key))
     })
   }, [products])
@@ -247,7 +247,7 @@ export default function HomePage({ initialProducts }: Props) {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: i * 0.1 }}
-                      className="min-w-[calc(50%-12px)] md:min-w-[calc(50%-24px)] snap-start"
+                      className="min-w-[46vw] sm:min-w-[280px] md:min-w-[300px] snap-start"
                     >
                       <ProductCard product={transformProductToCard(p)} />
                     </motion.div>
@@ -271,7 +271,7 @@ export default function HomePage({ initialProducts }: Props) {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: i * 0.1 }}
-                      className="min-w-[calc(50%-12px)] md:min-w-[calc(50%-24px)] snap-start"
+                      className="min-w-[46vw] sm:min-w-[280px] md:min-w-[300px] snap-start"
                     >
                       <ProductCard product={transformProductToCard(p)} />
                     </motion.div>

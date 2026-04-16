@@ -3,7 +3,7 @@ import { api } from "@/lib/api"
 
 async function getProducts() {
   try {
-    const data = await api.get("products?limit=50")
+    const data = await api.get("products?limit=200")
     return data
   } catch (err) {
     console.error("getProducts error:", err)
