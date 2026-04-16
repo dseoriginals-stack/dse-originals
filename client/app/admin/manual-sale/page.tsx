@@ -34,10 +34,6 @@ export default function ManualSalePage() {
     }
   }
 
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(search.toLowerCase())
-  )
-
   const addToCart = (product: any, variant: any) => {
     if (variant.stock <= 0) {
       toast.error("Item out of stock")
@@ -60,7 +56,7 @@ export default function ManualSalePage() {
         name: product.name,
         variantName: variant.attributes?.map((a: any) => a.value).join(" / ") || "Standard",
         srp: Number(variant.price),
-        reseller: Number(variant.resellerPrice || variant.price * 0.8), // Fallback if not set
+        reseller: Number(variant.resellerPrice || variant.price * 0.8),
         image: product.images?.[0]?.url,
         quantity: 1,
         stock: variant.stock
@@ -104,7 +100,7 @@ export default function ManualSalePage() {
         guestName: customerName || "Walk-in Customer",
         deliveryMethod: "pickup",
         paymentMethod: "cash",
-        status: "paid", // Instantly paid for walk-ins
+        status: "paid",
         isManual: true
       }
 
@@ -113,7 +109,7 @@ export default function ManualSalePage() {
       toast.success("Order Processed Successfully!")
       setCart([])
       setCustomerName("")
-      fetchProducts() // Refresh stock
+      fetchProducts()
     } catch (err: any) {
       toast.error(err.message || "Checkout failed")
     } finally {
@@ -200,7 +196,6 @@ export default function ManualSalePage() {
         <div className="bg-white rounded-[2.5rem] border border-[var(--border-light)] shadow-2xl overflow-hidden sticky top-24">
           
           <div className="bg-[#1B3B60] p-8 text-white relative overflow-hidden">
-            {/* Background Accent */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
             
             <div className="relative z-10 flex items-center justify-between">
@@ -219,7 +214,6 @@ export default function ManualSalePage() {
               </div>
             </div>
 
-            {/* PRICE MODE TOGGLE */}
             <div className="relative z-10 mt-8 bg-black/20 backdrop-blur-xl rounded-2xl p-1.5 flex border border-white/5">
               <button 
                 onClick={() => setPriceMode("srp")}
@@ -237,8 +231,6 @@ export default function ManualSalePage() {
           </div>
 
           <div className="p-8 space-y-6">
-            
-            {/* CUSTOMER INPUT */}
             <div className="space-y-3">
               <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">Customer Attribution</label>
               <div className="relative">
@@ -248,14 +240,13 @@ export default function ManualSalePage() {
                   placeholder="e.g. Maria Clara (Walk-in)"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full pl-11 pr-4 py-4 rounded-xl border border-[var(--border-light)] bg-[var(--bg-main)] focus:bg-white focus:ring-4 focus:ring-[var(--brand-primary)]/10 outline-none transition-all font-bold text-sm shadow-inner"
+                  className="w-full pl-10 pr-4 py-4 rounded-xl border border-[var(--border-light)] bg-[var(--bg-main)] focus:bg-white focus:ring-4 focus:ring-[var(--brand-primary)]/10 outline-none transition-all font-bold text-sm shadow-inner"
                 />
               </div>
             </div>
 
             <div className="h-px bg-gray-100"></div>
 
-            {/* CART ITEMS */}
             <div className="max-h-[350px] overflow-y-auto space-y-3 custom-scrollbar pr-2">
               {cart.length === 0 ? (
                 <div className="py-20 text-center opacity-20 flex flex-col items-center">
@@ -311,14 +302,11 @@ export default function ManualSalePage() {
                   </>
                 )}
               </button>
-              
               <p className="text-[9px] font-bold text-center text-gray-400 uppercase tracking-widest">Inventory will be deducted instantly</p>
             </div>
           </div>
         </div>
       </div>
-    </div>
-
     </div>
   )
 }
