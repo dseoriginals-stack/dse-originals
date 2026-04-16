@@ -8,7 +8,7 @@ import { api } from "@/lib/api"
 import { useAuth } from "@/context/AuthContext"
 import {
   Package,
-  DollarSign,
+  PhilippinePeso,
   ShoppingCart,
   Users,
   TrendingUp,
@@ -159,8 +159,8 @@ export default function AdminDashboard() {
           <>
             <StatCard
               title={isStaff ? "Active Sessions" : "Gross Revenue"}
-              value={isStaff ? stats?.totalCustomers : `₱${Number(stats?.revenue).toLocaleString()}`}
-              icon={isStaff ? <Activity size={20} /> : <DollarSign size={20} />}
+              value={isStaff ? stats?.totalCustomers : `₱${(Number(stats?.revenue) || 0).toLocaleString()}`}
+              icon={isStaff ? <Activity size={20} /> : <PhilippinePeso size={20} />}
               trend={isStaff ? "Live" : "+12.5%"}
               positive={isStaff ? null : true}
             />
