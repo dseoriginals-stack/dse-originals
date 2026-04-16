@@ -21,15 +21,15 @@ export default function MissionSection() {
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                className="inline-flex items-center gap-2 bg-[#274C77]/5 border border-[#274C77]/10 px-4 py-2 rounded-2xl mb-8 group"
+                className="inline-flex items-center gap-2 bg-[var(--brand-primary)]/5 border border-[var(--brand-primary)]/10 px-4 py-2 rounded-2xl mb-8 group"
               >
                 <Heart size={16} className="text-[var(--brand-primary)] fill-[var(--brand-primary)]/20 transition-transform group-hover:scale-125 duration-500" />
-                <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-[#274C77]">Our Mission</span>
+                <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-[var(--brand-primary)]">Our Mission</span>
               </motion.div>
               
-              <h2 className="text-4xl md:text-6xl font-[1000] tracking-tighter leading-[0.9] text-[#1a1a1a] max-w-xl">
-                DSE is More Than a <span className="text-[var(--brand-primary)]">Brand</span>,<br />
-                It&apos;s a <span className="text-[var(--brand-primary)] italic">Mission</span>
+              <h2 className="text-4xl md:text-6xl font-[1000] tracking-tighter leading-[0.9] text-[var(--text-heading)] max-w-xl">
+                DSE is More Than a <span className="text-[var(--brand-accent)]">Brand</span>,<br />
+                It&apos;s a <span className="text-[var(--brand-soft)] italic">Mission</span>
               </h2>
             </div>
 
@@ -51,7 +51,7 @@ export default function MissionSection() {
                       <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                     </div>
                   </div>
-                  <p className="text-base md:text-lg lg:text-xl font-bold text-slate-600 leading-relaxed font-outfit">
+                  <p className="text-base md:text-lg lg:text-xl font-bold text-[var(--text-main)]/70 leading-relaxed font-outfit">
                     {bullet}
                   </p>
                 </motion.div>
@@ -69,7 +69,7 @@ export default function MissionSection() {
             <div className="relative aspect-[4/5] md:aspect-square w-full rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-2xl shadow-blue-900/10 group">
               {/* BRANDED POSTER RECREATION */}
               <div className="absolute inset-0 flex flex-col md:flex-row">
-                <div className="flex-1 bg-[#274C77] p-8 md:p-12 flex flex-col justify-center text-white relative overflow-hidden">
+                <div className="flex-1 bg-[var(--brand-primary)] p-8 md:p-12 flex flex-col justify-center text-white relative overflow-hidden">
                   <div className="absolute -bottom-10 -right-10 opacity-10">
                     <ShoppingBagGraphic />
                   </div>
@@ -80,7 +80,7 @@ export default function MissionSection() {
                      <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-white/40">FAITH • HOPE • LOVE</p>
                   </div>
                 </div>
-                <div className="flex-1 bg-[#E1F1FD] relative p-8 flex flex-col justify-end">
+                <div className="flex-1 bg-[var(--brand-soft)]/20 relative p-8 flex flex-col justify-end">
                    <div className="relative w-full h-full transform transition-transform duration-700 group-hover:scale-110 group-hover:rotate-3">
                      <Image 
                        src="/DSEoriginals.png" 
@@ -90,13 +90,14 @@ export default function MissionSection() {
                      />
                    </div>
                    <div className="relative z-10 text-center space-y-2 mt-4">
-                     <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-[#274C77]">Be part of the mission</p>
-                     <p className="text-[#274C77]/40 text-[8px] font-black uppercase tracking-widest">+63 998 864 4548</p>
+                     <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-[var(--brand-primary)]">Be part of the mission</p>
+                     <p className="text-[var(--brand-primary)]/40 text-[8px] font-black uppercase tracking-widest">+63 998 864 4548</p>
                    </div>
                 </div>
               </div>
             </div>
           </motion.div>
+
 
         </div>
       </div>
