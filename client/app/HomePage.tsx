@@ -173,84 +173,103 @@ export default function HomePage({ initialProducts }: Props) {
       {/* ================= CONTENT ================= */}
       <div className="max-w-7xl mx-auto px-4 relative z-10 pb-12">
 
-        {/* PERFUME SECTION */}
-        {perfumeProducts.length > 0 && (
-          <section className="py-12 md:py-20">
-            <div className="flex flex-col md:flex-row justify-between md:items-end mb-8 md:mb-12 gap-6">
-              <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-[2px] w-12 bg-[var(--brand-primary)]"></div>
-                  <p className="text-xs font-black tracking-[0.3em] text-[var(--brand-primary)] uppercase">The Scent Gallery</p>
-                </div>
-                <h2 className="text-3xl md:text-5xl font-[1000] text-[var(--text-heading)] tracking-tighter leading-none">Signature Perfumes</h2>
-              </motion.div>
-              <Link href="/products?category=perfume" className="text-sm font-black uppercase tracking-widest text-[var(--brand-primary)] hover:underline flex items-center gap-2">
-                Explore Vault <ArrowRight size={16} />
-              </Link>
-            </div>
-
-            <div 
-              ref={carouselRef}
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
-              className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x pb-8 -mx-4 px-4 md:mx-0 md:px-0"
+        {/* FEATURED PRODUCTS (SPLIT) */}
+        <section className="py-12 md:py-20">
+          
+          <div className="flex flex-col sm:flex-row justify-between sm:items-end mb-10 md:mb-16 gap-6">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
             >
-              {perfumeProducts.map((p, i) => (
-                <motion.div
-                  key={p.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="min-w-[65vw] sm:min-w-[300px] md:min-w-[340px] snap-start"
-                >
-                  <ProductCard product={transformProductToCard(p)} />
-                </motion.div>
-              ))}
-            </div>
-          </section>
-        )}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-[2px] w-12 bg-[var(--brand-primary)]"></div>
+                <p className="text-sm font-black tracking-[0.3em] text-[var(--brand-primary)] uppercase">
+                  Curated Selection
+                </p>
+              </div>
+              <h2 className="text-3xl md:text-5xl font-[1000] text-[var(--text-heading)] tracking-tighter">
+                Featured Products
+              </h2>
+            </motion.div>
 
-        {/* APPAREL SECTION */}
-        {apparelProducts.length > 0 && (
-          <section className="py-12 md:py-20">
-            <div className="flex flex-col md:flex-row justify-between md:items-end mb-8 md:mb-12 gap-6">
-              <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <Link
+                href="/products"
+                className="btn-outline inline-flex items-center gap-2 hover:bg-[var(--brand-soft)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] text-[var(--brand-primary)] border-[var(--brand-primary)] !px-8 !py-3 font-black uppercase tracking-widest text-xs"
               >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-[2px] w-12 bg-black"></div>
-                  <p className="text-xs font-black tracking-[0.3em] text-black uppercase">Apparel Collective</p>
-                </div>
-                <h2 className="text-3xl md:text-5xl font-[1000] text-[var(--text-heading)] tracking-tighter leading-none">Essential Wear</h2>
-              </motion.div>
-              <Link href="/products?category=apparel" className="text-sm font-black uppercase tracking-widest text-[var(--text-heading)] hover:underline flex items-center gap-2">
-                Shop Collective <ArrowRight size={16} />
+                Explore Full Catalog <ArrowRight size={16} />
               </Link>
-            </div>
+            </motion.div>
+          </div>
 
-            <div className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x pb-8 -mx-4 px-4 md:mx-0 md:px-0">
-              {apparelProducts.map((p, i) => (
-                <motion.div
-                  key={p.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="min-w-[65vw] sm:min-w-[300px] md:min-w-[340px] snap-start"
+          <div className="space-y-16 md:space-y-24">
+            
+            {/* FEATURED PERFUME */}
+            {perfumeProducts.length > 0 && (
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <h3 className="text-xl font-black text-[var(--text-heading)] tracking-tight">Featured Perfume</h3>
+                  <div className="flex-1 h-[1px] bg-gray-100"></div>
+                </div>
+                <div 
+                  ref={carouselRef}
+                  onMouseEnter={() => setIsHovered(true)}
+                  onMouseLeave={() => setIsHovered(false)}
+                  className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x pb-4 -mx-4 px-4 md:mx-0 md:px-0"
                 >
-                  <ProductCard product={transformProductToCard(p)} />
-                </motion.div>
-              ))}
-            </div>
-          </section>
-        )}
+                  {perfumeProducts.map((p, i) => (
+                    <motion.div
+                      key={p.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.1 }}
+                      className="min-w-[65vw] sm:min-w-[280px] md:min-w-[320px] snap-start"
+                    >
+                      <ProductCard product={transformProductToCard(p)} />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* FEATURED APPAREL */}
+            {apparelProducts.length > 0 && (
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <h3 className="text-xl font-black text-[var(--text-heading)] tracking-tight">Featured Apparel</h3>
+                  <div className="flex-1 h-[1px] bg-gray-100"></div>
+                </div>
+                <div className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x pb-4 -mx-4 px-4 md:mx-0 md:px-0">
+                  {apparelProducts.map((p, i) => (
+                    <motion.div
+                      key={p.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.1 }}
+                      className="min-w-[65vw] sm:min-w-[280px] md:min-w-[320px] snap-start"
+                    >
+                      <ProductCard product={transformProductToCard(p)} />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          </div>
+
+        </section>
+
+        {/* Divider */}
+        <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--border-light)] to-transparent my-4"></div>
 
         {/* BESTSELLERS */}
         <section className="py-12 md:py-20">
