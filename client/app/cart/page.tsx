@@ -39,8 +39,10 @@ export default function CartPage() {
 
   const { user } = useAuth() as any
   const points = user?.luckyPoints || 0
+  const REWARD_THRESHOLD = 50
+  const canRedeem = points >= REWARD_THRESHOLD
   
-  // Logic: 1 point = ₱1.00 discount (Staff can adjust this)
+  // Logic: 1 point = ₱1.00 discount
   const [usePoints, setUsePoints] = useState(false)
   const pointsDiscount = usePoints ? Math.min(points, selectedSubtotal) : 0
   const finalTotal = selectedSubtotal - pointsDiscount
@@ -98,27 +100,38 @@ export default function CartPage() {
                         <Coins className="w-8 h-8 text-[var(--brand-soft)] animate-pulse" />
                      </div>
                      <div>
-                        <h2 className="text-xl font-black tracking-tight">DSE Loyalty Rewards</h2>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">You have <span className="text-[var(--brand-soft)]">{points.toLocaleString()}</span> points available</p>
+                        <h2 className="text-xl font-black tracking-tight">DSE {canRedeem ? "Reward Unlocked" : "Lucky Points"}</h2>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">
+                          {canRedeem 
+                            ? `You have ${points.toLocaleString()} points ready to use!` 
+                            : `${points.toLocaleString()} / 50 points earned so far`}
+                        </p>
                      </div>
                   </div>
 
-                  <button 
-                    onClick={() => {
-                        if (points === 0) {
-                            toast.error("You don't have enough points yet!")
-                            return
-                        }
-                        setUsePoints(!usePoints)
-                    }}
-                    className={`px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-500 shadow-lg ${
-                      usePoints 
-                      ? "bg-white text-[var(--brand-primary)] shadow-white/20 scale-[0.98]" 
-                      : "bg-[var(--brand-soft)] text-[var(--brand-primary)] hover:bg-white hover:scale-105"
-                    }`}
-                  >
-                    {usePoints ? "Points Applied" : "Redeem Points"}
-                  </button>
+                  {canRedeem ? (
+                    <button 
+                      onClick={() => setUsePoints(!usePoints)}
+                      className={`px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-500 shadow-lg ${
+                        usePoints 
+                        ? "bg-white text-[var(--brand-primary)] shadow-white/20 scale-[0.98]" 
+                        : "bg-[var(--brand-soft)] text-[var(--brand-primary)] hover:bg-white hover:scale-105"
+                      }`}
+                    >
+                      {usePoints ? "Reward Applied" : "Redeem ₱" + points.toLocaleString()}
+                    </button>
+                  ) : (
+                    <div className="bg-white/10 backdrop-blur-sm border border-white/20 px-6 py-4 rounded-2xl text-center">
+                       <p className="text-[9px] font-black uppercase tracking-widest opacity-80 mb-2">Reach 50 to unlock</p>
+                       <div className="h-1.5 w-32 bg-white/20 rounded-full overflow-hidden">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(points/50)*100}%` }}
+                            className="h-full bg-[var(--brand-soft)] shadow-[0_0_10px_#A9D6E5]"
+                          />
+                       </div>
+                    </div>
+                  )}
                </div>
 
                <div className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-4 border-t border-white/10 pt-6">

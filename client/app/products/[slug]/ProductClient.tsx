@@ -208,27 +208,52 @@ export default function ProductClient() {
 
           {/* VARIANTS */}
           <div>
-            <h3 className="text-[10px] font-bold text-[var(--text-heading)] uppercase tracking-[0.15em] mb-2.5">Select Variant</h3>
-            <div className="flex gap-2 flex-wrap">
+            <h3 className="text-[10px] font-bold text-[var(--text-heading)] uppercase tracking-[0.2em] mb-4">Select Configuration</h3>
+            <div className="flex gap-4 flex-wrap">
               {product.variants.map((v) => {
                 const isOut = v.stock === 0
                 const isActive = variant?.id === v.id
+                
+                // Detection logic for color vs choice
+                const isColorVariant = v.attributes?.some(a => a.name.toLowerCase().includes('color'))
+                const colorValue = v.attributes?.find(a => a.name.toLowerCase().includes('color'))?.value || 'transparent'
+
+                if (isColorVariant) {
+                  return (
+                    <button
+                      key={v.id}
+                      disabled={isOut}
+                      onClick={() => setVariant(v)}
+                      title={v.attributes.map(a => a.value).join(' / ')}
+                      className={`relative w-10 h-10 rounded-full transition-all duration-500 flex items-center justify-center p-0.5 ${isActive 
+                        ? 'ring-2 ring-[var(--brand-primary)] ring-offset-2 scale-110 shadow-lg' 
+                        : 'hover:scale-105 hover:ring-1 hover:ring-[var(--brand-soft)] ring-offset-1'
+                      } ${isOut ? 'opacity-20 cursor-not-allowed grayscale' : 'cursor-pointer'}`}
+                    >
+                      <div 
+                        className="w-full h-full rounded-full shadow-inner border border-black/5" 
+                        style={{ backgroundColor: colorValue.toLowerCase().replace(' ', '') }}
+                      ></div>
+                      {isActive && <Check size={12} className="absolute text-white drop-shadow-md" />}
+                    </button>
+                  )
+                }
 
                 return (
                   <button
                     key={v.id}
                     disabled={isOut}
                     onClick={() => setVariant(v)}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 border-2 ${isOut
-                      ? "opacity-40 bg-gray-50 border-gray-100 line-through cursor-not-allowed text-gray-500"
+                    className={`px-5 py-2.5 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all duration-300 border-2 ${isOut
+                      ? "opacity-30 bg-gray-50 border-gray-100 line-through cursor-not-allowed"
                       : isActive
-                        ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-md drop-shadow-sm scale-[1.02]"
-                        : "bg-transparent border-[var(--border-light)] text-[var(--text-main)] hover:border-[var(--brand-primary)] hover:bg-[var(--bg-main)]"
+                        ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-[0_8px_20px_rgba(39,76,119,0.25)] scale-[1.05]"
+                        : "bg-white border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] hover:shadow-sm"
                       }`}
                   >
                     {v.attributes?.length
                       ? v.attributes.map((a: any) => a.value).join(" / ")
-                      : "Default Size"}
+                      : "Standard"}
                   </button>
                 )
               })}
