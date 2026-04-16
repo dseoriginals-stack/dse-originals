@@ -215,6 +215,7 @@ export const createProduct = async (req, res, next) => {
     }
 
     await deleteCache("products:*")
+    await deleteCache("product:*")
     res.status(201).json(product)
 
   } catch (err) {
@@ -415,7 +416,6 @@ export const deleteProduct = async (req, res) => {
 
     await deleteCache("products:*")
     await deleteCache("product:*")
-
     res.json({ message: "Product disabled" })
   } catch (err) {
     console.error("❌ DELETE PRODUCT ERROR:", err)
@@ -605,6 +605,7 @@ export const updateProduct = async (req, res, next) => {
       data: updateData
     })
 
+    console.log(`✅ Product ${id} updated, invalidating cache...`)
     await deleteCache("products:*")
     await deleteCache("product:*")
 

@@ -264,7 +264,7 @@ export default function CartPage() {
               {/* HELP SECTION */}
               <div className="bg-[var(--brand-primary)] rounded-[2rem] p-6 text-white text-center shadow-lg">
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Need Assistance?</p>
-                <p className="text-sm font-bold mt-2">dseoriginals@gmail.com</p>
+                <p className="text-sm font-bold mt-2">support@dseoriginals.com</p>
                 <button className="mt-4 text-[10px] font-black uppercase tracking-[0.2em] bg-white/10 hover:bg-white/20 py-2 px-6 rounded-full transition-colors">
                   Live Chat
                 </button>

@@ -278,7 +278,7 @@ function TrackOrderContent() {
                 <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
                   <h4 className="font-bold mb-4">Need Help?</h4>
                   <div className="space-y-4">
-                    <a href="mailto:dseoriginals@gmail.com" className="flex items-center gap-3 text-sm text-slate-600 hover:text-black transition-colors">
+                    <a href="mailto:support@dseoriginals.com" className="flex items-center gap-3 text-sm text-slate-600 hover:text-black transition-colors">
                       <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center">@</div>
                       Contact Support
                     </a>
