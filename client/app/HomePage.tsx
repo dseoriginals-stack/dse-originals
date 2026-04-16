@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
-import { ArrowRight, Sparkles } from "lucide-react"
+import { ArrowRight, Sparkles, ChevronLeft, ChevronRight } from "lucide-react"
 
 import ProductCard from "@/components/ProductCard"
 import MissionSection from "@/components/MissionSection"
@@ -75,7 +75,7 @@ export default function HomePage({ initialProducts }: Props) {
       const name = (p.name || "").toLowerCase()
       // Extremely greedy keywords based on flagship product list
       const keywords = [
-        "perfume", "scent", "fragrance", "eau", "spray", "heaven", "sacred", 
+        "perfume", "scent", "fragrance", "eau", "spray", "heaven", "sacred",
         "embrace", "serenity", "ml", "frag", "dse", "angelic", "collection",
         "incensum", "eterna", "lume", "whisper", "credu", "bleu", "celestial", "aura", "angel's"
       ]
@@ -95,31 +95,50 @@ export default function HomePage({ initialProducts }: Props) {
 
   const bestsellers = useMemo(() => products.filter(p => p.isBestseller), [products])
 
-  // Refs for auto-glide
+  // Refs for Perpetual Glide
   const pRef = useRef<HTMLDivElement>(null)
   const aRef = useRef<HTMLDivElement>(null)
   const [isPaused, setIsPaused] = useState(false)
+  const lastActivityTime = useRef(Date.now())
 
+  // Continuous Glide Engine (60fps)
   useEffect(() => {
-    if (isPaused) return;
+    let animationFrameId: number;
     
-    const interval = setInterval(() => {
-      [pRef, aRef].forEach(ref => {
-        if (ref.current) {
-          const container = ref.current;
-          const maxScroll = container.scrollWidth - container.clientWidth;
-          
-          if (container.scrollLeft >= maxScroll - 10) {
-            container.scrollTo({ left: 0, behavior: "smooth" });
-          } else {
-            container.scrollBy({ left: 300, behavior: "smooth" });
+    const glide = () => {
+      // Pause if user is interacting OR if they just stopped (2s delay)
+      const now = Date.now();
+      const timeSinceActivity = now - lastActivityTime.current;
+      
+      if (!isPaused && timeSinceActivity > 2000) {
+        [pRef, aRef].forEach(ref => {
+          if (ref.current) {
+            const container = ref.current;
+            container.scrollLeft += 0.5; // Fine-tuned speed (0.5px per frame)
+            
+            // Loop back if at the end
+            if (container.scrollLeft >= (container.scrollWidth / 2)) {
+              container.scrollLeft = 0;
+            }
           }
-        }
-      });
-    }, 4500);
+        });
+      }
+      animationFrameId = requestAnimationFrame(glide);
+    };
 
-    return () => clearInterval(interval);
+    animationFrameId = requestAnimationFrame(glide);
+    return () => cancelAnimationFrame(animationFrameId);
   }, [isPaused]);
+
+  // Activity Handlers
+  const handleInteractionStart = () => {
+    setIsPaused(true);
+    lastActivityTime.current = Date.now();
+  }
+  const handleInteractionEnd = () => {
+    setIsPaused(false);
+    lastActivityTime.current = Date.now();
+  }
 
   // Split into two sets for a deeper loop
   const perfumeDisplay = [...perfumeProducts, ...perfumeProducts]
@@ -220,7 +239,7 @@ export default function HomePage({ initialProducts }: Props) {
 
         {/* FEATURED PRODUCTS */}
         <section className="py-12 md:py-20 overflow-hidden">
-          
+
           <div className="flex flex-col sm:flex-row justify-between sm:items-end mb-10 md:mb-16 gap-6 px-4">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
@@ -259,7 +278,7 @@ export default function HomePage({ initialProducts }: Props) {
           </div>
 
           <div className="space-y-16 md:space-y-32">
-            
+
             {/* FEATURED PERFUME - HYBRID CAROUSEL WITH NAV */}
             {perfumeProducts.length > 0 && (
               <div className="space-y-8 relative group/carousel">
@@ -269,13 +288,13 @@ export default function HomePage({ initialProducts }: Props) {
                     <div className="flex-1 h-[1px] bg-gray-100"></div>
                   </div>
                   <div className="hidden md:flex items-center gap-2 ml-4">
-                    <button 
+                    <button
                       onClick={() => pRef.current?.scrollBy({ left: -400, behavior: "smooth" })}
                       className="p-3 rounded-full border border-gray-100 hover:bg-white hover:shadow-xl hover:border-white transition-all text-gray-400 hover:text-[var(--brand-primary)]"
                     >
                       <ChevronLeft size={20} />
                     </button>
-                    <button 
+                    <button
                       onClick={() => pRef.current?.scrollBy({ left: 400, behavior: "smooth" })}
                       className="p-3 rounded-full border border-gray-100 hover:bg-white hover:shadow-xl hover:border-white transition-all text-gray-400 hover:text-[var(--brand-primary)]"
                     >
@@ -283,14 +302,17 @@ export default function HomePage({ initialProducts }: Props) {
                     </button>
                   </div>
                 </div>
-                
+
                 <div className="relative w-full">
                   <div 
                     ref={pRef}
-                    onMouseEnter={() => setIsPaused(true)}
-                    onMouseLeave={() => setIsPaused(false)}
-                    onTouchStart={() => setIsPaused(true)}
-                    className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x pb-8 px-4"
+                    onMouseEnter={handleInteractionStart}
+                    onMouseLeave={handleInteractionEnd}
+                    onTouchStart={handleInteractionStart}
+                    onScroll={handleInteractionStart}
+                    onMouseDown={handleInteractionStart}
+                    onPointerDown={handleInteractionStart}
+                    className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x pb-8 px-4 select-none"
                   >
                     {perfumeDisplay.map((p, i) => (
                       <div
@@ -301,11 +323,11 @@ export default function HomePage({ initialProducts }: Props) {
                       </div>
                     ))}
                   </div>
-                  
+
                   {/* Subtle Scroll Hint Indicator (Mobile) */}
                   <div className="md:hidden flex justify-center mt-2">
                     <div className="h-1 w-24 bg-gray-100 rounded-full overflow-hidden">
-                      <motion.div 
+                      <motion.div
                         className="h-full bg-[var(--brand-primary)] w-1/3"
                         animate={{ x: ["-100%", "200%"] }}
                         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -325,13 +347,13 @@ export default function HomePage({ initialProducts }: Props) {
                     <div className="flex-1 h-[1px] bg-gray-100"></div>
                   </div>
                   <div className="hidden md:flex items-center gap-2 ml-4">
-                    <button 
+                    <button
                       onClick={() => aRef.current?.scrollBy({ left: -400, behavior: "smooth" })}
                       className="p-3 rounded-full border border-gray-100 hover:bg-white hover:shadow-xl hover:border-white transition-all text-gray-400 hover:text-[var(--brand-primary)]"
                     >
                       <ChevronLeft size={20} />
                     </button>
-                    <button 
+                    <button
                       onClick={() => aRef.current?.scrollBy({ left: 400, behavior: "smooth" })}
                       className="p-3 rounded-full border border-gray-100 hover:bg-white hover:shadow-xl hover:border-white transition-all text-gray-400 hover:text-[var(--brand-primary)]"
                     >
@@ -339,14 +361,17 @@ export default function HomePage({ initialProducts }: Props) {
                     </button>
                   </div>
                 </div>
-                
+
                 <div className="relative w-full">
                   <div
                     ref={aRef}
-                    onMouseEnter={() => setIsPaused(true)}
-                    onMouseLeave={() => setIsPaused(false)}
-                    onTouchStart={() => setIsPaused(true)}
-                    className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x pb-8 px-4"
+                    onMouseEnter={handleInteractionStart}
+                    onMouseLeave={handleInteractionEnd}
+                    onTouchStart={handleInteractionStart}
+                    onScroll={handleInteractionStart}
+                    onMouseDown={handleInteractionStart}
+                    onPointerDown={handleInteractionStart}
+                    className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x pb-8 px-4 select-none"
                   >
                     {apparelDisplay.map((p, i) => (
                       <div
@@ -358,10 +383,10 @@ export default function HomePage({ initialProducts }: Props) {
                     ))}
                   </div>
 
-                   {/* Subtle Scroll Hint Indicator (Mobile) */}
-                   <div className="md:hidden flex justify-center mt-2">
+                  {/* Subtle Scroll Hint Indicator (Mobile) */}
+                  <div className="md:hidden flex justify-center mt-2">
                     <div className="h-1 w-24 bg-gray-100 rounded-full overflow-hidden">
-                      <motion.div 
+                      <motion.div
                         className="h-full bg-[var(--brand-primary)] w-1/3"
                         animate={{ x: ["-100%", "200%"] }}
                         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
