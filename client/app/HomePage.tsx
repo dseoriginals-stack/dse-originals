@@ -247,7 +247,7 @@ export default function HomePage({ initialProducts }: Props) {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: i * 0.1 }}
-                      className="min-w-[46vw] sm:min-w-[280px] md:min-w-[320px] snap-start"
+                      className="min-w-[calc(50%-12px)] md:min-w-[calc(50%-24px)] snap-start"
                     >
                       <ProductCard product={transformProductToCard(p)} />
                     </motion.div>
@@ -271,7 +271,7 @@ export default function HomePage({ initialProducts }: Props) {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: i * 0.1 }}
-                      className="min-w-[46vw] sm:min-w-[280px] md:min-w-[320px] snap-start"
+                      className="min-w-[calc(50%-12px)] md:min-w-[calc(50%-24px)] snap-start"
                     >
                       <ProductCard product={transformProductToCard(p)} />
                     </motion.div>
