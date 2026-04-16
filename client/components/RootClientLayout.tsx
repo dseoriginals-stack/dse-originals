@@ -8,6 +8,7 @@ import AnimatedBackground from "@/components/AnimatedBackground"
 import { CartProvider } from "@/context/CartContext"
 import Footer from "@/components/Footer"
 import FloatingChat from "@/components/FloatingChat"
+import RecentPurchasePopup from "@/components/RecentPurchasePopup"
 import { usePathname } from "next/navigation"
 
 export default function RootClientLayout({
@@ -32,6 +33,7 @@ export default function RootClientLayout({
             <main className="flex-1">{children}</main>
             {!isAdmin && <Footer />}
             {!isAdmin && <FloatingChat />}
+            {!isAdmin && <RecentPurchasePopup />}
           </div>
 
           <Toaster 
