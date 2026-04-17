@@ -104,18 +104,32 @@ export default function CheckoutPage() {
 
   const isDetailsValid = !!(
     form.name && 
+    form.email && 
     form.phone && 
-    (delivery === "pickup" || (form.street && selectedRegion && selectedProvince && selectedCity))
+    form.phone.startsWith("09") &&
+    form.phone.length === 11 &&
+    (delivery === "pickup" || (form.street && form.barangay && selectedRegion && selectedProvince && selectedCity))
   )
 
   const filteredProvinces = (provinces as any[]).filter(p => String(p.region) === String(selectedRegion))
   const filteredCities = (cities as any[]).filter(c => String(c.province) === String(selectedProvince))
 
-  /* ── Step 2 → 3: calculate shipping ── */
+  /* ── Step 2 → 3: Validation & Proceed ── */
   const goToPayment = async () => {
-    // Phone Validation
+    // Final Phone Check
     if (!form.phone.startsWith("09") || form.phone.length !== 11) {
-      return toast.error("Phone number must start with 09 and be 11 digits long.")
+      return toast.error("Phone number must start with 09 and be exactly 11 digits.")
+    }
+
+    // Required Field check for Home Delivery
+    if (delivery === "delivery") {
+      if (!form.street || !form.barangay || !selectedRegion || !selectedProvince || !selectedCity) {
+        return toast.error("Please complete all shipping address fields.")
+      }
+    }
+
+    if (!form.name || !form.email) {
+      return toast.error("Please provide your name and email address.")
     }
 
     if (delivery === "delivery" && selectedRegion) {
@@ -329,6 +343,7 @@ export default function CheckoutPage() {
                 )}
 
                 <Input label="Full Name *" value={form.name} onChange={v => setForm(p => ({ ...p, name: v }))} />
+                <Input label="Email Address *" type="email" value={form.email} onChange={v => setForm(p => ({ ...p, email: v }))} />
                 <Input 
                   label="Phone (09...) *" 
                   value={form.phone} 
@@ -381,7 +396,11 @@ export default function CheckoutPage() {
                       options={filteredCities.map((c, i) => ({ value: `${c.key}-${i}`, label: c.name }))}
                       placeholder="Search City/Municipality *"
                     />
-                    <Input label="Barangay *" value={form.barangay} onChange={v => setForm(p => ({ ...p, barangay: v }))} />
+                    <Input 
+                      label="Barangay *" 
+                      value={form.barangay} 
+                      onChange={v => setForm(p => ({ ...p, barangay: v }))} 
+                    />
                   </>
                 )}
 
