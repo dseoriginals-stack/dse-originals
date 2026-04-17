@@ -76,7 +76,7 @@ export const createOrder = async (req, res, next) => {
       for (let item of items) {
         // Handle cases where item might be wrapped in an array
         while (Array.isArray(item)) item = item[0]
-        
+
         if (!item) continue;
 
         let vId = typeof item === "string" ? item : (item.variantId || item.productId || item.id)
@@ -153,7 +153,7 @@ export const createOrder = async (req, res, next) => {
           pointsDiscount: pointsDiscount,
           deliveryMethod,
           clientOrderId,
-          status: "pending",
+          status: "initialized",
 
           items: {
             create: orderItems
@@ -269,7 +269,7 @@ export const createOrder = async (req, res, next) => {
 
   } catch (err) {
     if (order?.id) {
-       await releaseReservation(order.id)
+      await releaseReservation(order.id)
     }
     next(err)
   }
@@ -282,10 +282,13 @@ GET ALL ORDERS
 export const getAllOrders = async (req, res, next) => {
   try {
 
-    const { status } = req.query
+    const { status, includePending } = req.query
 
+    // Only show pending orders if explicitly requested (e.g., Abandoned Cart view)
+    // Default is to hide them to satisfy "don't consider it as an order until paid"
     const where = {
-      ...(status && { status })
+      ...(status ? { status } : { status: { notIn: ["initialized", "failed"] } }),
+      ...(includePending === "true" && { status: undefined })
     }
 
     const orders = await prisma.order.findMany({
@@ -303,7 +306,15 @@ export const getAllOrders = async (req, res, next) => {
       }
     })
 
-    res.json(orders)
+    // Fix for ₱NaN: cast Decimals to Number
+    const safeOrders = orders.map(o => ({
+      ...o,
+      totalAmount: Number(o.totalAmount),
+      shippingFee: Number(o.shippingFee),
+      pointsDiscount: Number(o.pointsDiscount)
+    }))
+
+    res.json(safeOrders)
 
   } catch (err) {
     logger.error("Fetch all orders failed", { error: err })
@@ -317,14 +328,17 @@ GET SINGLE ORDER
 
 export const getSingleOrder = async (req, res, next) => {
   try {
-
     const { id } = req.params
 
     const order = await prisma.order.findUnique({
       where: { id },
       include: {
         items: true,
-        address: true
+        address: true,
+        user: true,
+        approvedBy: { select: { id: true, name: true } },
+        shippedBy: { select: { id: true, name: true } },
+        deliveredBy: { select: { id: true, name: true } }
       }
     })
 
@@ -336,14 +350,29 @@ export const getSingleOrder = async (req, res, next) => {
       req.user.role === "admin" ||
       req.user.role === "staff"
     ) {
-      return res.json(order)
+      return res.json({
+        ...order,
+        totalAmount: Number(order.totalAmount),
+        shippingFee: Number(order.shippingFee),
+        pointsDiscount: Number(order.pointsDiscount)
+      })
     }
 
     if (!order.userId || order.userId !== req.user.id) {
       return res.status(403).json({ message: "Forbidden" })
     }
 
-    res.json(order)
+    // Hide if still in checkout phase unless it were somehow paid
+    if (order.status === "initialized") {
+      return res.status(404).json({ message: "Order not found" })
+    }
+
+    res.json({
+      ...order,
+      totalAmount: Number(order.totalAmount),
+      shippingFee: Number(order.shippingFee),
+      pointsDiscount: Number(order.pointsDiscount)
+    })
 
   } catch (err) {
     logger.error("Fetch single order failed", { error: err })
@@ -456,8 +485,59 @@ export const refundOrder = async (req, res, next) => {
 }
 
 /* ============================
-GENERATE INVOICE
+CANCEL ORDER
 ============================ */
+
+export const cancelOrder = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const userId = req.user.id
+    const userRole = req.user.role
+
+    const order = await prisma.order.findUnique({
+      where: { id },
+      include: { items: true }
+    })
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" })
+    }
+
+    // Authorization: User can only cancel their own order before it's shipped
+    if (userRole !== "admin" && userRole !== "staff") {
+      if (order.userId !== userId) {
+        return res.status(403).json({ message: "Forbidden" })
+      }
+      if (order.status !== "pending" && order.status !== "paid") {
+        return res.status(400).json({ message: "Cannot cancel order once shipped" })
+      }
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Release stock if it was reserved
+      for (const item of order.items) {
+        await tx.productVariant.update({
+          where: { id: item.variantId },
+          data: {
+            stock: { increment: item.quantity }
+          }
+        })
+      }
+
+      await tx.order.update({
+        where: { id },
+        data: { status: "cancelled" }
+      })
+    })
+
+    await createOrderEvent(id, "cancelled", `Order cancelled by ${userRole} ${userId}`)
+
+    res.json({ message: "Order cancelled" })
+
+  } catch (err) {
+    next(err)
+  }
+}
 
 export const generateInvoice = async (req, res, next) => {
   try {
@@ -522,7 +602,10 @@ export const getMyOrders = async (req, res, next) => {
     const userId = req.user.id
 
     const orders = await prisma.order.findMany({
-      where: { userId },
+      where: { 
+        userId,
+        status: { notIn: ["initialized", "failed"] }
+      },
       include: {
         items: true,
         address: true
@@ -532,7 +615,14 @@ export const getMyOrders = async (req, res, next) => {
       }
     })
 
-    res.json(orders)
+    const safeOrders = orders.map(o => ({
+      ...o,
+      totalAmount: Number(o.totalAmount),
+      shippingFee: Number(o.shippingFee),
+      pointsDiscount: Number(o.pointsDiscount)
+    }))
+
+    res.json(safeOrders)
   } catch (err) {
     next(err)
   }
@@ -736,11 +826,11 @@ export const deliverOrder = async (req, res, next) => {
    ============================ */
 export const createManualOrder = async (req, res, next) => {
   try {
-    const { 
-      items, 
-      guestName, 
-      paymentMethod = "cash", 
-      status = "paid" 
+    const {
+      items,
+      guestName,
+      paymentMethod = "cash",
+      status = "paid"
     } = req.body
 
     const staffId = req.user.id
@@ -804,4 +894,4 @@ export const createManualOrder = async (req, res, next) => {
   } catch (err) {
     next(err)
   }
-}
+}

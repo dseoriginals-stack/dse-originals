@@ -113,6 +113,17 @@ function AccountContent() {
     }
   }
 
+  async function cancelOrder(id: string) {
+    if (!confirm("Are you sure you want to cancel your order?")) return
+    try {
+      await api.put(`/orders/${id}/cancel`)
+      toast.success("Order cancelled successfully")
+      fetchOrders()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to cancel order")
+    }
+  }
+
   async function updateProfile() {
     try {
       setSavingProfile(true)
@@ -298,7 +309,13 @@ function AccountContent() {
                 ) : (
                   <div className="space-y-6">
                     {orders.map((o: any) => (
-                      <OrderDetailedCard key={o.id} order={o} isSelected={selectedOrder?.id === o.id} onSelect={() => setSelectedOrder(o)} />
+                      <OrderDetailedCard 
+                        key={o.id} 
+                        order={o} 
+                        isSelected={selectedOrder?.id === o.id} 
+                        onSelect={() => setSelectedOrder(o)} 
+                        onCancel={cancelOrder}
+                      />
                     ))}
                   </div>
                 )}
@@ -751,7 +768,7 @@ function OrderSummaryCard({ order, onClick }: { order: any, onClick: () => void 
   )
 }
 
-function OrderDetailedCard({ order, isSelected, onSelect }: { order: any, isSelected: boolean, onSelect: () => void }) {
+function OrderDetailedCard({ order, isSelected, onSelect, onCancel }: { order: any, isSelected: boolean, onSelect: () => void, onCancel: (id: string) => void }) {
   const statusColors: any = {
     pending: 'bg-amber-500',
     paid: 'bg-emerald-500',
@@ -840,6 +857,18 @@ function OrderDetailedCard({ order, isSelected, onSelect }: { order: any, isSele
                     <span className="text-[10px] md:text-xs font-black uppercase text-gray-400">Total Transaction</span>
                     <span className="text-base md:text-lg font-black text-[var(--text-heading)]">₱{order.totalAmount.toLocaleString()}</span>
                   </div>
+
+                  {['pending', 'paid', 'accepted'].includes(order.status.toLowerCase()) && (
+                    <div className="pt-8">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); onCancel(order.id); }}
+                        className="w-full py-4 rounded-2xl border-2 border-red-50 text-red-500 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white hover:border-red-500 transition-all"
+                      >
+                        Cancel Order
+                      </button>
+                      <p className="text-[9px] text-gray-400 text-center mt-3 font-bold italic">Orders can only be cancelled before they are shipped.</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

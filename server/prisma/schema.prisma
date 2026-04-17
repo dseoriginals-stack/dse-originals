@@ -520,6 +520,7 @@ enum Role {
 }
 
 enum OrderStatus {
+  initialized
   pending
   approved
   accepted

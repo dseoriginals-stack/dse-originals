@@ -103,6 +103,12 @@ router.post(
 )
 
 router.put(
+  "/:id/cancel",
+  authenticate,
+  controller.cancelOrder
+)
+
+router.put(
   "/:id/status",
   authenticate,
   requireRole("admin"),

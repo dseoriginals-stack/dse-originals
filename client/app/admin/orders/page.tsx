@@ -94,6 +94,17 @@ export default function AdminOrders() {
     }
   }
 
+  async function cancelOrder(id: string) {
+    if (!confirm("Are you sure you want to cancel this order? This will release the reserved stock.")) return
+    try {
+      await api.put(`/orders/${id}/cancel`)
+      toast.success("Order cancelled")
+      fetchOrders()
+    } catch (err: any) {
+      toast.error(err.message || "Cancellation failed")
+    }
+  }
+
   const filteredOrders = useMemo(() => {
     return orders.filter(o => {
       const matchesSearch = 
@@ -129,7 +140,7 @@ export default function AdminOrders() {
             />
           </div>
           <div className="flex bg-white border border-[var(--border-light)] rounded-2xl p-1 shadow-sm">
-            {["all", "paid", "shipped", "delivered"].map(f => (
+            {["all", "pending", "paid", "shipped", "delivered", "cancelled"].map(f => (
               <button 
                 key={f}
                 onClick={() => setFilter(f)}
@@ -171,6 +182,7 @@ export default function AdminOrders() {
                       trackingValue={trackingInputs[order.id] ?? order.trackingNo ?? ""}
                       onTrackingChange={(val: string) => setTrackingInputs(p => ({ ...p, [order.id]: val }))}
                       onUpdateStatus={updateStatus}
+                      onCancel={cancelOrder}
                     />
                   ))}
                   {filteredOrders.length === 0 && (
@@ -190,7 +202,7 @@ export default function AdminOrders() {
   )
 }
 
-function OrderRow({ order, expanded, onExpand, trackingValue, onTrackingChange, onUpdateStatus }: any) {
+function OrderRow({ order, expanded, onExpand, trackingValue, onTrackingChange, onUpdateStatus, onCancel }: any) {
   const statusStyles: any = {
     pending: "bg-amber-50 text-amber-600 border-amber-100",
     accepted: "bg-violet-50 text-violet-600 border-violet-100",
@@ -269,6 +281,14 @@ function OrderRow({ order, expanded, onExpand, trackingValue, onTrackingChange, 
                   className="px-3 py-2 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-tighter transition shadow-sm"
                 >
                   J&T Sync
+                </button>
+              )}
+              {['pending', 'paid', 'accepted'].includes(order.status.toLowerCase()) && (
+                <button 
+                  onClick={() => onCancel(order.id)}
+                  className="px-3 py-2 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-tighter transition shadow-sm"
+                >
+                  Cancel
                 </button>
               )}
               <button 
