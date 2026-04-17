@@ -99,6 +99,13 @@ const getAdminStats = async () => {
     return { name: cat.name, sales }
   }).sort((a, b) => b.sales - a.sales)
 
+  // 6. RECENT ORDERS
+  const recentOrders = await prisma.order.findMany({
+    take: 5,
+    orderBy: { createdAt: 'desc' },
+    include: { user: { select: { name: true } } }
+  })
+
   return {
     totalCustomers: users,
     totalOrders: ordersCount,
@@ -190,7 +197,19 @@ const getProducts = async () => {
       status: { not: "archived" }
     },
     include: {
-      variants: true,
+      variants: {
+        select: {
+          id: true,
+          productId: true,
+          sku: true,
+          name: true,
+          price: true,
+          stock: true,
+          createdAt: true,
+          updatedAt: true,
+          attributes: true
+        }
+      },
       images: { take: 1 }
     },
     orderBy: {
