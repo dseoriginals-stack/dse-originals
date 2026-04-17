@@ -52,7 +52,7 @@ export default function AdminDashboard() {
     async function load() {
       try {
         setLoading(true)
-        const data = await api.get<Stats>("/admin/stats")
+        const data = await api.get<Stats>(`/admin/stats?cb=${Date.now()}`)
         setStats(data)
       } catch (err) {
         console.error("Failed to load dashboard stats", err)
@@ -62,6 +62,8 @@ export default function AdminDashboard() {
     }
 
     load()
+    const syncInterval = setInterval(load, 60000)
+    return () => clearInterval(syncInterval)
   }, [user])
 
   const handleExport = () => {

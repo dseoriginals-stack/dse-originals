@@ -74,14 +74,16 @@ export default function AdminProducts() {
 
   useEffect(() => {
     fetchAll()
+    const syncInterval = setInterval(fetchAll, 60000)
+    return () => clearInterval(syncInterval)
   }, [])
 
   async function fetchAll() {
     try {
       setLoading(true)
       const [productRes, categoryRes] = await Promise.all([
-        api.get("/admin/products"),
-        api.get("/categories")
+        api.get(`/admin/products?cb=${Date.now()}`),
+        api.get(`/categories?cb=${Date.now()}`)
       ])
 
       const productData = Array.isArray(productRes) ? productRes : productRes?.data || []

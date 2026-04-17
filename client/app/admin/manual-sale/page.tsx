@@ -7,9 +7,11 @@ import { Search, ShoppingCart, CreditCard, Trash2, Plus, Minus, User, Philippine
 import { motion, AnimatePresence } from "framer-motion"
 import toast from "react-hot-toast"
 import Image from "next/image"
+import { ProductFull, ProductVariant } from "@/types/product"
+
 
 export default function ManualSalePage() {
-  const [products, setProducts] = useState<any[]>([])
+  const [products, setProducts] = useState<ProductFull[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   
@@ -23,14 +25,44 @@ export default function ManualSalePage() {
 
   useEffect(() => {
     fetchProducts()
+    const syncInterval = setInterval(fetchProducts, 60000)
+    return () => clearInterval(syncInterval)
   }, [])
 
   const fetchProducts = async () => {
     try {
-      const data = await api.get("/products/all")
+      const data = await api.get(`/products/all?cb=${Date.now()}`)
       setProducts(data || [])
+    } catch (err) {
+      console.error("Sync failed:", err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const getPOSPrices = (product: ProductFull, variant: ProductVariant) => {
+    const cat = (product.category || "").toLowerCase()
+    const attrValues = (variant.attributes || []).map((a) => (a.value || "").toLowerCase())
+
+    // 55ml Perfume logic
+    if (attrValues.some((v: string) => v.includes("55ml"))) {
+      return { srp: 349, reseller: 299 }
+    }
+
+    // 30ml Perfume logic
+    if (attrValues.some((v: string) => v.includes("30ml"))) {
+      return { srp: 249, reseller: 199 }
+    }
+
+    // Apparel logic (Category based or size based)
+    if (cat.includes("apparel") || attrValues.some((v: string) => ["small", "medium", "large", "xl", "2xl", "shirt", "tee"].includes(v))) {
+      return { srp: 399, reseller: 369 }
+    }
+
+    // Fallback to database price
+    return {
+      srp: Number(variant.price),
+      reseller: Number(variant.price * 0.8) // Assuming a default reseller discount if not specified
     }
   }
 
@@ -40,7 +72,9 @@ export default function ManualSalePage() {
       return
     }
 
+    const prices = getPOSPrices(product, variant)
     const existingIndex = cart.findIndex(item => item.variantId === variant.id)
+    
     if (existingIndex > -1) {
       const newCart = [...cart]
       if (newCart[existingIndex].quantity >= variant.stock) {
@@ -55,8 +89,8 @@ export default function ManualSalePage() {
         variantId: variant.id,
         name: product.name,
         variantName: variant.attributes?.map((a: any) => a.value).join(" / ") || "Standard",
-        srp: Number(variant.price),
-        reseller: Number(variant.resellerPrice || variant.price * 0.8),
+        srp: prices.srp,
+        reseller: prices.reseller,
         image: product.images?.[0]?.url,
         quantity: 1,
         stock: variant.stock
@@ -147,46 +181,51 @@ export default function ManualSalePage() {
                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Loading Inventory...</p>
             </div>
           ) : (
-            products.flatMap(p => p.variants.map((v: any) => ({ ...v, parentProduct: p })))
+            products.flatMap(p => p.variants.map((v) => ({ ...v, parentProduct: p })))
               .filter(v => v.parentProduct.name.toLowerCase().includes(search.toLowerCase()) || 
-                          v.attributes?.some((a:any) => a.value.toLowerCase().includes(search.toLowerCase())))
-              .map((variant: any) => (
-                <button
-                  key={variant.id}
-                  disabled={variant.stock <= 0}
-                  onClick={() => addToCart(variant.parentProduct, variant)}
-                  className={`relative group bg-white rounded-3xl p-3 border-2 transition-all text-left flex flex-col h-full ${variant.stock <= 0 ? "opacity-50 grayscale cursor-not-allowed border-transparent" : "border-transparent hover:border-[var(--brand-primary)] hover:shadow-2xl hover:shadow-[var(--brand-primary)]/10 active:scale-95"}`}
-                >
-                  <div className="aspect-square rounded-2xl overflow-hidden bg-[var(--bg-surface)] relative mb-3">
-                    <Image 
-                      src={getImageUrl(variant.parentProduct.images?.[0]?.url)} 
-                      alt={variant.parentProduct.name}
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-700"
-                    />
-                    <div className="absolute top-2 right-2 px-2 py-1 bg-white/90 backdrop-blur-md rounded-lg text-[8px] font-black uppercase tracking-widest text-[var(--brand-primary)] shadow-sm">
-                      {variant.stock} in stock
+                          v.attributes?.some((a: any) => a.value.toLowerCase().includes(search.toLowerCase())))
+              .map((variant: any) => {
+                const prices = getPOSPrices(variant.parentProduct, variant)
+                const currentPrice = priceMode === "srp" ? prices.srp : prices.reseller
+
+                return (
+                  <button
+                    key={variant.id}
+                    disabled={variant.stock <= 0}
+                    onClick={() => addToCart(variant.parentProduct, variant)}
+                    className={`relative group bg-white rounded-3xl p-3 border-2 transition-all text-left flex flex-col h-full ${variant.stock <= 0 ? "opacity-50 grayscale cursor-not-allowed border-transparent" : "border-transparent hover:border-[var(--brand-primary)] hover:shadow-2xl hover:shadow-[var(--brand-primary)]/10 active:scale-95"}`}
+                  >
+                    <div className="aspect-square rounded-2xl overflow-hidden bg-[var(--bg-surface)] relative mb-3">
+                      <Image 
+                        src={getImageUrl(variant.parentProduct.images?.[0]?.url)} 
+                        alt={variant.parentProduct.name}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-700"
+                      />
+                      <div className="absolute top-2 right-2 px-2 py-1 bg-white/90 backdrop-blur-md rounded-lg text-[8px] font-black uppercase tracking-widest text-[var(--brand-primary)] shadow-sm">
+                        {variant.stock} in stock
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="flex-1 flex flex-col min-w-0">
-                    <h3 className="text-[11px] font-[1000] text-[var(--text-heading)] leading-tight line-clamp-2">
-                       {variant.parentProduct.name}
-                    </h3>
-                    <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-tight mt-1 truncate">
-                       {variant.attributes?.map((a: any) => a.value).join("/") || "Standard"}
-                    </p>
-                    <div className="mt-auto pt-3 flex items-center justify-between">
-                       <span className="text-sm font-black text-[var(--brand-primary)]">
-                         ₱{(priceMode === "srp" ? Number(variant.price) : Number(variant.resellerPrice || variant.price * 0.8)).toLocaleString()}
-                       </span>
-                       <div className="w-6 h-6 rounded-full bg-[var(--brand-soft)] flex items-center justify-center group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+                    
+                    <div className="flex-1 flex flex-col min-w-0">
+                      <h3 className="text-[11px] font-[1000] text-[var(--text-heading)] leading-tight line-clamp-2">
+                        {variant.parentProduct.name}
+                      </h3>
+                      <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-tight mt-1 truncate">
+                        {variant.attributes?.map((a: any) => a.value).join("/") || "Standard"}
+                      </p>
+                      <div className="mt-auto pt-3 flex items-center justify-between">
+                        <span className="text-sm font-black text-[var(--brand-primary)]">
+                          ₱{currentPrice.toLocaleString()}
+                        </span>
+                        <div className="w-6 h-6 rounded-full bg-[var(--brand-soft)] flex items-center justify-center group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
                           <Plus size={14} />
-                       </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))
+                  </button>
+                )
+              })
           )}
         </div>
       </div>

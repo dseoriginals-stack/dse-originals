@@ -104,18 +104,18 @@ export default function HomePage({ initialProducts }: Props) {
   // Continuous Glide Engine (60fps)
   useEffect(() => {
     let animationFrameId: number;
-    
+
     const glide = () => {
       // Pause if user is interacting OR if they just stopped (2s delay)
       const now = Date.now();
       const timeSinceActivity = now - lastActivityTime.current;
-      
+
       if (!isPaused && timeSinceActivity > 2000) {
         [pRef, aRef].forEach(ref => {
           if (ref.current) {
             const container = ref.current;
             container.scrollLeft += 0.5; // Fine-tuned speed (0.5px per frame)
-            
+
             // Loop back if at the end
             if (container.scrollLeft >= (container.scrollWidth / 2)) {
               container.scrollLeft = 0;
@@ -304,7 +304,7 @@ export default function HomePage({ initialProducts }: Props) {
                 </div>
 
                 <div className="relative w-full">
-                  <div 
+                  <div
                     ref={pRef}
                     onMouseEnter={handleInteractionStart}
                     onMouseLeave={handleInteractionEnd}
