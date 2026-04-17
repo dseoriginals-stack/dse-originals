@@ -1,7 +1,7 @@
 import express from "express"
 
 import prisma from "../../config/prisma.js"
-import authenticate, { authorize } from "../../middleware/auth.middleware.js"
+import authenticate, { authorize, optionalAuthenticate } from "../../middleware/auth.middleware.js"
 import requireRole from "../../middleware/role.middleware.js"
 
 import * as controller from "./order.controller.js"
@@ -25,8 +25,8 @@ router.get(
   CHECKOUT
 ============================= */
 
-// Authenticated checkout (for logged-in users)
-router.post("/checkout", authenticate, controller.createOrder)
+// Optional Authenticated checkout (supports both guests & logged-in users)
+router.post("/checkout", optionalAuthenticate, controller.createOrder)
 
 // Optional guest order creation endpoint
 router.post("/", controller.createOrder)

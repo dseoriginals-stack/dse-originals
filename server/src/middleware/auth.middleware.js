@@ -35,6 +35,36 @@ export default async function authenticate(req, res, next) {
   }
 }
 
+export async function optionalAuthenticate(req, res, next) {
+  try {
+    const token = req.cookies.accessToken
+
+    if (!token) return next()
+
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_ACCESS_SECRET
+    )
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id }
+    })
+
+    if (user) {
+      req.user = {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      }
+    }
+
+    next()
+  } catch (error) {
+    // Fail silently for optional auth
+    next()
+  }
+}
+
 export function authorize(...roles) {
   return (req, res, next) => {
     if (!req.user) {
