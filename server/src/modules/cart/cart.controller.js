@@ -23,13 +23,7 @@ export const getCart = async (req, res, next) => {
         items: {
           include: {
             variant: {
-              select: {
-                id: true,
-                productId: true,
-                sku: true,
-                name: true,
-                price: true,
-                stock: true,
+              include: {
                 product: true
               }
             }
@@ -75,15 +69,7 @@ export const addItem = async (req, res, next) => {
     const { variantId, quantity } = req.body
 
     const variant = await prisma.productVariant.findUnique({
-      where: { id: variantId },
-      select: {
-        id: true,
-        productId: true,
-        sku: true,
-        name: true,
-        price: true,
-        stock: true
-      }
+      where: { id: variantId }
     })
 
     if (!variant) {

@@ -197,19 +197,7 @@ const getProducts = async () => {
       status: { not: "archived" }
     },
     include: {
-      variants: {
-        select: {
-          id: true,
-          productId: true,
-          sku: true,
-          name: true,
-          price: true,
-          stock: true,
-          createdAt: true,
-          updatedAt: true,
-          attributes: true
-        }
-      },
+      variants: true,
       images: { take: 1 }
     },
     orderBy: {

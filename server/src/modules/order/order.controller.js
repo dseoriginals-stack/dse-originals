@@ -103,15 +103,7 @@ export const createOrder = async (req, res, next) => {
 
         const variant = await tx.productVariant.findUnique({
           where: { id: vId },
-          select: {
-            id: true,
-            productId: true,
-            sku: true,
-            name: true,
-            price: true,
-            stock: true,
-            product: true
-          }
+          include: { product: true }
         })
 
         if (!variant || variant.stock < quantity) {
@@ -764,15 +756,7 @@ export const createManualOrder = async (req, res, next) => {
       for (const item of items) {
         const variant = await tx.productVariant.findUnique({
           where: { id: item.variantId },
-          select: {
-            id: true,
-            productId: true,
-            sku: true,
-            name: true,
-            price: true,
-            stock: true,
-            product: true
-          }
+          include: { product: true }
         })
 
         if (!variant || variant.stock < item.quantity) {

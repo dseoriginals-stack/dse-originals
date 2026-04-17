@@ -377,13 +377,7 @@ export const getProductBySlugController = async (req, res) => {
         },
 
         variants: {
-          select: {
-            id: true,
-            productId: true,
-            sku: true,
-            name: true,
-            price: true,
-            stock: true,
+          include: {
             attributes: true
           }
         },
@@ -528,23 +522,8 @@ export const updateProduct = async (req, res, next) => {
 
     const product = await prisma.product.findUnique({
       where: { id },
-      select: {
-        id: true,
-        name: true,
-        categoryId: true,
-        description: true,
-        isBestseller: true,
-        isPopular: true,
-        variants: {
-          select: {
-            id: true,
-            productId: true,
-            sku: true,
-            name: true,
-            price: true,
-            stock: true
-          }
-        }
+      include: {
+        variants: true
       }
     })
 
