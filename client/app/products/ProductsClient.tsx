@@ -4,7 +4,6 @@ import { useEffect, useState, useMemo } from "react"
 import { useSearchParams } from "next/navigation"
 
 import ProductCard from "@/components/ProductCard"
-import ProductModal from "@/components/ProductModal" // ✅ NEW
 
 import CategoryFilter from "@/components/CategoryFilter"
 import PriceFilter from "@/components/PriceFilter"
@@ -30,8 +29,6 @@ export default function ProductsClient({ initialProducts }: Props) {
   const [sort, setSort] = useState("latest")
   const [showFilters, setShowFilters] = useState(false)
 
-  // ✅ MODAL STATE
-  const [selectedProduct, setSelectedProduct] = useState<ProductCardType | null>(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -150,7 +147,6 @@ export default function ProductsClient({ initialProducts }: Props) {
                 <div key={product.id}>
                   <ProductCard
                     product={product}
-                    onQuickView={(p) => setSelectedProduct(p)} // ✅ TRIGGER MODAL
                   />
                 </div>
               ))}
@@ -168,14 +164,6 @@ export default function ProductsClient({ initialProducts }: Props) {
           )}
         </div>
       </div>
-
-      {/* ✅ MODAL */}
-      {selectedProduct && (
-        <ProductModal
-          product={selectedProduct}
-          onClose={() => setSelectedProduct(null)}
-        />
-      )}
     </div>
   )
 }

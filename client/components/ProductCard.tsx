@@ -14,11 +14,9 @@ import { getImageUrl } from "@/lib/image"
 export default function ProductCard({
   product,
   priority = false,
-  onQuickView,
 }: {
   product: ProductCardType
   priority?: boolean
-  onQuickView?: (product: ProductCardType) => void
 }) {
   const router = useRouter()
   const { addToCart } = useCart()
@@ -66,14 +64,7 @@ export default function ProductCard({
 
   return (
     <div
-      onClick={(e) => {
-        if (onQuickView) {
-          e.preventDefault()
-          onQuickView(product)
-        } else {
-          router.push(`/products/${product.slug}`)
-        }
-      }}
+      onClick={() => router.push(`/products/${product.slug}`)}
       className="group block cursor-pointer h-full"
     >
       <div className="h-full flex flex-col relative overflow-hidden rounded-2xl md:rounded-3xl bg-white/60 backdrop-blur-md transition-all duration-300 group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
