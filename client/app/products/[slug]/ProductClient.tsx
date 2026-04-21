@@ -206,58 +206,94 @@ export default function ProductClient() {
 
           <div className="h-px w-full bg-[var(--border-light)]"></div>
 
-          {/* VARIANTS */}
-          <div>
-            <h3 className="text-[10px] font-bold text-[var(--text-heading)] uppercase tracking-[0.2em] mb-4">Select Configuration</h3>
-            <div className="flex gap-4 flex-wrap">
-              {product.variants.map((v) => {
-                const isOut = v.stock === 0
-                const isActive = variant?.id === v.id
-                
-                // Detection logic for color vs choice
-                const isColorVariant = v.attributes?.some(a => a.name.toLowerCase().includes('color'))
-                const colorValue = v.attributes?.find(a => a.name.toLowerCase().includes('color'))?.value || 'transparent'
+          {/* SEPARATED VARIANTS */}
+          <div className="space-y-6">
+            {(() => {
+              const grouped: Record<string, string[]> = {}
+              product.variants.forEach((v) => {
+                v.attributes.forEach((attr) => {
+                  if (!grouped[attr.name]) grouped[attr.name] = []
+                  if (!grouped[attr.name].includes(attr.value)) {
+                    grouped[attr.name].push(attr.value)
+                  }
+                })
+              })
 
-                if (isColorVariant) {
-                  return (
-                    <button
-                      key={v.id}
-                      disabled={isOut}
-                      onClick={() => setVariant(v)}
-                      title={v.attributes.map(a => a.value).join(' / ')}
-                      className={`relative w-10 h-10 rounded-full transition-all duration-500 flex items-center justify-center p-0.5 ${isActive 
-                        ? 'ring-2 ring-[var(--brand-primary)] ring-offset-2 scale-110 shadow-lg' 
-                        : 'hover:scale-105 hover:ring-1 hover:ring-[var(--brand-soft)] ring-offset-1'
-                      } ${isOut ? 'opacity-20 cursor-not-allowed grayscale' : 'cursor-pointer'}`}
-                    >
-                      <div 
-                        className="w-full h-full rounded-full shadow-inner border border-black/5" 
-                        style={{ backgroundColor: colorValue.toLowerCase().replace(' ', '') }}
-                      ></div>
-                      {isActive && <Check size={12} className="absolute text-white drop-shadow-md" />}
-                    </button>
-                  )
-                }
+              const selections: Record<string, string> = {}
+              variant?.attributes.forEach(a => {
+                selections[a.name] = a.value
+              })
 
-                return (
-                  <button
-                    key={v.id}
-                    disabled={isOut}
-                    onClick={() => setVariant(v)}
-                    className={`px-5 py-2.5 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all duration-300 border-2 ${isOut
-                      ? "opacity-30 bg-gray-50 border-gray-100 line-through cursor-not-allowed"
-                      : isActive
-                        ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-[0_8px_20px_rgba(39,76,119,0.25)] scale-[1.05]"
-                        : "bg-white border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] hover:shadow-sm"
-                      }`}
-                  >
-                    {v.attributes?.length
-                      ? v.attributes.map((a: any) => a.value).join(" / ")
-                      : "Standard"}
-                  </button>
+              const handleAttrClick = (name: string, value: string) => {
+                const next = { ...selections, [name]: value }
+                const match = product.variants.find(v =>
+                  v.attributes.every(a => next[a.name] === a.value)
                 )
-              })}
-            </div>
+
+                if (match) {
+                  setVariant(match)
+                } else {
+                  const fallback = product.variants.find(v =>
+                    v.attributes.some(a => a.name === name && a.value === value)
+                  )
+                  if (fallback) setVariant(fallback)
+                }
+              }
+
+              return Object.entries(grouped).map(([name, values]) => (
+                <div key={name} className="space-y-4">
+                  <h3 className="text-[10px] font-bold text-[var(--text-heading)] uppercase tracking-[0.2em]">Select {name}</h3>
+                  <div className="flex gap-3 flex-wrap">
+                    {values.map((val) => {
+                      const isActive = selections[name] === val
+                      const isOut = !product.variants.some(v => 
+                        v.attributes.some(a => a.name === name && a.value === val) && v.stock > 0
+                      )
+
+                      // Color Detection
+                      const isColor = name.toLowerCase().includes('color')
+
+                      if (isColor) {
+                        return (
+                          <button
+                            key={val}
+                            disabled={isOut}
+                            onClick={() => handleAttrClick(name, val)}
+                            title={val}
+                            className={`relative w-12 h-12 rounded-full transition-all duration-500 flex items-center justify-center p-0.5 ${isActive 
+                              ? 'ring-2 ring-[var(--brand-primary)] ring-offset-2 scale-110 shadow-lg' 
+                              : 'hover:scale-105 ring-1 ring-gray-100 hover:ring-[var(--brand-soft)] ring-offset-1'
+                            } ${isOut ? 'opacity-20 cursor-not-allowed grayscale' : 'cursor-pointer'}`}
+                          >
+                            <div 
+                              className="w-full h-full rounded-full shadow-inner border border-black/5" 
+                              style={{ backgroundColor: val.toLowerCase().replace(' ', '') }}
+                            ></div>
+                            {isActive && <Check size={14} className="absolute text-white drop-shadow-md" />}
+                          </button>
+                        )
+                      }
+
+                      return (
+                        <button
+                          key={val}
+                          disabled={isOut}
+                          onClick={() => handleAttrClick(name, val)}
+                          className={`px-6 py-3 rounded-2xl text-[11px] font-black tracking-widest uppercase transition-all duration-300 border-2 ${isOut
+                            ? "opacity-30 bg-gray-50 border-gray-100 line-through cursor-not-allowed"
+                            : isActive
+                              ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-[0_8px_20px_rgba(39,76,119,0.25)] scale-[1.05]"
+                              : "bg-white border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)]"
+                            }`}
+                        >
+                          {val}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))
+            })()}
           </div>
 
           {/* STOCK */}

@@ -22,9 +22,54 @@ export default function ProductModal({
   const [loading, setLoading] = useState(false)
   const [added, setAdded] = useState(false)
 
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
-    product.variants?.[0] || null
-  )
+  // ✅ Group attributes for separated selection
+  const groupedAttributes: Record<string, string[]> = {}
+  product.variants?.forEach((v) => {
+    v.attributes.forEach((attr) => {
+      if (!groupedAttributes[attr.name]) groupedAttributes[attr.name] = []
+      if (!groupedAttributes[attr.name].includes(attr.value)) {
+        groupedAttributes[attr.name].push(attr.value)
+      }
+    })
+  })
+
+  // ✅ Track selections by attribute name
+  const [selections, setSelections] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {}
+    const first = product.variants?.[0]
+    first?.attributes.forEach(a => {
+      initial[a.name] = a.value
+    })
+    return initial
+  })
+
+  // ✅ Computed selected variant
+  const selectedVariant = product.variants?.find(v =>
+    v.attributes.every(a => selections[a.name] === a.value)
+  ) || product.variants?.[0] || null
+
+  const handleAttributeClick = (name: string, value: string) => {
+    const nextSelections = { ...selections, [name]: value }
+
+    // Try to find exact match
+    const match = product.variants?.find(v =>
+      v.attributes.every(a => nextSelections[a.name] === a.value)
+    )
+
+    if (match) {
+      setSelections(nextSelections)
+    } else {
+      // Falling back to first variant matching the new selection
+      const fallback = product.variants?.find(v =>
+        v.attributes.some(a => a.name === name && a.value === value)
+      )
+      if (fallback) {
+        const reset: Record<string, string> = {}
+        fallback.attributes.forEach(a => { reset[a.name] = a.value })
+        setSelections(reset)
+      }
+    }
+  }
 
   const imageUrl = product.image
     ? getImageUrl(product.image)
@@ -39,16 +84,16 @@ export default function ProductModal({
   }, [])
 
   const handleAdd = async () => {
-    if (loading) return
+    if (loading || !selectedVariant) return
 
     setLoading(true)
 
     try {
       await addToCart({
         productId: product.id,
-        variantId: selectedVariant ? selectedVariant.id : product.variantId,
+        variantId: selectedVariant.id,
         name: product.name,
-        price: selectedVariant ? Number(selectedVariant.price) : product.price,
+        price: Number(selectedVariant.price),
         quantity: qty,
         image: imageUrl,
       })
@@ -64,82 +109,104 @@ export default function ProductModal({
   return (
     <div
       onClick={onClose} // ✅ click outside to close
-      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300"
     >
       <div
         onClick={(e) => e.stopPropagation()}
         className="
-          bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden relative
-          animate-in fade-in zoom-in-95 duration-200
-          flex flex-col md:grid md:grid-cols-2 max-h-[95vh] md:max-h-none overflow-y-auto
+          bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl overflow-hidden relative
+          animate-in zoom-in-95 duration-300
+          flex flex-col md:grid md:grid-cols-2 max-h-[90vh] md:max-h-none overflow-y-auto
+          border border-white/20
         "
       >
 
         {/* CLOSE */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 bg-white/80 rounded-full p-2 hover:bg-white shadow-sm"
+          className="absolute right-6 top-6 z-10 bg-white/90 hover:bg-white text-gray-500 hover:text-black rounded-full p-2.5 transition-all shadow-lg backdrop-blur-sm"
         >
-          <X size={18} />
+          <X size={20} strokeWidth={2.5} />
         </button>
 
         {/* IMAGE */}
-        <div className="relative h-[250px] sm:h-[350px] md:h-auto min-h-[400px] bg-gray-50 flex-shrink-0">
+        <div className="relative h-[250px] sm:h-[350px] md:h-auto min-h-[450px] bg-[var(--bg-surface)] flex-shrink-0 group overflow-hidden">
           <Image
             src={imageUrl}
             alt={product.name}
             fill
-            className="object-cover"
+            className="object-cover transition-transform duration-1000 group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, 50vw"
           />
+          {product.isBestseller && (
+            <div className="absolute top-6 left-6 bg-amber-400 text-black px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl">
+              Best Seller
+            </div>
+          )}
         </div>
 
         {/* CONTENT */}
-        <div className="p-6 md:p-8 flex flex-col gap-5 bg-white">
+        <div className="p-8 md:p-12 flex flex-col gap-6 bg-white overflow-y-auto">
 
-          {/* TITLE */}
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
-            {product.name}
-          </h2>
-
-          {/* PRICE */}
-          <div className="text-xl font-bold text-[var(--brand-primary)]">
-            ₱{Number(selectedVariant?.price || product.price).toLocaleString()}
+          {/* TITLE & PRICE */}
+          <div className="space-y-2">
+            <h2 className="text-3xl font-[1000] text-[var(--text-heading)] tracking-tighter leading-tight">
+              {product.name}
+            </h2>
+            <div className="text-3xl font-black text-[var(--brand-primary)]">
+              ₱{Number(selectedVariant?.price || product.price).toLocaleString()}
+            </div>
           </div>
 
-          {/* DESCRIPTION (placeholder for now) */}
-          <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-            Experience the highest quality with this premium product, designed exactly with your aesthetic and practical needs in mind.
-          </p>
+          <div className="h-px w-full bg-[var(--border-light)]"></div>
 
-          {/* VARIANTS */}
-          {product.variants && product.variants.length > 0 && (
-            <div>
-              <p className="text-sm text-gray-500 mb-2">Select Variant</p>
-              <div className="flex gap-2 flex-wrap">
-                {product.variants.map((v) => {
-                  const isOut = v.stock === 0
-                  const isActive = selectedVariant?.id === v.id
+          {/* DESCRIPTION */}
+          <div className="space-y-2">
+            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--brand-primary)]">Composition & Care</p>
+            <p className="text-sm text-[var(--text-muted)] font-medium leading-relaxed">
+              {product.description || "Premium handcrafted piece from our latest collection, featuring superior fabrics and a tailored silhouette designed for timeless elegance."}
+            </p>
+          </div>
 
-                  return (
-                    <button
-                      key={v.id}
-                      disabled={isOut}
-                      onClick={() => setSelectedVariant(v)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 border-2 ${isOut
-                        ? "opacity-40 bg-gray-50 border-gray-100 line-through cursor-not-allowed text-gray-500"
-                        : isActive
-                          ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-md drop-shadow-sm scale-[1.02]"
-                          : "bg-transparent border-[var(--border-light)] text-[var(--text-main)] hover:border-[var(--brand-primary)] hover:bg-[var(--bg-main)]"
-                        }`}
-                    >
-                      {v.attributes && v.attributes.length > 0
-                        ? v.attributes.map((a: any) => a.value).join(" / ")
-                        : "Default Size"}
-                    </button>
-                  )
-                })}
-              </div>
+          {/* SEPARATED VARIANTS */}
+          {Object.entries(groupedAttributes).length > 0 && (
+            <div className="space-y-6">
+              {Object.entries(groupedAttributes).map(([name, values]) => (
+                <div key={name} className="space-y-3">
+                  <p className="text-[10px] font-black font-brand uppercase tracking-[0.2em] text-gray-400">
+                    Select {name}
+                  </p>
+                  <div className="flex gap-2.5 flex-wrap">
+                    {values.map((val) => {
+                      const isActive = selections[name] === val
+                      
+                      // Check if this specific attribute value is available in ANY variant
+                      const isUnavailable = !product.variants?.some(v => 
+                        v.attributes.some(a => a.name === name && a.value === val) && v.stock > 0
+                      )
+
+                      return (
+                        <button
+                          key={val}
+                          disabled={isUnavailable}
+                          onClick={() => handleAttributeClick(name, val)}
+                          className={`
+                            px-6 py-3 rounded-2xl text-[11px] font-bold transition-all duration-300 border-2
+                            ${isUnavailable 
+                              ? "opacity-20 cursor-not-allowed line-through bg-gray-50 border-gray-100" 
+                              : isActive
+                                ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-[0_8px_20px_rgba(39,76,119,0.25)] scale-[1.05]"
+                                : "bg-white border-[var(--border-light)] text-gray-600 hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] hover:shadow-md"
+                            }
+                          `}
+                        >
+                          {val}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
