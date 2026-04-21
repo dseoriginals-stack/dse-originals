@@ -78,6 +78,9 @@ function AccountContent() {
       setOauthError("Social authentication failed. Please try again.")
     } else if (success) {
       toast.success("Welcome back! Synchronizing profile...")
+      setTimeout(() => {
+        window.location.href = "/"
+      }, 1500)
     }
   }, [searchParams])
 
