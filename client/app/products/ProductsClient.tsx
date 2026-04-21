@@ -72,8 +72,26 @@ export default function ProductsClient({ initialProducts }: Props) {
   }, [categoryQuery, searchQuery, sort])
 
   const uiProducts = useMemo(() => {
-    return products.map(transformProductToCard)
-  }, [products])
+    // 🎨 CUSTOM SORT: Force specific category priority
+    const sorted = [...products].sort((a, b) => {
+      // Only apply this specific category priority when "latest" is selected
+      if (sort === "latest") {
+        const order = ["perfume", "apparel", "dsecollection"]
+        const catA = (a.category || "").toLowerCase()
+        const catB = (b.category || "").toLowerCase()
+
+        const indexA = order.indexOf(catA) === -1 ? 999 : order.indexOf(catA)
+        const indexB = order.indexOf(catB) === -1 ? 999 : order.indexOf(catB)
+
+        if (indexA !== indexB) {
+          return indexA - indexB
+        }
+      }
+      return 0 // Keep original API order otherwise
+    })
+
+    return sorted.map(transformProductToCard)
+  }, [products, sort])
 
   return (
     <div className="max-w-[1300px] mx-auto py-7 px-4 md:px-8">
