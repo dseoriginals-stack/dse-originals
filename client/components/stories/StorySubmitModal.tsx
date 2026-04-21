@@ -2,13 +2,15 @@
 
 import Modal from "@/components/ui/Modal"
 import { useState } from "react"
-import { Heart, Camera, Loader2, X, Search, MapPin, Smile, Sparkles, Lightbulb, Cloud, MessageSquare, Megaphone, Users, Star } from "lucide-react"
+import { Heart, Camera, Loader2, X, Search, MapPin, Smile, Sparkles, Lightbulb, Cloud, MessageSquare, Megaphone, Users, Star, ChevronRight } from "lucide-react"
 import { api } from "@/lib/api"
 import toast from "react-hot-toast"
 import { useAuth } from "@/context/AuthContext"
+import { useEffect, useRef } from "react"
 
 export default function StorySubmitModal({ open, onClose }: any) {
   const { user } = useAuth()
+  const dropdownRef = useRef<HTMLDivElement>(null)
   const [content, setContent] = useState("")
   const [title, setTitle] = useState("")
   const [location, setLocation] = useState("")
@@ -16,6 +18,38 @@ export default function StorySubmitModal({ open, onClose }: any) {
   const [image, setImage] = useState<string | null>(null)
   const [selectedFeeling, setSelectedFeeling] = useState("Inspired")
   const [tags, setTags] = useState<string[]>(["#DSEoriginals"])
+
+  // PRODUCT SELECTION STATE
+  const [allProducts, setAllProducts] = useState<any[]>([])
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedProduct, setSelectedProduct] = useState<any>(null)
+  const [showDropdown, setShowDropdown] = useState(false)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const data = await api.get("/products")
+        setAllProducts(data)
+      } catch (err) {
+        console.error("Failed to fetch products:", err)
+      }
+    }
+    if (open) fetchProducts()
+  }, [open])
+
+  const filteredProducts = allProducts.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  ).slice(0, 5)
 
   const feelings = [
     { name: "Happy", icon: <Smile size={18} /> },
@@ -55,6 +89,7 @@ export default function StorySubmitModal({ open, onClose }: any) {
         category: selectedFeeling,
         location,
         productTags: tags,
+        featuredProductId: selectedProduct?._id,
         name: user.name || "Member",
         email: user.email
       })
@@ -65,6 +100,8 @@ export default function StorySubmitModal({ open, onClose }: any) {
       setTitle("")
       setImage(null)
       setTags(["#DSEoriginals"])
+      setSelectedProduct(null)
+      setSearchQuery("")
     } catch (err: any) {
       toast.error(err.message || "Failed to post story")
     } finally {
@@ -111,17 +148,56 @@ export default function StorySubmitModal({ open, onClose }: any) {
             </div>
 
             {/* PRODUCT TAGGING */}
-            <div className="space-y-2">
+            <div className="space-y-2 relative" ref={dropdownRef}>
               <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-500 px-1 flex items-center gap-2">
                 <Search size={12} className="text-[var(--brand-primary)]" /> Featured Product
               </label>
               <div className="group relative">
                 <input
-                  placeholder="Link a DSE product (optional)"
+                  onFocus={() => setShowDropdown(true)}
+                  value={selectedProduct ? selectedProduct.name : searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value)
+                    setSelectedProduct(null)
+                    setShowDropdown(true)
+                  }}
+                  placeholder="Search or select a product..."
                   className="w-full px-5 py-3 md:py-4 bg-slate-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-xl md:rounded-2xl font-bold text-[10px] md:text-xs outline-none transition-all"
                 />
-                <ChevronRight className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 group-hover:text-[var(--brand-primary)] transition" size={14} />
+                {selectedProduct ? (
+                  <button 
+                    onClick={() => { setSelectedProduct(null); setSearchQuery(""); }}
+                    className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-red-500 transition"
+                  >
+                    <X size={14} />
+                  </button>
+                ) : (
+                  <ChevronRight className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 group-hover:text-[var(--brand-primary)] transition" size={14} />
+                )}
               </div>
+
+              {/* DROPDOWN */}
+              {showDropdown && filteredProducts.length > 0 && (
+                <div className="absolute z-20 w-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-2xl overflow-hidden animate-slideUp">
+                  {filteredProducts.map(p => (
+                    <button
+                      key={p._id}
+                      onClick={() => {
+                        setSelectedProduct(p)
+                        setSearchQuery(p.name)
+                        setShowDropdown(false)
+                      }}
+                      className="w-full flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"
+                    >
+                      <img src={p.image} className="w-10 h-10 rounded-lg object-cover" />
+                      <div className="text-left">
+                        <p className="text-[10px] font-black uppercase tracking-tight text-slate-800">{p.name}</p>
+                        <p className="text-[8px] font-bold text-[var(--brand-primary)] uppercase tracking-widest">{p.category}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* TAGS */}
