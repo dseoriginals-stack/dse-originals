@@ -6,9 +6,10 @@ type Props = {
   open: boolean
   onClose: () => void
   children: ReactNode
+  maxWidth?: string
 }
 
-export default function Modal({ open, onClose, children }: Props) {
+export default function Modal({ open, onClose, children, maxWidth = "max-w-md" }: Props) {
 
   useEffect(() => {
     if (open) document.body.style.overflow = "hidden"
@@ -30,16 +31,16 @@ export default function Modal({ open, onClose, children }: Props) {
       <div className="absolute inset-x-0 bottom-0 md:bottom-auto md:top-1/2 md:-translate-y-1/2 flex justify-center px-3">
 
         <div
-            className="
+            className={`
             w-full
-            max-w-md
+            ${maxWidth}
             bg-white
             rounded-3xl
             shadow-2xl
             flex flex-col
             max-h-[90vh]
             animate-slideUp
-            "
+            `}
         >
 
           {/* Drag Handle */}
