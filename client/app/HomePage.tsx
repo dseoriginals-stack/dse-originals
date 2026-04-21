@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
-import { ArrowRight, Sparkles, ChevronLeft, ChevronRight } from "lucide-react"
+import { ArrowRight, Sparkles, ChevronLeft, ChevronRight, ShieldCheck, Target, Users } from "lucide-react"
 
 import ProductCard from "@/components/ProductCard"
 import { transformProductToCard } from "@/lib/transformProduct"
@@ -425,8 +425,76 @@ export default function HomePage({ initialProducts }: Props) {
           </div>
         </section>
 
-      </div>
+        {/* MISSION CARDS SECTION (RESTORED WITH NEW DESIGN) */}
+        <section className="py-20">
+          <div className="grid md:grid-cols-3 gap-12 md:gap-8 pt-10">
+            
+            {/* CARD 1: OUR STORY */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="relative pt-12"
+            >
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-24 rounded-full bg-gradient-to-b from-[#4A7BB0] to-[#274C77] flex items-center justify-center text-white shadow-[0_10px_20px_rgba(39,76,119,0.3)] z-10">
+                <ShieldCheck size={40} strokeWidth={1.5} />
+              </div>
+              <div className="bg-white rounded-3xl p-10 pt-16 text-center shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-gray-50 h-full flex flex-col justify-between transition-transform hover:-translate-y-2 duration-500">
+                <div>
+                  <h3 className="text-xl font-black text-[var(--text-heading)] mb-6 tracking-tight uppercase">Our Story</h3>
+                  <p className="text-slate-500 text-sm font-medium leading-loose">
+                    Our journey is a shared narrative of faith and creativity. We focus on creating essentials that resonate with the modern believer, ensuring that every piece tells a story of hope.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
 
+            {/* CARD 2: OUR MISSION */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="relative pt-12"
+            >
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-24 rounded-full bg-gradient-to-b from-[#4A7BB0] to-[#274C77] flex items-center justify-center text-white shadow-[0_10px_20px_rgba(39,76,119,0.3)] z-10">
+                <Target size={40} strokeWidth={1.5} />
+              </div>
+              <div className="bg-white rounded-3xl p-10 pt-16 text-center shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-gray-50 h-full flex flex-col justify-between transition-transform hover:-translate-y-2 duration-500">
+                <div>
+                  <h3 className="text-xl font-black text-[var(--text-heading)] mb-6 tracking-tight uppercase">Our Mission</h3>
+                  <p className="text-slate-500 text-sm font-medium leading-loose">
+                    Our mission is simple: to create meaningful products that inspire faith, hope and love. Supporting evangelization and inspiration through social communications.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* CARD 3: OUR TEAM */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="relative pt-12"
+            >
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-24 rounded-full bg-gradient-to-b from-[#4A7BB0] to-[#274C77] flex items-center justify-center text-white shadow-[0_10px_20px_rgba(39,76,119,0.3)] z-10">
+                <Users size={40} strokeWidth={1.5} />
+              </div>
+              <div className="bg-white rounded-3xl p-10 pt-16 text-center shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-gray-50 h-full flex flex-col justify-between transition-transform hover:-translate-y-2 duration-500">
+                <div>
+                  <h3 className="text-xl font-black text-[var(--text-heading)] mb-6 tracking-tight uppercase">Our Team</h3>
+                  <p className="text-slate-500 text-sm font-medium leading-loose">
+                    We are a community of witnesses, designers, and creators working together to maintain the highest standards while keeping our spiritual mission at the heart of our work.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+          </div>
+        </section>
+
+      </div>
     </main>
   )
 }
