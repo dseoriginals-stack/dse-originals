@@ -14,12 +14,12 @@
   --bg-glass: rgba(255, 255, 255, 0.85);
 
   --brand-primary: #274C77;
-  --brand-accent: #1B3B60;
-  --brand-soft: #38BDF8;
+  --brand-accent: #E7ECEF;
+  --brand-soft: #A3CEF1;
 
-  --text-main: #1E293B;
-  --text-muted: #64748B;
-  --text-heading: #0F172A;
+  --text-main: #274C77;
+  --text-muted: #607D8B;
+  --text-heading: #274C77;
 
   --border-light: rgba(39, 76, 119, 0.1);
   --border-focus: rgba(39, 76, 119, 0.3);

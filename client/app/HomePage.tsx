@@ -406,8 +406,7 @@ export default function HomePage({ initialProducts }: Props) {
         {/* BESTSELLERS */}
         <section className="py-12 md:py-20">
           <div className="text-center mb-10 md:mb-16">
-            <p className="text-xs font-black tracking-[0.4em] text-[var(--brand-accent)] uppercase mb-4">Trending Now</p>
-            <h2 className="text-3xl md:text-5xl font-[1000] text-[var(--text-heading)] tracking-tighter">Community Favorites</h2>
+            <h2 className="text-3xl md:text-5xl font-[1000] text-[var(--text-heading)] tracking-tighter">Best Sellers</h2>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
@@ -428,9 +427,9 @@ export default function HomePage({ initialProducts }: Props) {
         {/* MISSION CARDS SECTION (RESTORED WITH NEW DESIGN) */}
         <section className="py-20">
           <div className="grid md:grid-cols-3 gap-12 md:gap-8 pt-10">
-            
+
             {/* CARD 1: OUR STORY */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -450,7 +449,7 @@ export default function HomePage({ initialProducts }: Props) {
             </motion.div>
 
             {/* CARD 2: OUR MISSION */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -464,14 +463,15 @@ export default function HomePage({ initialProducts }: Props) {
                 <div>
                   <h3 className="text-xl font-black text-[var(--text-heading)] mb-6 tracking-tight uppercase">Our Mission</h3>
                   <p className="text-slate-500 text-sm font-medium leading-loose">
-                    Our mission is simple: to create meaningful products that inspire faith, hope and love. Supporting evangelization and inspiration through social communications.
+                    DSEoriginals is more than a brand, it's a mission <br></br>
+                    to create meaningful products that inspire faith, hope and love. Supporting evangelization and inspiration through social communications.
                   </p>
                 </div>
               </div>
             </motion.div>
 
             {/* CARD 3: OUR TEAM */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
