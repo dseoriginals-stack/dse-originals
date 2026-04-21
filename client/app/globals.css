@@ -7,31 +7,25 @@
 ========================= */
 
 :root {
-  /* Azure Midnight Premium Palette */
-  --bg-main: #020617;
-  --bg-surface: rgba(15, 23, 42, 0.8);
-  --bg-card: rgba(30, 41, 59, 0.5);
-  --bg-glass: rgba(2, 6, 23, 0.7);
+  /* Azure Light Premium Palette - Restored */
+  --bg-main: #FFFFFF;
+  --bg-surface: rgba(255, 255, 255, 0.9);
+  --bg-card: #FFFFFF;
+  --bg-glass: rgba(255, 255, 255, 0.85);
 
-  --brand-primary: #38BDF8;
-  /* Electric Sky */
-  --brand-accent: #1D4ED8;
-  /* Deep Royal */
-  --brand-soft: #7DD3FC;
-  /* Soft Azure */
+  --brand-primary: #274C77; 
+  --brand-accent: #E7ECEF;
+  --brand-soft: #A3CEF1;
 
-  --text-main: #F1F5F9;
-  /* Slate 100 */
-  --text-muted: #94A3B8;
-  /* Slate 400 */
-  --text-heading: #F8FAFC;
-  /* Slate 50 */
+  --text-main: #1D2D44;
+  --text-muted: #607D8B;
+  --text-heading: #0D1B2A;
 
-  --border-light: rgba(56, 189, 248, 0.1);
-  --border-focus: rgba(56, 189, 248, 0.4);
+  --border-light: rgba(39, 76, 119, 0.1);
+  --border-focus: rgba(39, 76, 119, 0.3);
 
-  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
-  --shadow-glow: 0 0 20px rgba(56, 189, 248, 0.15);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  --shadow-glow: 0 0 20px rgba(39, 76, 119, 0.05);
 }
 
 /* =========================
@@ -65,9 +59,9 @@ body::-webkit-scrollbar {
 body.premium-theme-body {
   background: var(--bg-main);
   background-image:
-    radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.15), transparent 35%),
-    radial-gradient(circle at 100% 100%, rgba(29, 78, 216, 0.15), transparent 35%),
-    radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 1), rgba(2, 6, 23, 1));
+    radial-gradient(circle at 20% 20%, rgba(163, 206, 241, 0.15), transparent 45%),
+    radial-gradient(circle at 80% 80%, rgba(39, 76, 119, 0.05), transparent 45%),
+    radial-gradient(circle at 50% 50%, #F8FAFC, #FFFFFF);
   color: var(--text-main);
   font-family: var(--font-outfit), system-ui, sans-serif;
   min-height: 100vh;
