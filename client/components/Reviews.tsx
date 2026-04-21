@@ -77,11 +77,11 @@ export default function Reviews({ productId }: { productId: string }) {
             <span className="text-[var(--brand-primary)] font-black text-lg opacity-40">/ {data.total}</span>
           </div>
           <div className="flex items-center gap-4">
-          <div className="flex text-amber-400 drop-shadow-sm">
-            {[1, 2, 3, 4, 5].map(n => (
-              <Star key={n} size={20} fill={n <= Math.round(data.average) ? "currentColor" : "none"} strokeWidth={2.5} />
-            ))}
-          </div>
+        <div className="flex text-amber-400">
+          {[1, 2, 3, 4, 5].map(n => (
+            <Star key={n} size={20} fill={n <= Math.round(data.average) ? "currentColor" : "none"} />
+          ))}
+        </div>
             <span className="text-xl font-bold text-[var(--text-heading)]">{data.average.toFixed(1)}</span>
             <span className="text-sm font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Average Rating</span>
           </div>
@@ -127,9 +127,9 @@ export default function Reviews({ productId }: { productId: string }) {
                     </div>
                   </div>
                 </div>
-                <div className="flex text-amber-400 bg-amber-50/50 px-3 py-1.5 rounded-lg border border-amber-100/50">
+                <div className="flex text-amber-500 bg-amber-50 px-4 py-2 rounded-xl">
                   {[1, 2, 3, 4, 5].map(n => (
-                    <Star key={n} size={12} fill={n <= r.rating ? "currentColor" : "none"} strokeWidth={3} />
+                    <Star key={n} size={14} fill={n <= r.rating ? "currentColor" : "none"} />
                   ))}
                 </div>
               </div>

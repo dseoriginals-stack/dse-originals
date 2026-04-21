@@ -13,13 +13,19 @@
   --bg-card: rgba(30, 41, 59, 0.5);
   --bg-glass: rgba(2, 6, 23, 0.7);
 
-  --brand-primary: #38BDF8; /* Electric Sky */
-  --brand-accent: #1D4ED8;  /* Deep Royal */
-  --brand-soft: #7DD3FC;    /* Soft Azure */
+  --brand-primary: #38BDF8;
+  /* Electric Sky */
+  --brand-accent: #1D4ED8;
+  /* Deep Royal */
+  --brand-soft: #7DD3FC;
+  /* Soft Azure */
 
-  --text-main: #F1F5F9;     /* Slate 100 */
-  --text-muted: #94A3B8;    /* Slate 400 */
-  --text-heading: #F8FAFC;  /* Slate 50 */
+  --text-main: #F1F5F9;
+  /* Slate 100 */
+  --text-muted: #94A3B8;
+  /* Slate 400 */
+  --text-heading: #F8FAFC;
+  /* Slate 50 */
 
   --border-light: rgba(56, 189, 248, 0.1);
   --border-focus: rgba(56, 189, 248, 0.4);
@@ -35,12 +41,17 @@
 html {
   scroll-behavior: smooth;
   -webkit-tap-highlight-color: transparent;
-  scrollbar-width: none !important; /* Firefox */
-  -ms-overflow-style: none !important; /* IE and Edge */
+  scrollbar-width: none !important;
+  /* Firefox */
+  -ms-overflow-style: none !important;
+  /* IE and Edge */
 }
 
-*::-webkit-scrollbar, html::-webkit-scrollbar, body::-webkit-scrollbar {
-  display: none !important; /* Chrome, Safari and Opera */
+*::-webkit-scrollbar,
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none !important;
+  /* Chrome, Safari and Opera */
   width: 0 !important;
   height: 0 !important;
   background: transparent !important;
@@ -166,7 +177,8 @@ h6 {
 }
 
 .btn-premium:hover {
-  background: #0EA5E9; /* Slightly darker electric blue */
+  background: #0EA5E9;
+  /* Slightly darker electric blue */
   transform: translateY(-1px);
   box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
 }
