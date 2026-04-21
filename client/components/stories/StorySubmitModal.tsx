@@ -2,7 +2,7 @@
 
 import Modal from "@/components/ui/Modal"
 import { useState } from "react"
-import { Heart, Camera, Loader2, X, Search, MapPin, Smile, Sparkles, Lightbulb, Cloud, MessageSquare, Megaphone, Users, Star, ChevronRight } from "lucide-react"
+import { Heart, Camera, Loader2, X, Search, MapPin, Smile, Sparkles, Lightbulb, Cloud, MessageSquare, Megaphone, Users, Star, ChevronRight, Lock } from "lucide-react"
 import { api } from "@/lib/api"
 import toast from "react-hot-toast"
 import { useAuth } from "@/context/AuthContext"
@@ -337,17 +337,5 @@ export default function StorySubmitModal({ open, onClose }: any) {
 
       </div>
     </Modal>
-  )
-}
-
-function ChevronRight(props: any) {
-  return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-  )
-}
-
-function Lock(props: any) {
-  return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
   )
 }
