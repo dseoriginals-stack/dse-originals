@@ -7,31 +7,25 @@
 ========================= */
 
 :root {
-  /* Rich Marine Light Palette */
-  --bg-main: #E7ECEF;
-  --bg-surface: rgba(255, 255, 255, 0.9);
-  --bg-card: rgba(255, 255, 255, 0.95);
-  --bg-glass: rgba(255, 255, 255, 0.75);
+  /* Azure Midnight Premium Palette */
+  --bg-main: #020617;
+  --bg-surface: rgba(15, 23, 42, 0.8);
+  --bg-card: rgba(30, 41, 59, 0.5);
+  --bg-glass: rgba(2, 6, 23, 0.7);
 
-  --brand-primary: #274C77;
-  /* Yale Blue */
-  --brand-accent: #6096BA;
-  /* Cerulean Frost */
-  --brand-soft: #A3CEF1;
-  /* Baby Blue Eyes */
+  --brand-primary: #38BDF8; /* Electric Sky */
+  --brand-accent: #1D4ED8;  /* Deep Royal */
+  --brand-soft: #7DD3FC;    /* Soft Azure */
 
-  --text-main: #274C77;
-  /* Using primary for deepest contrast */
-  --text-muted: #8B8C89;
-  /* Battleship Grey */
-  --text-heading: #1B3B60;
-  /* Darker shade of Yale Blue */
+  --text-main: #F1F5F9;     /* Slate 100 */
+  --text-muted: #94A3B8;    /* Slate 400 */
+  --text-heading: #F8FAFC;  /* Slate 50 */
 
-  --border-light: rgba(39, 76, 119, 0.1);
-  --border-focus: rgba(96, 150, 186, 0.5);
+  --border-light: rgba(56, 189, 248, 0.1);
+  --border-focus: rgba(56, 189, 248, 0.4);
 
-  --shadow-glass: 0 4px 15px 0 rgba(39, 76, 119, 0.05);
-  --shadow-glow: 0 8px 24px rgba(39, 76, 119, 0.12);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+  --shadow-glow: 0 0 20px rgba(56, 189, 248, 0.15);
 }
 
 /* =========================
@@ -60,8 +54,9 @@ html {
 body.premium-theme-body {
   background: var(--bg-main);
   background-image:
-    radial-gradient(circle at 15% 50%, rgba(163, 206, 241, 0.4), transparent 25%),
-    radial-gradient(circle at 85% 30%, rgba(96, 150, 186, 0.2), transparent 25%);
+    radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.15), transparent 35%),
+    radial-gradient(circle at 100% 100%, rgba(29, 78, 216, 0.15), transparent 35%),
+    radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 1), rgba(2, 6, 23, 1));
   color: var(--text-main);
   font-family: var(--font-outfit), system-ui, sans-serif;
   min-height: 100vh;
@@ -102,7 +97,7 @@ h6 {
 }
 
 .title-gradient {
-  background: linear-gradient(135deg, #FFFFFF 0%, #A5B4FC 100%);
+  background: linear-gradient(135deg, #F8FAFC 0%, #38BDF8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -136,9 +131,9 @@ h6 {
 }
 
 .glass-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-glow);
-  border-color: rgba(39, 76, 119, 0.2);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.3);
 }
 
 .glass-panel {
@@ -171,9 +166,9 @@ h6 {
 }
 
 .btn-premium:hover {
-  background: #1B3B60; /* Darker Yale Blue */
+  background: #0EA5E9; /* Slightly darker electric blue */
   transform: translateY(-1px);
-  box-shadow: 0 6px 15px rgba(39, 76, 119, 0.2);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
 }
 
 .btn-premium:active {

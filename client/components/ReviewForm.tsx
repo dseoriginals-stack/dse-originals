@@ -100,9 +100,9 @@ export default function ReviewForm({
               <button
                 key={n}
                 onClick={() => setRating(n)}
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${rating >= n ? 'bg-yellow-400 text-white shadow-lg shadow-yellow-200' : 'bg-gray-50 text-gray-300 hover:bg-gray-100'}`}
+                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${rating >= n ? 'bg-amber-400 text-white shadow-md' : 'bg-gray-50 text-gray-300 hover:bg-gray-100'}`}
               >
-                <Star size={20} fill={rating >= n ? 'currentColor' : 'none'} />
+                <Star size={20} fill={rating >= n ? 'currentColor' : 'none'} className={rating >= n ? "drop-shadow-sm" : ""} />
               </button>
             ))}
           </div>
@@ -175,7 +175,7 @@ export default function ReviewForm({
         <button
           onClick={submit}
           disabled={loading || uploading}
-          className="w-full btn-premium !py-5 !rounded-2xl shadow-xl shadow-[var(--brand-primary)]/20 uppercase tracking-[0.2em] font-black text-xs group"
+          className="w-full btn-premium !py-5 !rounded-2xl shadow-xl shadow-[var(--brand-primary)]/10 uppercase tracking-[0.2em] font-[1000] text-[10px] group"
         >
           {loading ? (
             <Loader2 className="animate-spin mx-auto" size={20} />
