@@ -32,77 +32,80 @@ export default function PriceFilter() {
   }
 
   return (
-    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-
+    <div className="space-y-6">
+      
       {/* TITLE */}
-      <h3 className="text-sm font-semibold mb-4 tracking-tight">
+      <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 px-1">
         Price Range
       </h3>
 
-      {/* INPUTS */}
-      <div className="flex gap-2 mb-4">
+      <div className="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-50 shadow-sm space-y-6">
+        
+        {/* INPUTS */}
+        <div className="flex gap-3">
+          <div className="relative flex-1">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300">₱</span>
+            <input
+              type="number"
+              placeholder="Min"
+              value={min}
+              onChange={(e) => setMin(e.target.value)}
+              className="w-full bg-slate-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl pl-8 pr-4 py-3 text-[10px] md:text-xs font-bold outline-none transition-all placeholder:text-slate-300"
+            />
+          </div>
 
-        <input
-          type="number"
-          placeholder="₱ Min"
-          value={min}
-          onChange={(e) => setMin(e.target.value)}
-          className="w-full border border-slate-200 focus:border-[#274C77] focus:ring-1 focus:ring-[#274C77] rounded-lg px-3 py-2 text-sm outline-none transition"
-        />
+          <div className="relative flex-1">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300">₱</span>
+            <input
+              type="number"
+              placeholder="Max"
+              value={max}
+              onChange={(e) => setMax(e.target.value)}
+              className="w-full bg-slate-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl pl-8 pr-4 py-3 text-[10px] md:text-xs font-bold outline-none transition-all placeholder:text-slate-300"
+            />
+          </div>
+        </div>
 
-        <input
-          type="number"
-          placeholder="₱ Max"
-          value={max}
-          onChange={(e) => setMax(e.target.value)}
-          className="w-full border border-slate-200 focus:border-[#274C77] focus:ring-1 focus:ring-[#274C77] rounded-lg px-3 py-2 text-sm outline-none transition"
-        />
+        {/* QUICK PRESETS */}
+        <div className="flex flex-wrap gap-2">
+          {[
+            { label: "Under ₱500", min: "", max: "500" },
+            { label: "₱500–₱1000", min: "500", max: "1000" },
+            { label: "₱1000+", min: "1000", max: "" }
+          ].map((p, i) => (
+            <button
+              key={i}
+              onClick={() => { setMin(p.min); setMax(p.max); }}
+              className={`
+                px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all border-2
+                ${(min === p.min && max === p.max)
+                  ? "bg-slate-900 border-slate-900 text-white"
+                  : "bg-slate-50 border-transparent text-slate-400 hover:bg-slate-100"}
+              `}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
 
-      </div>
-
-      {/* QUICK PRESETS (🔥 UX BOOST) */}
-      <div className="flex flex-wrap gap-2 mb-4">
-
-        {[
-          { label: "Under ₱500", min: "", max: "500" },
-          { label: "₱500–₱1000", min: "500", max: "1000" },
-          { label: "₱1000+", min: "1000", max: "" }
-        ].map((p, i) => (
-
+        {/* ACTIONS */}
+        <div className="flex gap-3 pt-2">
           <button
-            key={i}
-            onClick={() => {
-              setMin(p.min)
-              setMax(p.max)
-            }}
-            className="text-xs px-3 py-1 rounded-full border border-slate-200 hover:bg-slate-100 transition"
+            onClick={apply}
+            className="flex-1 bg-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/90 text-white py-4 rounded-2xl text-[10px] font-[1000] uppercase tracking-widest transition shadow-lg shadow-[var(--brand-primary)]/10 active:scale-95"
           >
-            {p.label}
+            Apply
           </button>
 
-        ))}
+          <button
+            onClick={clear}
+            className="flex-1 border-2 border-slate-50 hover:bg-slate-100 text-slate-400 py-4 rounded-2xl text-[10px] font-[1000] uppercase tracking-widest transition active:scale-95"
+          >
+            Clear
+          </button>
+        </div>
 
       </div>
-
-      {/* ACTIONS */}
-      <div className="flex gap-2">
-
-        <button
-          onClick={apply}
-          className="flex-1 bg-[#274C77] hover:bg-[#1f3c5c] text-white py-2 rounded-lg text-sm font-medium transition"
-        >
-          Apply
-        </button>
-
-        <button
-          onClick={clear}
-          className="flex-1 border border-slate-200 hover:bg-slate-100 py-2 rounded-lg text-sm transition"
-        >
-          Clear
-        </button>
-
-      </div>
-
     </div>
   )
-}
+}
