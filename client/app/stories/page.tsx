@@ -7,6 +7,9 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Heart } from "lucide-react"
 import toast from "react-hot-toast"
 
+import { useAuth } from "@/context/AuthContext"
+import { useRouter } from "next/navigation"
+
 type Story = {
   id: string
   title: string
@@ -18,6 +21,8 @@ type Story = {
 }
 
 export default function StoriesPage() {
+  const { user } = useAuth()
+  const router = useRouter()
 
   const [stories, setStories] = useState<Story[]>([])
   const [loading, setLoading] = useState(true)
@@ -79,7 +84,14 @@ export default function StoriesPage() {
         </p>
 
         <button
-          onClick={() => setOpenSubmit(true)}
+          onClick={() => {
+            if (!user) {
+              toast.error("Please login to share your story!")
+              router.push("/account")
+              return
+            }
+            setOpenSubmit(true)
+          }}
           className="btn-premium mt-8 !px-8 !py-4 shadow-[0_10px_30px_rgba(39,76,119,0.2)]"
         >
           Share Your Story

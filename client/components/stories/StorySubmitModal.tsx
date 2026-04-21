@@ -2,26 +2,17 @@
 
 import Modal from "@/components/ui/Modal"
 import { useState } from "react"
-import { Heart, Camera, Loader2, X } from "lucide-react"
+import { Heart, Camera, Loader2, X, Target } from "lucide-react"
 import { api } from "@/lib/api"
 import toast from "react-hot-toast"
+import { useAuth } from "@/context/AuthContext"
 
 export default function StorySubmitModal({ open, onClose }: any) {
-
+  const { user } = useAuth()
   const [story, setStory] = useState("")
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
   const [title, setTitle] = useState("")
-  const [tags, setTags] = useState<string[]>([])
-  const [tagInput, setTagInput] = useState("")
   const [loading, setLoading] = useState(false)
   const [image, setImage] = useState<string | null>(null)
-
-  const addTag = () => {
-    if (!tagInput || tags.includes(tagInput)) return
-    setTags([...tags, tagInput])
-    setTagInput("")
-  }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -37,22 +28,23 @@ export default function StorySubmitModal({ open, onClose }: any) {
 
   const handleSubmit = async () => {
     if (!title || !story) return toast.error("Title and story content are required")
+    if (!user) return toast.error("You must be logged in to share a story")
+    
     setLoading(true)
     try {
       await api.post("/stories", {
         title,
         content: story,
         image,
-        category: tags[0] || "General",
-        name,
-        email
+        category: "Community",
+        name: user.name || "Member",
+        email: user.email
       })
       toast.success("Story submitted for approval!")
       onClose()
       // Reset form
       setTitle("")
       setStory("")
-      setTags([])
       setImage(null)
     } catch (err: any) {
       toast.error(err.message || "Failed to submit story")
@@ -62,155 +54,91 @@ export default function StorySubmitModal({ open, onClose }: any) {
   }
 
   return (
-
     <Modal open={open} onClose={onClose}>
-
-      {/* HEADER */}
-      <div className="flex items-start gap-4 mb-8">
-        <div className="w-12 h-12 bg-gradient-to-tr from-[var(--brand-primary)] to-[var(--brand-accent)] text-white p-3 rounded-2xl flex items-center justify-center shadow-lg shadow-[var(--brand-primary)]/20 shrink-0">
-          <Heart size={24} className="fill-white/20" />
+      <div className="relative pt-8">
+        {/* OVERLAPPING ICON STYLE */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full bg-gradient-to-b from-[#4A7BB0] to-[#274C77] flex items-center justify-center text-white shadow-xl z-10 border-4 border-white">
+          <Target size={32} />
         </div>
-        <div>
-          <h2 className="font-extrabold text-2xl text-[var(--text-heading)] tracking-tight">
+
+        <div className="text-center mb-8">
+          <h2 className="font-black text-2xl text-[var(--text-heading)] tracking-tight uppercase">
             Share Your Journey
           </h2>
-          <p className="text-sm text-[var(--text-muted)] font-medium mt-1 leading-relaxed">
-            Your unique experience can deeply inspire our community. Share how grace moves through your life.
+          <p className="text-sm text-[var(--text-muted)] font-bold mt-2 uppercase tracking-widest opacity-60">
+            Authenticated as {user?.name || user?.email}
           </p>
         </div>
-      </div>
 
-      {/* INFO BANNER */}
-      <div className="bg-[var(--brand-soft)]/20 border border-[var(--brand-accent)]/20 p-4 rounded-2xl text-sm font-semibold text-[var(--brand-primary)] mb-8 flex gap-3 items-start">
-        <span className="text-lg leading-none mt-0.5">✨</span>
-        <p>We'd love to hear how DSE products impacted or accompanied you on your personal journey.</p>
-      </div>
-
-
-      {/* USER INFO */}
-      <div className="space-y-4 mb-8">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] border-b border-[var(--border-light)] pb-2">
-          Your Identity
-        </h3>
-        <div className="grid md:grid-cols-2 gap-4">
-          <input
-            placeholder="Full Name"
-            className="w-full px-4 py-3 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)]/30 focus:border-[var(--brand-primary)] transition placeholder:text-gray-400 font-medium text-sm"
-            value={name}
-            onChange={(e)=>setName(e.target.value)}
-          />
-          <input
-            placeholder="Email Address (Optional)"
-            className="w-full px-4 py-3 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)]/30 focus:border-[var(--brand-primary)] transition placeholder:text-gray-400 font-medium text-sm"
-            value={email}
-            onChange={(e)=>setEmail(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {/* STORY */}
-      <div className="space-y-4 mb-8">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] border-b border-[var(--border-light)] pb-2">
-          Your Narrative
-        </h3>
-        <input
-          placeholder="Story Title (e.g. A New Beginning)"
-          className="w-full px-4 py-3 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)]/30 focus:border-[var(--brand-primary)] transition placeholder:text-gray-400 font-bold text-sm mb-4"
-          value={title}
-          onChange={(e)=>setTitle(e.target.value)}
-        />
-        <textarea
-          rows={6}
-          placeholder="Start writing your experience here..."
-          className="w-full px-4 py-3 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)]/30 focus:border-[var(--brand-primary)] transition placeholder:text-gray-400 font-medium text-sm resize-y"
-          value={story}
-          onChange={(e)=>setStory(e.target.value)}
-        />
-      </div>
-
-      {/* TAGS */}
-      <div className="space-y-4 mb-8">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] border-b border-[var(--border-light)] pb-2">
-          Product Tags (Optional)
-        </h3>
-        <div className="flex gap-3">
-          <input
-            className="flex-1 px-4 py-3 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)]/30 focus:border-[var(--brand-primary)] transition placeholder:text-gray-400 font-medium text-sm"
-            placeholder="e.g. Premium Hoodie"
-            value={tagInput}
-            onChange={(e)=>setTagInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
-          />
-          <button
-            onClick={addTag}
-            type="button"
-            className="px-6 rounded-xl font-bold text-sm bg-[var(--bg-surface)] border border-[var(--border-light)] text-[var(--text-main)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] hover:bg-[var(--brand-soft)]/10 transition-all"
-          >
-            Add
-          </button>
-        </div>
-
-        {tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 pt-2">
-            {tags.map(tag => (
-              <span
-                key={tag}
-                className="bg-[var(--brand-soft)]/20 border border-[var(--brand-accent)]/20 text-[var(--brand-primary)] text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-wider"
-              >
-                {tag}
-              </span>
-            ))}
+        <div className="space-y-6">
+          {/* TITLE */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">The Headline</label>
+            <input
+              placeholder="Give your story a title..."
+              className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-bold transition-all outline-none text-[var(--text-main)] placeholder:text-slate-300"
+              value={title}
+              onChange={(e)=>setTitle(e.target.value)}
+            />
           </div>
-        )}
-      </div>
 
+          {/* CONTENT */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Your Testimony</label>
+            <textarea
+              rows={5}
+              placeholder="How has faith and grace moved through your life?"
+              className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-2xl font-medium transition-all outline-none text-[var(--text-main)] placeholder:text-slate-300 resize-none text-sm leading-relaxed"
+              value={story}
+              onChange={(e)=>setStory(e.target.value)}
+            />
+          </div>
 
-      {/* PHOTO UPLOAD */}
-      <div className="mb-10">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] border-b border-[var(--border-light)] pb-2 mb-4">
-          Attach Memories
-        </h3>
-        {image ? (
-          <div className="relative aspect-video rounded-2xl overflow-hidden border-2 border-[var(--brand-primary)]">
-            <img src={image} className="w-full h-full object-cover" alt="Preview" />
+          {/* PHOTO UPLOAD */}
+          <div className="space-y-2">
+             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Visual Inspiration</label>
+             {image ? (
+              <div className="relative aspect-video rounded-2xl overflow-hidden border-2 border-dashed border-[var(--brand-primary)] group">
+                <img src={image} className="w-full h-full object-cover" alt="Preview" />
+                <button 
+                  onClick={() => setImage(null)}
+                  className="absolute top-4 right-4 p-2 bg-white/90 rounded-full text-red-500 shadow-xl hover:scale-110 transition"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            ) : (
+              <label className="border-2 border-dashed border-slate-100 rounded-2xl p-8 text-center text-slate-300 hover:text-[var(--brand-primary)] hover:border-[var(--brand-primary)] hover:bg-slate-50 transition-all cursor-pointer flex flex-col items-center gap-2 group">
+                <Camera size={24} className="group-hover:scale-110 transition-transform" />
+                <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                <p className="font-black text-[10px] uppercase tracking-widest">Add a Photo Memory</p>
+              </label>
+            )}
+          </div>
+
+          {/* ACTIONS */}
+          <div className="flex flex-col gap-3 pt-4">
             <button 
-              onClick={() => setImage(null)}
-              className="absolute top-4 right-4 p-2 bg-white/90 rounded-full text-red-500 shadow-xl hover:scale-110 transition"
+              onClick={handleSubmit}
+              disabled={loading}
+              className="w-full btn-premium !py-4 !px-8 flex justify-center items-center gap-2 shadow-xl shadow-[var(--brand-primary)]/20 disabled:opacity-50"
             >
-              <X size={16} />
+              {loading ? <Loader2 className="animate-spin" size={18} /> : <Heart size={18} className="fill-white/20" />}
+              <span className="font-black uppercase tracking-widest text-xs">
+                {loading ? "Witnessing..." : "Submit Story"}
+              </span>
+            </button>
+            <button
+              onClick={onClose}
+              type="button"
+              disabled={loading}
+              className="w-full py-3 text-[10px] font-black uppercase tracking-widest text-slate-300 hover:text-slate-500 transition-colors"
+            >
+              Go Back
             </button>
           </div>
-        ) : (
-          <label className="border-2 border-dashed border-[var(--border-light)] rounded-2xl p-10 text-center text-gray-400 hover:text-[var(--brand-primary)] hover:border-[var(--brand-primary)] hover:bg-[var(--bg-surface)] transition-colors cursor-pointer flex flex-col items-center gap-3">
-            <Camera size={32} />
-            <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-            <p className="font-semibold text-sm">Click to upload or drag and drop</p>
-            <p className="text-xs">PNG, JPG up to 5MB</p>
-          </label>
-        )}
+        </div>
       </div>
-
-      {/* ACTIONS */}
-      <div className="flex flex-col sm:flex-row justify-end items-center gap-4 border-t border-[var(--border-light)] pt-6">
-        <button
-          onClick={onClose}
-          type="button"
-          disabled={loading}
-          className="w-full sm:w-auto px-6 py-3 text-sm font-bold text-[var(--text-muted)] hover:text-[var(--text-heading)] transition-colors"
-        >
-          Cancel
-        </button>
-        <button 
-          onClick={handleSubmit}
-          disabled={loading}
-          className="w-full sm:w-auto btn-premium !py-3 !px-8 flex justify-center items-center gap-2 shadow-md disabled:opacity-50"
-        >
-          {loading ? <Loader2 className="animate-spin" size={16} /> : <Heart size={16} className="fill-white/20" />}
-          {loading ? "Publishing..." : "Publish Story"}
-        </button>
-      </div>
-
     </Modal>
-
   )
 }
