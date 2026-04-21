@@ -35,5 +35,6 @@ export type ProductCardType = {
   variantId: string
   stock: number
   isBestseller?: boolean
+  isPopular?: boolean
   variants?: ProductVariant[]
 }

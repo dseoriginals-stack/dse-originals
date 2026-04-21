@@ -4,6 +4,7 @@ import logger from "../config/logger.js"
 import { expireUnpaidOrders } from "./expireOrders.job.js"
 import { reconcileInventory } from "./inventoryReconcile.job.js"
 import { recoverPayments } from "./paymentRecovery.job.js"
+import { autoTrackOrders } from "./trackOrders.job.js"
 
 cron.schedule("* * * * *", async () => {
 
@@ -28,3 +29,11 @@ cron.schedule("0 * * * *", async () => {
   await reconcileInventory()
 
 })
+
+cron.schedule("0 * * * *", async () => {
+
+  logger.info("Running auto-tracking status check")
+
+  await autoTrackOrders()
+
+})

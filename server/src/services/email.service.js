@@ -208,3 +208,45 @@ export const sendAbandonedCartEmail = async (to, cart, recoveryUrl) => {
     html: baseTemplate(content)
   })
 }
+
+/*
+-----------------------------------
+DELIVERED EMAIL
+-----------------------------------
+*/
+
+export const sendDeliveredEmail = async (to, order) => {
+  const content = `
+    <div style="text-align: center; margin-bottom: 30px;">
+      <div style="font-size: 50px; margin-bottom: 10px;">🎁</div>
+      <h2 style="margin: 0; font-size: 24px; color: #1e293b; font-weight: 800;">Delivered & Ready to Wear!</h2>
+      <p style="color: #64748b; font-size: 14px; margin-top: 5px;">Your DSEoriginals package has matching its destination</p>
+    </div>
+
+    <div style="background: #f0fdf4; border-radius: 12px; padding: 25px; border: 1px solid #bbf7d0; margin-bottom: 30px; text-align: center;">
+       <p style="color: #166534; font-size: 16px; font-weight: 700; margin: 0;">Order #${order.id.slice(-6).toUpperCase()} is now at your doorstep.</p>
+    </div>
+
+    <div style="margin-bottom: 30px;">
+      <h3 style="font-size: 14px; color: #1e293b; margin-bottom: 15px;">Summary of Items</h3>
+      ${renderItems(order.items || [])}
+    </div>
+
+    <div style="text-align: center; background: #f8fafc; border-radius: 12px; padding: 25px;">
+       <h4 style="margin: 0; color: #1e293b;">How do you like your new scent?</h4>
+       <p style="font-size: 13px; color: #64748b; margin-top: 8px;">Your feedback helps our artisans continue to grow.</p>
+       ${button("Leave a Review", `${process.env.CLIENT_URL}/orders/${order.id}#reviews`)}
+    </div>
+
+    <p style="text-align: center; font-size: 12px; color: #94a3b8; margin-top: 30px;">
+      If you didn't receive this package, please contact our support team immediately.
+    </p>
+  `
+
+  await transporter.sendMail({
+    from: `"DSEoriginals" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: `Delivered: Your DSEoriginals Order #${order.id.slice(-6).toUpperCase()}`,
+    html: baseTemplate(content)
+  })
+}

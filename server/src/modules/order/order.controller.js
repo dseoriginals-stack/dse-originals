@@ -3,7 +3,7 @@ import xendit from "../../config/xendit.js"
 import PDFDocument from "pdfkit"
 import logger from "../../config/logger.js"
 import { canTransition } from "../../utils/orderState.js"
-import { sendShippedEmail } from "../../services/email.service.js"
+import { sendShippedEmail, sendDeliveredEmail } from "../../services/email.service.js"
 import {
   reserveStock,
   reserveStockBatch,
@@ -11,6 +11,57 @@ import {
 } from "../inventory/inventoryService.js"
 import { createOrderEvent } from "../../services/orderEvent.service.js"
 import { createInvoice } from "../../config/xendit.js"
+
+/* ============================
+INTERNAL CLEANUP HELPER
+Runs on every order creation to free up stuck stock 
+without needing Redis/Workers.
+============================ */
+
+async function cleanupExpiredCheckouts() {
+  try {
+    // 1. Find expired reservations
+    const expired = await prisma.inventoryReservation.findMany({
+      where: {
+        status: "reserved",
+        expiresAt: { lt: new Date() }
+      }
+    })
+
+    if (expired.length === 0) return
+
+    logger.info(`Cleaning up ${expired.length} expired reservations...`)
+
+    await prisma.$transaction(async (tx) => {
+      for (const res of expired) {
+        // Restore stock
+        await tx.productVariant.update({
+          where: { id: res.variantId },
+          data: { stock: { increment: res.quantity } }
+        })
+
+        // Mark as expired/released
+        await tx.inventoryReservation.update({
+          where: { id: res.id },
+          data: { status: "expired" }
+        })
+      }
+
+      // 2. Delete or Cancel initialized orders that are "dead" (> 1 hour old)
+      // This keeps the database clean of abandoned checkout attempts.
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+      await tx.order.deleteMany({
+        where: {
+          status: "initialized",
+          createdAt: { lt: oneHourAgo }
+        }
+      })
+    })
+
+  } catch (err) {
+    logger.error("Passive cleanup failed", { error: err.message })
+  }
+}
 
 /* ============================
 CREATE ORDER
@@ -21,6 +72,9 @@ export const createOrder = async (req, res, next) => {
   let order = null
 
   try {
+
+    // 🔥 Passive cleanup: Free up stock from abandoned orders before proceeding
+    await cleanupExpiredCheckouts()
 
     const {
       items,
@@ -602,7 +656,7 @@ export const getMyOrders = async (req, res, next) => {
     const userId = req.user.id
 
     const orders = await prisma.order.findMany({
-      where: { 
+      where: {
         userId,
         status: { notIn: ["initialized", "failed"] }
       },
@@ -814,6 +868,18 @@ export const deliverOrder = async (req, res, next) => {
 
       return updated
     })
+
+    // Send delivered email (best-effort)
+    try {
+      const fullOrder = await prisma.order.findUnique({ 
+        where: { id: result.id || id }, 
+        include: { user: true, items: true } 
+      })
+      const toEmail = fullOrder.user?.email || fullOrder.guestEmail
+      if (toEmail) await sendDeliveredEmail(toEmail, fullOrder)
+    } catch (e) {
+      logger.warn("Failed to send delivered email", { err: e })
+    }
 
     res.json(result)
   } catch (err) {

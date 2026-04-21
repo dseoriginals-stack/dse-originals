@@ -94,15 +94,20 @@ export default function AdminProducts() {
         const cat = categoryData.find((c: any) => c.id === p.categoryId)
         const mainSku = p.variants?.[0]?.sku || ""
 
+        // Extract nested data for the card view
+        const image = p.images?.[0]?.url || p.image || null
+        const price = p.variants?.[0]?.price ? Number(p.variants[0].price) : 0
+        const stock = p.variants?.reduce((sum: number, v: any) => sum + (Number(v.stock) || 0), 0) || 0
+
         return {
           id: p.id,
           name: p.name,
           description: p.description || "",
           categoryId: p.categoryId,
           category: cat?.name || "Uncategorized",
-          image: p.image || null,
-          price: Number(p.price || 0),
-          stock: Number(p.stock || 0),
+          image,
+          price,
+          stock,
           isBestseller: !!p.isBestseller,
           isPopular: !!p.isPopular,
           sku: mainSku,

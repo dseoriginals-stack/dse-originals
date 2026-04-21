@@ -34,6 +34,7 @@ export function transformProductToCard(
     stock,
     variantId: p.variantId || variant?.id || "",
     isBestseller: !!p.isBestseller,
+    isPopular: !!p.isPopular,
     variants
   }
 }

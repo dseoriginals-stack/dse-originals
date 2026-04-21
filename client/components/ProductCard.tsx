@@ -81,7 +81,7 @@ export default function ProductCard({
         {/* SHINE EFFECT (Removed for flatter design) */}
 
         {/* BADGE */}
-        {["Heaven's Embrace", "Incensum", "Sacred Serenity", "Eterna Lume"].includes(product.name) && (
+        {(product.isPopular || ["Heaven's Embrace", "Incensum", "Sacred Serenity", "Eterna Lume"].includes(product.name)) && (
           <div className="absolute top-4 left-4 z-10 text-[10px] tracking-[0.2em] font-black bg-[var(--brand-accent)] text-white px-3 py-1.5 rounded-full shadow-md uppercase animate-pulse-subtle">
             POPULAR
           </div>

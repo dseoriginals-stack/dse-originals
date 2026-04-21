@@ -329,6 +329,7 @@ export const getProducts = async (req, res) => {
         price: p.variants.length > 0
           ? Number(p.variants[0].price)
           : 0,
+        stock: p.variants.reduce((acc, v) => acc + (v.stock || 0), 0),
         isBestseller: p.isBestseller,
 
         variantId: p.variants.length > 0
@@ -475,6 +476,7 @@ export const searchProducts = async (req, res) => {
         slug: p.slug,
         image: p.images?.[0]?.url || null,
         price: Number(p.variants?.[0]?.price || 0),
+        stock: p.variants?.reduce((acc, v) => acc + (v.stock || 0), 0) || 0,
         variantId: p.variants?.[0]?.id || "",
         variants: p.variants
       }))
