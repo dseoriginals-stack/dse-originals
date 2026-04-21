@@ -1,130 +1,110 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ShieldCheck, Target, Users, ArrowRight } from "lucide-react"
+import { ShieldCheck, Target, Users } from "lucide-react"
 import Image from "next/image"
-import Link from "next/link"
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-slate-50/30 pb-20">
-      
-      {/* HERO / HEADER SECTION */}
-      <section className="pt-20 pb-12 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 bg-[var(--brand-primary)]/10 px-4 py-2 rounded-full mb-6"
-          >
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand-primary)]">Modern Faith • Timeless Mission</span>
-          </motion.div>
-          <motion.h1 
+    <main className="min-h-screen bg-white py-20 px-4 md:px-10">
+      <div className="max-w-6xl mx-auto space-y-16">
+        
+        {/* TOP SECTION: OUR STORY (HORIZONTAL CARD) */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-3xl p-8 md:p-12 shadow-[0_10px_40px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col md:flex-row items-center gap-10"
+        >
+          <div className="flex-1 space-y-6">
+            <h2 className="text-3xl font-black text-[var(--text-heading)] tracking-tight">Our Story</h2>
+            <p className="text-slate-500 font-medium leading-relaxed">
+              DSE Originals was born from a deep desire to weave spiritual meaning into modern lifestyle essentials. We believe that every product—from the clothes we wear to the scents we carry—is an opportunity to reflect our values and our path.
+            </p>
+            <p className="text-slate-500 font-medium leading-relaxed">
+              Started as an extension of the DiTaSCoM social communications mission, we have grown into a premium collective that prioritizes quality, intention, and faith-inspired design.
+            </p>
+          </div>
+          <div className="w-full md:w-[350px] aspect-[4/3] relative bg-[#f8fafc] rounded-2xl overflow-hidden flex items-center justify-center border border-gray-50">
+             <Image 
+                src="/DSE.png" 
+                alt="Our Story Icon" 
+                width={150} 
+                height={50} 
+                className="opacity-20 grayscale"
+             />
+             <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-16 h-16 text-slate-200">
+                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                </div>
+             </div>
+          </div>
+        </motion.div>
+
+        {/* BOTTOM SECTION: THREE COLUMNS */}
+        <div className="grid md:grid-cols-3 gap-12 md:gap-8 pt-10">
+          
+          {/* CARD 1: OUR STORY */}
+          <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-4xl md:text-6xl font-[1000] tracking-tighter text-[var(--text-heading)] mb-6"
+            className="relative pt-12"
           >
-            Presence in Every <span className="text-[var(--brand-primary)]">Detail.</span>
-          </motion.h1>
-          <motion.p 
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-24 rounded-full bg-gradient-to-b from-[#4A7BB0] to-[#274C77] flex items-center justify-center text-white shadow-[0_10px_20px_rgba(39,76,119,0.3)] z-10">
+              <ShieldCheck size={40} strokeWidth={1.5} />
+            </div>
+            <div className="bg-white rounded-3xl p-10 pt-16 text-center shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-gray-50 h-full flex flex-col justify-between transition-transform hover:-translate-y-2 duration-500">
+              <div>
+                <h3 className="text-xl font-black text-[var(--text-heading)] mb-6 tracking-tight">Our Story</h3>
+                <p className="text-slate-500 text-sm font-medium leading-loose">
+                  Our journey is a shared narrative of faith and creativity. We focus on creating essentials that resonate with the modern believer, ensuring that every piece in our collection has a story of hope to tell.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* CARD 2: OUR MISSION */}
+          <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-lg text-[var(--text-muted)] max-w-2xl mx-auto font-medium"
+            className="relative pt-12"
           >
-            DSE Originals is more than a brand; it's a social communication mission dedicated to evangelization, community connection, and premium craftsmanship.
-          </motion.p>
-        </div>
-      </section>
-
-      {/* TOP SECTION: OUR STORY */}
-      <section className="px-4 mb-20">
-        <div className="max-w-5xl mx-auto">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-[0_20px_50px_rgba(39,76,119,0.08)] border border-slate-100 flex flex-col md:flex-row items-center gap-10"
-          >
-            <div className="flex-1 space-y-6">
-              <h2 className="text-3xl font-[1000] text-[var(--brand-primary)] tracking-tight">Our Story</h2>
-              <p className="text-slate-600 leading-relaxed font-medium">
-                DSE Originals started with a simple yet powerful goal: to create premium products that speak volumes about faith. We believe that what you wear and what you use should reflect your identity and mission. Our designs are meticulously crafted to blend modern aesthetics with timeless spiritual values, ensuring that every detail carries a deeper meaning.
-              </p>
-              <p className="text-slate-600 leading-relaxed font-medium">
-                From our signature scents to our precision-cut apparel, every piece is a testimony to our commitment to excellence and our support for the mission of social communications.
-              </p>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-24 rounded-full bg-gradient-to-b from-[#4A7BB0] to-[#274C77] flex items-center justify-center text-white shadow-[0_10px_20px_rgba(39,76,119,0.3)] z-10">
+              <Target size={40} strokeWidth={1.5} />
             </div>
-            <div className="w-full md:w-[350px] aspect-square relative bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 flex items-center justify-center group">
-               <Image 
-                  src="/DSEoriginals.png" 
-                  alt="DSE Story" 
-                  fill 
-                  className="object-contain p-12 transition-transform duration-700 group-hover:scale-110"
-               />
-               <div className="absolute inset-0 bg-gradient-to-tr from-[var(--brand-primary)]/5 to-transparent"></div>
+            <div className="bg-white rounded-3xl p-10 pt-16 text-center shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-gray-50 h-full flex flex-col justify-between transition-transform hover:-translate-y-2 duration-500">
+              <div>
+                <h3 className="text-xl font-black text-[var(--text-heading)] mb-6 tracking-tight">Our Mission</h3>
+                <p className="text-slate-500 text-sm font-medium leading-loose">
+                  Our mission is simple: to create meaningful products that inspire faith, hope and love. We aim to sustain the mission of DiTaSCoM, supporting evangelization, and inspiration through social communications.
+                </p>
+              </div>
             </div>
           </motion.div>
-        </div>
-      </section>
-
-      {/* THREE CARDS SECTION */}
-      <section className="px-4">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-12 md:gap-8">
-          
-          {/* CARD 1: OUR HISTORY/VALUES */}
-          <div className="relative pt-10">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-accent)] flex items-center justify-center text-white shadow-xl z-10 border-4 border-white">
-              <ShieldCheck size={32} />
-            </div>
-            <div className="bg-white rounded-[2.5rem] p-10 pt-16 h-full shadow-[0_15px_40px_rgba(39,76,119,0.05)] border border-slate-50 text-center transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl">
-              <h3 className="text-xl font-black text-[var(--text-heading)] mb-4 uppercase tracking-widest">Our Story</h3>
-              <p className="text-slate-500 text-sm leading-relaxed font-medium">
-                Rooted in deep-seated traditions and inspired by the future, our story is one of continuous growth and spiritual evolution. We stand by the weight of our legacy.
-              </p>
-            </div>
-          </div>
-
-          {/* CARD 2: OUR MISSION */}
-          <div className="relative pt-10">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-accent)] flex items-center justify-center text-white shadow-xl z-10 border-4 border-white">
-              <Target size={32} />
-            </div>
-            <div className="bg-white rounded-[2.5rem] p-10 pt-16 h-full shadow-[0_15px_40px_rgba(39,76,119,0.05)] border border-slate-50 text-center transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl">
-              <h3 className="text-xl font-black text-[var(--text-heading)] mb-4 uppercase tracking-widest">Our Mission</h3>
-              <p className="text-slate-500 text-sm leading-relaxed font-medium">
-                To create meaningful products that inspire faith, hope and love. Supporting evangelization and community connection through every thread and scent.
-              </p>
-            </div>
-          </div>
 
           {/* CARD 3: OUR TEAM */}
-          <div className="relative pt-10">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-accent)] flex items-center justify-center text-white shadow-xl z-10 border-4 border-white">
-              <Users size={32} />
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="relative pt-12"
+          >
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-24 rounded-full bg-gradient-to-b from-[#4A7BB0] to-[#274C77] flex items-center justify-center text-white shadow-[0_10px_20px_rgba(39,76,119,0.3)] z-10">
+              <Users size={40} strokeWidth={1.5} />
             </div>
-            <div className="bg-white rounded-[2.5rem] p-10 pt-16 h-full shadow-[0_15px_40px_rgba(39,76,119,0.05)] border border-slate-50 text-center transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl">
-              <h3 className="text-xl font-black text-[var(--text-heading)] mb-4 uppercase tracking-widest">Our Team</h3>
-              <p className="text-slate-500 text-sm leading-relaxed font-medium">
-                A community of dedicated visionaries, creators, and believers working together to sustain the mission of social communications and premium retail.
-              </p>
+            <div className="bg-white rounded-3xl p-10 pt-16 text-center shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-gray-50 h-full flex flex-col justify-between transition-transform hover:-translate-y-2 duration-500">
+              <div>
+                <h3 className="text-xl font-black text-[var(--text-heading)] mb-6 tracking-tight">Our Team</h3>
+                <p className="text-slate-500 text-sm font-medium leading-loose">
+                  We are a community of dedicated witnesses, designers, and creators. Together, we work to maintain the highest standards of retail while keeping our spiritual mission at the heart of everything we do.
+                </p>
+              </div>
             </div>
-          </div>
+          </motion.div>
 
         </div>
-      </section>
-
-      {/* CALL TO ACTION */}
-      <section className="mt-24 px-4 text-center">
-        <Link 
-          href="/products"
-          className="group inline-flex items-center gap-4 bg-[var(--text-heading)] text-white px-12 py-5 rounded-full font-black uppercase text-xs tracking-[0.3em] transition-all hover:scale-105 shadow-2xl hover:bg-[var(--brand-primary)]"
-        >
-          Be Part of the Mission <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
-        </Link>
-      </section>
-
+      </div>
     </main>
   )
 }
