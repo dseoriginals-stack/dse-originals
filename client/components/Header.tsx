@@ -19,6 +19,7 @@ export default function Header() {
   const navItems = [
     { name: "products", label: "Products" },
     { name: "stories", label: "Stories" },
+    { name: "about", label: "About" },
     { name: "donate", label: "Donate" },
   ]
 
