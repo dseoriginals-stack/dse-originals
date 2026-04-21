@@ -76,15 +76,26 @@ export default function ProductsClient({ initialProducts }: Props) {
     const sorted = [...products].sort((a, b) => {
       // Only apply this specific category priority when "latest" is selected
       if (sort === "latest") {
-        const order = ["perfume", "apparel", "dsecollection"]
         const catA = (a.category || "").toLowerCase()
         const catB = (b.category || "").toLowerCase()
+        const nameA = (a.name || "").toLowerCase()
+        const nameB = (b.name || "").toLowerCase()
 
-        const indexA = order.indexOf(catA) === -1 ? 999 : order.indexOf(catA)
-        const indexB = order.indexOf(catB) === -1 ? 999 : order.indexOf(catB)
+        // Identification Logic
+        const isPerfume = (cat: string, name: string) => {
+          const keywords = ["perfume", "scent", "fragrance", "eau", "spray"]
+          return cat.includes("perfume") || keywords.some(k => name.includes(k))
+        }
+        const isApparel = (cat: string, name: string) => {
+          const keywords = ["apparel", "clothing", "shirt", "tee", "wear"]
+          return cat.includes("apparel") || keywords.some(k => name.includes(k))
+        }
 
-        if (indexA !== indexB) {
-          return indexA - indexB
+        const scoreA = isPerfume(catA, nameA) ? 1 : (isApparel(catA, nameA) ? 2 : (catA.includes("collection") ? 3 : 4))
+        const scoreB = isPerfume(catB, nameB) ? 1 : (isApparel(catB, nameB) ? 2 : (catB.includes("collection") ? 3 : 4))
+
+        if (scoreA !== scoreB) {
+          return scoreA - scoreB
         }
       }
       return 0 // Keep original API order otherwise
@@ -111,19 +122,6 @@ export default function ProductsClient({ initialProducts }: Props) {
               </span>
             </p>
           )}
-        </div>
-
-        <div className="flex gap-3">
-
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            className="border rounded-xl px-4 py-2 text-sm bg-white hover:border-black transition"
-          >
-            <option value="latest">Latest</option>
-            <option value="price_low">Price ↑</option>
-            <option value="price_high">Price ↓</option>
-          </select>
         </div>
       </div>
 
