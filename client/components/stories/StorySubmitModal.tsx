@@ -47,8 +47,8 @@ export default function StorySubmitModal({ open, onClose }: any) {
     if (open) fetchProducts()
   }, [open])
 
-  const filteredProducts = allProducts.filter(p => 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredProducts = (Array.isArray(allProducts) ? allProducts : []).filter(p => 
+    p?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   ).slice(0, 5)
 
   const feelings = [
