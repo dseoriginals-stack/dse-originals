@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import { ArrowRight, Sparkles, ChevronLeft, ChevronRight } from "lucide-react"
 
 import ProductCard from "@/components/ProductCard"
-import MissionSection from "@/components/MissionSection"
 import { transformProductToCard } from "@/lib/transformProduct"
 import { ProductFull } from "@/types/product"
 
@@ -427,9 +426,6 @@ export default function HomePage({ initialProducts }: Props) {
         </section>
 
       </div>
-
-      {/* ================= MISSION SECTION ================= */}
-      <MissionSection />
 
     </main>
   )
