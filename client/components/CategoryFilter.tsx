@@ -55,41 +55,45 @@ export default function CategoryFilter() {
   }
 
   return (
-    <div className="space-y-6">
-      
+    <div>
+
       {/* TITLE */}
-      <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 px-1">
-        Select Category
+      <h3 className="text-sm font-semibold mb-4 tracking-tight text-slate-700">
+        Categories
       </h3>
 
       {/* PILLS */}
-      <div className="flex flex-wrap gap-2 md:gap-3">
+      <div className="flex flex-wrap gap-2">
 
         <button
           onClick={() => handleClick(null)}
           className={`
-            px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 border-2
+            px-4 py-2 rounded-full text-sm border font-medium transition-all duration-200
             ${!activeCategory
-              ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-lg shadow-[var(--brand-primary)]/20"
-              : "bg-slate-50 text-slate-400 border-transparent hover:bg-white hover:border-slate-100"}
+              ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-sm"
+              : "bg-white text-slate-600 border-[var(--border-light)] hover:bg-slate-100"}
           `}
         >
-          All Pieces
+          All
         </button>
 
         {categories.map(cat => {
           const isActive = activeCategory === cat.slug
-          const displayName = cat.slug === "dsecollection" ? "DSE Collection" : cat.name
+          const displayName = 
+            cat.slug === "dsecollection" ? "DSE Collection" : 
+            cat.slug === "perfume" ? "Perfume" :
+            cat.slug === "apparel" ? "Apparel" :
+            cat.name
 
           return (
             <button
               key={cat.id}
               onClick={() => handleClick(cat.slug)}
               className={`
-                px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 border-2
+                px-4 py-2 rounded-full text-sm border font-medium transition-all duration-200
                 ${isActive
-                  ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-lg shadow-[var(--brand-primary)]/20"
-                  : "bg-slate-50 text-slate-400 border-transparent hover:bg-white hover:border-slate-100"}
+                  ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-sm"
+                  : "bg-white text-slate-600 border-[var(--border-light)] hover:bg-slate-100"}
               `}
             >
               {displayName}
