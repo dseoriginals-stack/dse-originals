@@ -9,13 +9,13 @@ import { Heart, Clock, X, ExternalLink } from "lucide-react"
 import toast from "react-hot-toast"
 
 import { useAuth } from "@/context/AuthContext"
-import { useRouter } from "next/navigation"
 
-type Story = {
+interface Story {
   id: string
   title: string
   content: string
   image?: string
+  category?: string
   productTags?: string[]
   createdAt: string
   likes: number
@@ -26,13 +26,18 @@ type Story = {
 
 export default function StoriesPage() {
   const { user } = useAuth()
-  const router = useRouter()
 
   const [stories, setStories] = useState<Story[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedStory, setSelectedStory] = useState<Story | null>(null)
   const [openSubmit, setOpenSubmit] = useState(false)
   const [likedStories, setLikedStories] = useState<string[]>([])
+
+  useEffect(() => {
+    fetchStories()
+    const savedLikes = localStorage.getItem("liked_stories")
+    if (savedLikes) setLikedStories(JSON.parse(savedLikes))
+  }, [])
 
   const fetchStories = async () => {
     try {
@@ -45,20 +50,12 @@ export default function StoriesPage() {
     }
   }
 
-  useEffect(() => {
-    fetchStories()
-    // Load liked stories from localStorage
-    const saved = localStorage.getItem("dse_liked_stories")
-    if (saved) setLikedStories(JSON.parse(saved))
-  }, [])
-
   const handleLike = async (id: string) => {
-    if (likedStories.includes(id)) return // Only one like per session for guests
+    if (likedStories.includes(id)) return
 
     try {
       const res = await api.post<{ likes: number }>(`/stories/${id}/like`)
-      
-      setStories(prev => prev.map(s => 
+      setStories(prev => prev.map(s =>
         s.id === id ? { ...s, likes: res.likes } : s
       ))
       if (selectedStory?.id === id) {
@@ -67,35 +64,37 @@ export default function StoriesPage() {
 
       const newLiked = [...likedStories, id]
       setLikedStories(newLiked)
-      localStorage.setItem("dse_liked_stories", JSON.stringify(newLiked))
-      
-      toast.success("Thanks for the love! ✨")
+      localStorage.setItem("liked_stories", JSON.stringify(newLiked))
     } catch (err) {
-      toast.error("Failed to react")
+      toast.error("Failed to like story")
     }
   }
 
   return (
+    <main className="min-h-screen bg-[var(--bg-main)] py-20 px-4 md:px-12">
+      {/* HEADER SECTION */}
+      <div className="max-w-4xl mx-auto text-center mb-24 space-y-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="inline-flex items-center gap-3 px-6 py-2 bg-[var(--brand-soft)]/20 border border-[var(--brand-accent)]/20 rounded-full text-[var(--brand-primary)] text-xs font-black uppercase tracking-[0.3em] shadow-sm"
+        >
+          <div className="w-2 h-2 bg-[var(--brand-primary)] rounded-full animate-pulse" />
+          Community Journal
+        </motion.div>
 
-    <main className="container mx-auto py-16 md:py-24 space-y-16 max-w-6xl">
-
-      {/* HEADER */}
-      <div className="text-center space-y-6 flex flex-col items-center">
-        <div className="text-xs font-bold tracking-[0.3em] uppercase text-[var(--brand-accent)]">DSE Community</div>
-        <h1 className="text-4xl md:text-6xl font-extrabold text-[var(--text-heading)] tracking-tight">
-          Community Stories
+        <h1 className="text-5xl md:text-7xl font-[1000] text-[var(--text-heading)] tracking-tighter leading-none">
+          Stories That <span className="text-[var(--brand-primary)]">Connect</span> Us
         </h1>
 
-        <p className="text-lg md:text-xl text-[var(--text-muted)] max-w-2xl mx-auto leading-relaxed">
-          Real experiences shared by our community.  
-          Inspire others by sharing your journey and how grace moves through your life.
+        <p className="text-xl text-[var(--text-muted)] font-medium max-w-2xl mx-auto leading-relaxed">
+          Explore the journeys, moments, and experiences shared by our community. Join the conversation and share your own story.
         </p>
 
         <button
           onClick={() => {
             if (!user) {
-              toast.error("Please login to share your story!")
-              router.push("/account")
+              toast.error("Please login to share your story")
               return
             }
             setOpenSubmit(true)
@@ -125,21 +124,21 @@ export default function StoriesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {stories.map((story) => (
-          <motion.div
-            key={story.id}
-            layout
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            onClick={() => setSelectedStory(story)}
-            className="group relative bg-white rounded-[3rem] border border-[var(--border-light)] shadow-sm hover:shadow-2xl hover:scale-[1.02] transition-all duration-500 overflow-hidden cursor-pointer"
-          >
+          {stories.map((story) => (
+            <motion.div
+              key={story.id}
+              layout
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              onClick={() => setSelectedStory(story)}
+              className="group relative bg-white rounded-[3rem] border border-[var(--border-light)] shadow-sm hover:shadow-2xl hover:scale-[1.02] transition-all duration-500 overflow-hidden cursor-pointer flex flex-col"
+            >
               {/* INTERACTIVE HEART (FLOATING) */}
               <div className="absolute top-6 right-6 z-10">
-                <button 
+                <button
                   onClick={(e) => { e.stopPropagation(); handleLike(story.id); }}
-                  className={`p-3 rounded-2xl flex items-center gap-2 backdrop-blur-md transition-all duration-300 shadow-lg ${likedStories.includes(story.id) 
-                    ? 'bg-rose-500 text-white shadow-rose-500/30' 
+                  className={`p-3 rounded-2xl flex items-center gap-2 backdrop-blur-md transition-all duration-300 shadow-lg ${likedStories.includes(story.id)
+                    ? 'bg-rose-500 text-white shadow-rose-500/30'
                     : 'bg-white/90 text-slate-400 hover:text-rose-500 border border-[var(--border-light)]'}`}
                 >
                   <motion.div
@@ -153,6 +152,16 @@ export default function StoriesPage() {
                   </span>
                 </button>
               </div>
+
+              {/* PENDING STATUS BADGE (For Owner) */}
+              {story.status === "pending" && (
+                <div className="absolute top-6 left-6 z-10">
+                  <div className="px-4 py-2 bg-amber-500 text-white rounded-2xl flex items-center gap-2 shadow-lg shadow-amber-500/30 border border-amber-400">
+                    <Clock size={14} className="animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Pending</span>
+                  </div>
+                </div>
+              )}
 
               {/* IMAGE */}
               {story.image && (
@@ -169,16 +178,26 @@ export default function StoriesPage() {
               {/* CONTENT */}
               <div className="p-8 space-y-4 flex-1 flex flex-col justify-between">
                 <div>
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  <h3 className="text-2xl font-black text-[var(--text-heading)] tracking-tighter leading-tight group-hover:text-[var(--brand-primary)] transition-colors line-clamp-2">
+                    {story.title}
+                  </h3>
+                  <p className="text-slate-500 font-medium text-sm line-clamp-3 leading-relaxed mt-2">
+                    {story.content}
+                  </p>
 
-                  {/* DATE */}
-                  <div className="text-[10px] font-black tracking-[0.2em] text-[var(--text-muted)] pt-4 border-t border-[var(--border-light)] uppercase opacity-50">
-                    {new Date(story.createdAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+                  {/* CONTRIBUTOR */}
+                  <div className="pt-6 flex items-center gap-3 mt-auto">
+                    <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-[var(--brand-primary)] text-[10px] font-black border border-slate-100">
+                      {(story.user?.name || story.guestName || "A")[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-heading)]">
+                        {story.user?.name || story.guestName || "Anonymous"}
+                      </p>
+                      <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">
+                        {new Date(story.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -187,15 +206,98 @@ export default function StoriesPage() {
         </div>
       )}
 
+      {/* STORY DETAIL MODAL */}
+      <AnimatePresence>
+        {selectedStory && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white w-full max-w-2xl rounded-[3rem] overflow-hidden shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedStory(null)}
+                className="absolute top-6 right-6 z-20 p-2 bg-white/90 rounded-full text-slate-500 hover:text-slate-900 shadow-lg transition-colors"
+              >
+                <X size={20} />
+              </button>
+
+              {/* Modal Image */}
+              {selectedStory.image && (
+                <div className="h-64 md:h-80 w-full relative">
+                  <img src={selectedStory.image} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                </div>
+              )}
+
+              {/* Modal Content */}
+              <div className="p-8 md:p-12 space-y-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[var(--brand-primary)] px-3 py-1 bg-blue-50 rounded-full">
+                      {selectedStory.category || "General"}
+                    </span>
+                    {selectedStory.status === "pending" && (
+                      <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 px-3 py-1 bg-amber-50 rounded-full flex items-center gap-1.5">
+                        <Clock size={10} /> Pending
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-black text-[var(--text-heading)] tracking-tighter leading-tight">
+                    {selectedStory.title}
+                  </h2>
+                </div>
+
+                <div className="flex items-center gap-4 py-4 border-y border-slate-50">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-[var(--brand-primary)] text-sm font-black border border-slate-100 shadow-sm">
+                    {(selectedStory.user?.name || selectedStory.guestName || "A")[0].toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-[var(--text-heading)] uppercase tracking-widest">
+                      {selectedStory.user?.name || selectedStory.guestName || "Anonymous Contributor"}
+                    </p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                      Shared on {new Date(selectedStory.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-slate-600 leading-relaxed font-medium whitespace-pre-wrap text-base md:text-lg">
+                  {selectedStory.content}
+                </p>
+
+                <div className="pt-6 flex justify-between items-center">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleLike(selectedStory.id)
+                    }}
+                    className="flex items-center gap-2.5 px-6 py-3 bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-500 hover:text-white transition-all shadow-sm"
+                  >
+                    <Heart size={18} fill={likedStories.includes(selectedStory.id) ? "currentColor" : "none"} />
+                    <span className="text-sm font-black tracking-tight">{selectedStory.likes} Likes</span>
+                  </button>
+
+                  <div className="flex gap-2">
+                    <button className="p-3 bg-slate-50 text-slate-400 rounded-2xl hover:text-[var(--brand-primary)] transition-colors">
+                      <ExternalLink size={18} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* SUBMIT MODAL */}
-
       <StorySubmitModal
         open={openSubmit}
         onClose={() => setOpenSubmit(false)}
       />
 
     </main>
-
   )
 }
