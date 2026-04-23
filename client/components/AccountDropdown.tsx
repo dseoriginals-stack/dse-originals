@@ -58,8 +58,8 @@ export default function AccountDropdown({ close }: any) {
 
           {/* MENU */}
           <div className="py-2">
-            <Item label="My Account" onClick={() => router.push("/account")} />
-            <Item label="Orders" onClick={() => router.push("/account?tab=orders")} />
+            <Item label="My Account" onClick={() => { close(); router.push("/account") }} />
+            <Item label="Orders" onClick={() => { close(); router.push("/account?tab=orders") }} />
 
             {(user.role === "admin" || user.role === "staff") && (
               <Item

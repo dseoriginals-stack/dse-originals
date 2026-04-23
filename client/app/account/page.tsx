@@ -92,6 +92,13 @@ function AccountContent() {
     }
   }, [user])
 
+  useEffect(() => {
+    const tab = searchParams.get("tab")
+    if (tab && ["overview", "orders", "settings"].includes(tab)) {
+      setActiveTab(tab)
+    }
+  }, [searchParams])
+
   async function fetchAddresses() {
     try {
       setLoadingAddresses(true)
