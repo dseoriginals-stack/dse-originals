@@ -106,7 +106,7 @@ export default function StoriesPage() {
       </div>
 
 
-      {/* STORIES */}
+      {/* STORIES CAROUSEL / GRID */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-32 space-y-4">
           <svg className="animate-spin h-8 w-8 text-[var(--brand-primary)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -123,7 +123,7 @@ export default function StoriesPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 overflow-x-auto md:overflow-x-visible pb-12 md:pb-0 gap-6 md:gap-8 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
           {stories.map((story) => (
             <motion.div
               key={story.id}
@@ -131,7 +131,7 @@ export default function StoriesPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               onClick={() => setSelectedStory(story)}
-              className="group relative bg-white rounded-[3rem] border border-[var(--border-light)] shadow-sm hover:shadow-2xl hover:scale-[1.02] transition-all duration-500 overflow-hidden cursor-pointer flex flex-col"
+              className="group relative bg-white rounded-[2.5rem] md:rounded-[3rem] border border-[var(--border-light)] shadow-sm hover:shadow-2xl hover:scale-[1.02] transition-all duration-500 overflow-hidden cursor-pointer flex flex-col shrink-0 w-[85vw] md:w-auto snap-center"
             >
               {/* INTERACTIVE HEART (FLOATING) */}
               <div className="absolute top-6 right-6 z-10">
