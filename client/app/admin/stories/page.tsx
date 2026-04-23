@@ -9,6 +9,7 @@ import toast from "react-hot-toast"
 export default function AdminStoriesPage() {
   const [stories, setStories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedStory, setSelectedStory] = useState<any>(null)
 
   useEffect(() => {
     fetchStories()
@@ -85,7 +86,11 @@ export default function AdminStoriesPage() {
                   </td>
                 </tr>
               ) : stories.map(story => (
-                <tr key={story.id} className="hover:bg-gray-50/30 transition-colors group">
+                <tr 
+                  key={story.id} 
+                  onClick={() => setSelectedStory(story)}
+                  className="hover:bg-gray-50/30 transition-colors group cursor-pointer"
+                >
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-4">
                       {story.image && (
@@ -114,14 +119,14 @@ export default function AdminStoriesPage() {
                   <td className="px-6 py-6">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
-                        onClick={() => toggleStatus(story.id, story.status)}
+                        onClick={(e) => { e.stopPropagation(); toggleStatus(story.id, story.status); }}
                         className={`p-2 rounded-xl transition-all ${story.status === 'approved' ? 'bg-amber-50 text-amber-500 hover:bg-amber-500 hover:text-white' : 'bg-green-50 text-green-500 hover:bg-green-500 hover:text-white'}`}
                         title={story.status === 'approved' ? 'Revert to Pending' : 'Approve Story'}
                       >
                         {story.status === 'approved' ? <X size={18} /> : <Check size={18} />}
                       </button>
                       <button 
-                        onClick={() => deleteStory(story.id)}
+                        onClick={(e) => { e.stopPropagation(); deleteStory(story.id); }}
                         className="p-2 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all"
                         title="Delete Story"
                       >
@@ -135,6 +140,72 @@ export default function AdminStoriesPage() {
           </table>
         </div>
       </div>
+
+      {/* STORY DETAIL MODAL */}
+      {selectedStory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white w-full max-w-2xl rounded-[3rem] overflow-hidden shadow-2xl animate-scaleIn">
+            {/* Modal Header/Image */}
+            <div className="relative h-64 md:h-80 bg-slate-100">
+              {selectedStory.image ? (
+                <img src={selectedStory.image} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-slate-300">
+                  No Image Provided
+                </div>
+              )}
+              <button 
+                onClick={() => setSelectedStory(null)}
+                className="absolute top-6 right-6 p-2 bg-white/90 rounded-full text-slate-500 hover:text-slate-900 shadow-lg transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-8 md:p-10 space-y-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-3xl font-black text-[var(--text-heading)] tracking-tighter">{selectedStory.title}</h2>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[var(--brand-primary)] mt-1">{selectedStory.category || 'General'}</p>
+                </div>
+                <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${selectedStory.status === 'approved' ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'}`}>
+                  {selectedStory.status === 'approved' ? 'Approved' : 'Pending Review'}
+                </div>
+              </div>
+
+              <p className="text-slate-600 leading-relaxed font-medium whitespace-pre-wrap">
+                {selectedStory.content}
+              </p>
+
+              <div className="pt-6 border-t border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
+                    <ShieldCheck size={18} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">{selectedStory.user?.name || selectedStory.guestName || 'Anonymous'}</p>
+                    <p className="text-[10px] font-medium text-slate-400">{new Date(selectedStory.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleStatus(selectedStory.id, selectedStory.status);
+                      setSelectedStory(null);
+                    }}
+                    className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedStory.status === 'approved' ? 'bg-amber-50 text-amber-500 hover:bg-amber-500 hover:text-white' : 'bg-green-50 text-green-500 hover:bg-green-500 hover:text-white'}`}
+                  >
+                    {selectedStory.status === 'approved' ? 'Revert to Pending' : 'Approve Now'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

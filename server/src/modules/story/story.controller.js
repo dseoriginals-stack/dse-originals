@@ -4,8 +4,15 @@ import { sendAdminStoryNotification } from "../../config/email.js"
 
 export const getStories = async (req, res, next) => {
   try {
+    const userId = req.user?.id || null
+
     const stories = await prisma.story.findMany({
-      where: { status: "approved" }, // Match schema StoryStatus
+      where: {
+        OR: [
+          { status: "approved" },
+          ...(userId ? [{ userId, status: "pending" }] : [])
+        ]
+      },
       orderBy: { createdAt: "desc" },
       include: {
         user: {

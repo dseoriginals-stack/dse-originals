@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { api } from "@/lib/api"
 import StorySubmitModal from "@/components/stories/StorySubmitModal"
 import { motion, AnimatePresence } from "framer-motion"
-import { Heart } from "lucide-react"
+import { Heart, Clock } from "lucide-react"
 import toast from "react-hot-toast"
 
 import { useAuth } from "@/context/AuthContext"
@@ -18,6 +18,7 @@ type Story = {
   productTags?: string[]
   createdAt: string
   likes: number
+  status: string
 }
 
 export default function StoriesPage() {
@@ -142,6 +143,16 @@ export default function StoriesPage() {
                   </span>
                 </button>
               </div>
+
+              {/* PENDING STATUS BADGE */}
+              {story.status === "pending" && (
+                <div className="absolute top-6 left-6 z-10">
+                  <div className="px-4 py-2 bg-amber-500 text-white rounded-2xl flex items-center gap-2 shadow-lg shadow-amber-500/30 border border-amber-400">
+                    <Clock size={14} className="animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Pending Approval</span>
+                  </div>
+                </div>
+              )}
 
               {/* IMAGE */}
               {story.image && (
