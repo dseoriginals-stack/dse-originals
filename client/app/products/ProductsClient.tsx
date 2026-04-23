@@ -87,7 +87,7 @@ export default function ProductsClient({ initialProducts }: Props) {
           return indexA - indexB
         }
       }
-      return 0 // Keep original API order otherwise
+      return 0 // Keep original API order otherwise                          
     })
 
     return sorted.map(transformProductToCard)
