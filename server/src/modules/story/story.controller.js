@@ -91,7 +91,10 @@ export const getAdminStories = async (req, res, next) => {
 export const updateStoryStatus = async (req, res, next) => {
   try {
     const { id } = req.params
-    const { status } = req.body
+    let { status } = req.body
+
+    // Safeguard: map "active" to "approved" to handle legacy/cached frontend values
+    if (status === "active") status = "approved"
 
     const story = await prisma.story.update({
       where: { id },
