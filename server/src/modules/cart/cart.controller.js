@@ -24,7 +24,8 @@ export const getCart = async (req, res, next) => {
           include: {
             variant: {
               include: {
-                product: true
+                product: true,
+                attributes: true
               }
             }
           }
@@ -38,7 +39,12 @@ export const getCart = async (req, res, next) => {
           variantId: item.variantId,
           productId: item.variant.productId,
           name: item.variant.product.name,
-          price: Number(item.variant.price),
+          price: (() => {
+            const attrs = (item.variant.attributes || []).map(a => (a.value || "").toLowerCase())
+            if (attrs.some(a => a.includes("55ml"))) return 349
+            if (attrs.some(a => a.includes("30ml"))) return 249
+            return Number(item.variant.price)
+          })(),
           quantity: item.quantity,
           image:
             item.variant.product.images?.[0]?.url || null

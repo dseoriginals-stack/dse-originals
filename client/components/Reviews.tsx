@@ -77,9 +77,15 @@ export default function Reviews({ productId }: { productId: string }) {
             <span className="text-[var(--brand-primary)] font-black text-lg opacity-40">/ {data.total}</span>
           </div>
           <div className="flex items-center gap-4">
-        <div className="flex text-amber-400">
+        <div className="flex gap-0.5">
           {[1, 2, 3, 4, 5].map(n => (
-            <Star key={n} size={20} fill={n <= Math.round(data.average) ? "currentColor" : "none"} />
+            <Star 
+              key={n} 
+              size={20} 
+              fill={n <= Math.round(data.average) ? "currentColor" : "none"} 
+              className={n <= Math.round(data.average) ? "text-amber-400" : "text-gray-200"}
+              strokeWidth={1.5}
+            />
           ))}
         </div>
             <span className="text-xl font-bold text-[var(--text-heading)]">{data.average.toFixed(1)}</span>
@@ -127,9 +133,15 @@ export default function Reviews({ productId }: { productId: string }) {
                     </div>
                   </div>
                 </div>
-                <div className="flex text-amber-500 bg-amber-50 px-4 py-2 rounded-xl">
+                <div className="flex gap-0.5">
                   {[1, 2, 3, 4, 5].map(n => (
-                    <Star key={n} size={14} fill={n <= r.rating ? "currentColor" : "none"} />
+                    <Star 
+                      key={n} 
+                      size={14} 
+                      fill={n <= r.rating ? "currentColor" : "none"} 
+                      className={n <= r.rating ? "text-amber-400" : "text-gray-200"}
+                      strokeWidth={1.5}
+                    />
                   ))}
                 </div>
               </div>

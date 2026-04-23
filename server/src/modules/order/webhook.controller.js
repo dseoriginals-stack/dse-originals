@@ -1,3 +1,7 @@
+import prisma from "../../config/prisma.js"
+import logger from "../../config/logger.js"
+import { awardOrderPoints } from "../../services/loyalty.service.js"
+
 export const handleXenditWebhook = async (req, res) => {
   try {
 
@@ -131,31 +135,7 @@ export const handleXenditWebhook = async (req, res) => {
         LOYALTY POINTS
         */
         if (updated.userId) {
-          // 1 point for every 100 spent (of the original subtotal? or final payed?)
-          // Let's use total paid for simplicity
-          const pointsEarned = Math.floor(Number(updated.totalAmount) / 100)
-
-          if (pointsEarned > 0) {
-            const user = await tx.user.findUnique({
-              where: { id: updated.userId }
-            })
-
-            const newLifetimePoints = user.lifetimePoints + pointsEarned
-            
-            // Determine Tier
-            let tier = "Faith"
-            if (newLifetimePoints >= 1000) tier = "Love"
-            else if (newLifetimePoints >= 500) tier = "Hope"
-
-            await tx.user.update({
-              where: { id: updated.userId },
-              data: {
-                luckyPoints: { increment: pointsEarned },
-                lifetimePoints: { increment: pointsEarned },
-                tier: tier
-              }
-            })
-          }
+          await awardOrderPoints(tx, orderId)
         }
 
       })

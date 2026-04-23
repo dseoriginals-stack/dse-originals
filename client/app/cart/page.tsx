@@ -105,10 +105,10 @@ export default function CartPage() {
                         </h2>
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand-soft)] mt-1">
                           {!user 
-                            ? "Register to start earning Lucky Points" 
+                            ? "Register to earn 1 point for every ₱100 spent" 
                             : canRedeem 
-                              ? `You have ${points.toLocaleString()} points ready to use!` 
-                              : `${points.toLocaleString()} / 50 points earned so far`}
+                              ? `You have ${points.toLocaleString()} points! (Earn 1 pt per ₱100)` 
+                              : `${points.toLocaleString()} / 50 points (Earn 1 pt per ₱100)`}
                         </p>
                      </div>
                   </div>

@@ -138,7 +138,19 @@ export default function ProductClient() {
   }
 
   const stock = variant?.stock || 0
-  const price = variant?.price || 0
+  
+  // ✅ CUSTOM PRICE LOGIC (Standardized for Perfumes)
+  const getDisplayPrice = () => {
+    if (!variant) return 0
+    const attrValues = (variant.attributes || []).map((a) => (a.value || "").toLowerCase())
+    
+    if (attrValues.some(v => v.includes("55ml"))) return 349
+    if (attrValues.some(v => v.includes("30ml"))) return 249
+    
+    return Number(variant.price)
+  }
+
+  const price = getDisplayPrice()
 
   /* =========================
      UI
@@ -151,19 +163,19 @@ export default function ProductClient() {
 
         {/* IMAGE */}
         <div>
-          <div className="relative bg-[var(--bg-surface)] rounded-2xl md:rounded-3xl border border-[var(--border-light)] shadow-xl w-full aspect-square overflow-hidden flex items-center justify-center group">
+          <div className="relative bg-[var(--bg-surface)] rounded-2xl md:rounded-3xl border border-[var(--border-light)] shadow-xl w-full aspect-[4/5] max-h-[500px] md:max-h-[600px] overflow-hidden flex items-center justify-center group">
             <Image
               id="product-main-image"
               src={getImageUrl(activeImage || "/placeholder.png")}
               alt={product.name}
               fill
               sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover transition-transform duration-700 ease-out md:group-hover:scale-105"
+              className="object-contain transition-transform duration-700 ease-out md:group-hover:scale-105 p-4"
               priority
             />
           </div>
 
-          <div className="flex gap-2 mt-3 overflow-x-auto px-1">
+          <div className="flex gap-3 mt-4 overflow-x-auto px-1 py-2 custom-scrollbar">
             {product.images.map((img, i) => {
               const isActive = activeImage === img.url
 
@@ -171,9 +183,9 @@ export default function ProductClient() {
                 <button
                   key={i}
                   onClick={() => setActiveImage(img.url)}
-                  className={`relative overflow-hidden rounded-lg w-14 h-14 flex-shrink-0 transition-all ${isActive
-                    ? "ring-2 ring-[var(--brand-primary)] ring-offset-2 opacity-100 shadow-sm"
-                    : "border border-[var(--border-light)] opacity-60 hover:opacity-100"
+                  className={`relative overflow-hidden rounded-xl w-16 h-16 md:w-20 md:h-20 flex-shrink-0 transition-all duration-300 ${isActive
+                    ? "ring-2 ring-[var(--brand-primary)] ring-offset-4 opacity-100 shadow-md scale-95"
+                    : "border border-[var(--border-light)] opacity-50 hover:opacity-100 hover:scale-105"
                     }`}
                 >
                   <Image
@@ -256,7 +268,7 @@ export default function ProductClient() {
                           key={val}
                           disabled={isOut}
                           onClick={() => handleAttrClick(name, val)}
-                          className={`px-6 py-3 rounded-2xl text-[11px] font-black tracking-widest uppercase transition-all duration-300 border-2 ${isOut
+                          className={`px-4 py-2 rounded-2xl text-[10px] font-black tracking-widest uppercase transition-all duration-300 border-2 ${isOut
                             ? "opacity-30 bg-gray-50 border-gray-100 line-through cursor-not-allowed"
                             : isActive
                               ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-[0_8px_20px_rgba(39,76,119,0.25)] scale-[1.05]"

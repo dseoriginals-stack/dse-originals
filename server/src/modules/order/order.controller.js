@@ -11,6 +11,7 @@ import {
 } from "../inventory/inventoryService.js"
 import { createOrderEvent } from "../../services/orderEvent.service.js"
 import { createInvoice } from "../../config/xendit.js"
+import { awardOrderPoints } from "../../services/loyalty.service.js"
 
 /* ============================
 INTERNAL CLEANUP HELPER
@@ -157,21 +158,29 @@ export const createOrder = async (req, res, next) => {
 
         const variant = await tx.productVariant.findUnique({
           where: { id: vId },
-          include: { product: true }
+          include: { product: true, attributes: true }
         })
 
         if (!variant || variant.stock < quantity) {
           throw new Error(`Insufficient stock for ${variant?.product?.name || 'product'}`)
         }
 
-        const itemTotal = Number(variant.price) * quantity
+        const getStandardPrice = (v) => {
+          const attrs = (v.attributes || []).map(a => (a.value || "").toLowerCase())
+          if (attrs.some(a => a.includes("55ml"))) return 349
+          if (attrs.some(a => a.includes("30ml"))) return 249
+          return Number(v.price)
+        }
+
+        const standardPrice = getStandardPrice(variant)
+        const itemTotal = standardPrice * quantity
         subtotal += itemTotal
 
         orderItems.push({
           variantId: variant.id,
           productName: variant.product.name,
           quantity: quantity,
-          price: variant.price
+          price: standardPrice
         })
       }
 
@@ -458,15 +467,25 @@ export const updateOrderStatus = async (req, res, next) => {
       })
     }
 
-    const updated = await prisma.order.update({
-      where: { id },
-      data: {
-        status,
-        ...(trackingNo && { trackingNo })
-      }
-    })
+    const result = await prisma.$transaction(async (tx) => {
+      const updated = await tx.order.update({
+        where: { id },
+        data: {
+          status,
+          ...(trackingNo && { trackingNo })
+        },
+        include: { user: true }
+      })
 
-    await createOrderEvent(id, status, `Order → ${status}`)
+      await createOrderEvent(id, status, `Order → ${status}`)
+
+      // Award points if manually marked as paid
+      if (status === "paid" && order.status !== "paid" && updated.userId) {
+        await awardOrderPoints(tx, id)
+      }
+
+      return updated
+    })
 
     if (status === "shipped" || (trackingNo && trackingNo !== order.trackingNo)) {
 
@@ -895,6 +914,7 @@ export const createManualOrder = async (req, res, next) => {
     const {
       items,
       guestName,
+      userId,
       paymentMethod = "cash",
       status = "paid"
     } = req.body
@@ -936,13 +956,14 @@ export const createManualOrder = async (req, res, next) => {
       }
 
       // Create the manual order
-      return tx.order.create({
+      const order = await tx.order.create({
         data: {
+          userId: userId || null,
           totalAmount,
           status,
           paymentMethod,
           isManual: true,
-          guestName: guestName || "Walk-in Customer",
+          guestName: userId ? null : (guestName || "Walk-in Customer"),
           deliveryMethod: "pickup",
           approvedById: staffId,
           approvedAt: new Date(),
@@ -952,6 +973,13 @@ export const createManualOrder = async (req, res, next) => {
         },
         include: { items: true }
       })
+
+      // Award points if paid
+      if (status === "paid" && userId) {
+        await awardOrderPoints(tx, order.id)
+      }
+
+      return order
     })
 
     await createOrderEvent(result.id, "paid", "Manual Walk-in Sale completed")

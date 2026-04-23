@@ -95,14 +95,19 @@ export default function ReviewForm({
         {/* RATING */}
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Overall Rating</label>
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map(n => (
               <button
                 key={n}
                 onClick={() => setRating(n)}
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${rating >= n ? 'bg-amber-500 text-white shadow-lg shadow-amber-200' : 'bg-gray-50 text-gray-300 hover:bg-gray-100'}`}
+                className="transition-all hover:scale-110 active:scale-95"
               >
-                <Star size={20} fill={rating >= n ? 'currentColor' : 'none'} />
+                <Star 
+                  size={28} 
+                  fill={rating >= n ? 'currentColor' : 'none'} 
+                  className={rating >= n ? 'text-amber-400' : 'text-gray-200'} 
+                  strokeWidth={rating >= n ? 1.5 : 1}
+                />
               </button>
             ))}
           </div>

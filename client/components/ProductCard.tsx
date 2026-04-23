@@ -26,6 +26,20 @@ export default function ProductCard({
   const [loading, setLoading] = useState(false)
   const [added, setAdded] = useState(false)
 
+  // Find default variant or first variant
+  const defaultVariant = product.variants?.find(v => v.id === product.variantId) || product.variants?.[0]
+  const [activeVariant, setActiveVariant] = useState(defaultVariant)
+
+  const getDisplayPrice = (variant: any) => {
+    if (!variant) return product.price
+    const attrs = (variant.attributes || []).map((a: any) => (a.value || "").toLowerCase())
+    if (attrs.some((a: string) => a.includes("55ml"))) return 349
+    if (attrs.some((a: string) => a.includes("30ml"))) return 249
+    return Number(variant.price)
+  }
+
+  const currentPrice = getDisplayPrice(activeVariant)
+
   const imageUrl = product.image
     ? getImageUrl(product.image)
     : "/placeholder.png"
@@ -44,9 +58,9 @@ export default function ProductCard({
     try {
       await addToCart({
         productId: product.id,
-        variantId: product.variantId,
+        variantId: activeVariant?.id || product.variantId,
         name: product.name,
-        price: product.price,
+        price: currentPrice,
         quantity: 1,
         image: imageUrl,
       })
@@ -145,26 +159,58 @@ export default function ProductCard({
             </h3>
           </div>
 
-          <div className="flex items-end justify-between mt-3 md:mt-4">
-            <div className="flex flex-col">
-              <span className="text-base md:text-lg font-bold text-[var(--text-heading)]">
-                {product.price > 0 ? `₱${product.price.toLocaleString()}` : "Price on Request"}
-              </span>
-              {product.stock > 0 ? (
-                <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest mt-1">In Stock</span>
-              ) : (
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic">Exclusive Series</span>
-              )}
-            </div>
+          <div className="flex flex-col gap-2 mt-3 md:mt-4">
+            {/* VARIANT PICKER */}
+            {product.variants && product.variants.length > 1 && (
+              <div className="flex gap-1.5 mb-1">
+                {product.variants.map((v) => {
+                  const size = v.attributes?.find(a => a.name.toLowerCase() === "size")?.value || 
+                               v.attributes?.[0]?.value || ""
+                  if (!size) return null
+                  
+                  const isActive = activeVariant?.id === v.id
+                  return (
+                    <button
+                      key={v.id}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setActiveVariant(v)
+                      }}
+                      className={`text-[9px] font-black px-2 py-1 rounded-md border transition-all ${
+                        isActive 
+                        ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white shadow-sm' 
+                        : 'bg-white/50 border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)]'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
 
-            {/* MOBILE CTA */}
-            <button
-              onClick={handleAdd}
-              disabled={loading || product.stock === 0}
-              className="md:hidden flex items-center justify-center w-8 h-8 rounded-full bg-[var(--brand-primary)] text-white shadow-sm disabled:opacity-30 active:scale-95 transition-all"
-            >
-              {added ? <Check size={14} /> : <ShoppingBag size={14} />}
-            </button>
+            <div className="flex items-end justify-between">
+              <div className="flex flex-col">
+                <span className="text-base md:text-lg font-bold text-[var(--text-heading)]">
+                  {currentPrice > 0 ? `₱${currentPrice.toLocaleString()}` : "Price on Request"}
+                </span>
+                {(activeVariant?.stock || product.stock) > 0 ? (
+                  <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest mt-1">In Stock</span>
+                ) : (
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic">Exclusive Series</span>
+                )}
+              </div>
+
+              {/* MOBILE CTA */}
+              <button
+                onClick={handleAdd}
+                disabled={loading || (activeVariant?.stock || product.stock) === 0}
+                className="md:hidden flex items-center justify-center w-8 h-8 rounded-full bg-[var(--brand-primary)] text-white shadow-sm disabled:opacity-30 active:scale-95 transition-all"
+              >
+                {added ? <Check size={14} /> : <ShoppingBag size={14} />}
+              </button>
+            </div>
           </div>
         </div>
       </div>

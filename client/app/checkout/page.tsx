@@ -5,7 +5,7 @@ import { useCart } from "@/context/CartContext"
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
 import { regions, provinces, cities } from "philippines"
-import { Truck, Store, CreditCard, Check, Package, MapPin, ChevronDown, Home, Briefcase } from "lucide-react"
+import { Truck, Store, CreditCard, Check, Package, MapPin, ChevronDown, Home, Briefcase, Gift, Coins } from "lucide-react"
 import { getShippingRate, ShippingZone } from "@/lib/shipping"
 import PaymentModal from "@/components/PaymentModal"
 import toast from "react-hot-toast"
@@ -100,7 +100,14 @@ export default function CheckoutPage() {
 
   const subtotal = itemsToCheckout.reduce((acc, item) => acc + item.price * item.quantity, 0)
   const shippingFee = delivery === "pickup" ? 0 : (shipping?.fee ?? 0)
-  const total = subtotal + shippingFee
+  
+  // Loyalty Points Logic
+  const userPoints = (user as any)?.luckyPoints || 0
+  const [usePoints, setUsePoints] = useState(false)
+  const pointsDiscount = usePoints ? Math.min(userPoints, subtotal) : 0
+  const pointsEarned = Math.floor(subtotal / 100)
+  
+  const total = subtotal + shippingFee - pointsDiscount
 
   const isDetailsValid = !!(
     form.name && 
@@ -158,6 +165,7 @@ export default function CheckoutPage() {
         })),
         deliveryMethod: delivery,
         shippingFee,
+        pointsToUse: usePoints ? Math.floor(pointsDiscount) : 0,
         guestName: form.name,
         address: delivery === "delivery" ? {
           fullName: form.name,
@@ -458,18 +466,35 @@ export default function CheckoutPage() {
                       <CreditCard size={20} />
                     </div>
                     <div>
-                      <div className="font-bold text-[var(--text-heading)]">GCash / Maya / Credit & Debit Card</div>
-                      <div className="text-xs text-[var(--text-muted)] mt-0.5">Secure online payment via Xendit. You'll be redirected to complete payment.</div>
+                      <div className="font-bold text-[var(--text-heading)]">GCash / Maya / Card</div>
+                      <div className="text-xs text-[var(--text-muted)] mt-0.5">Secure payment via Xendit. Redirect on next step.</div>
                     </div>
                     <RadioDot active={true} />
                   </div>
-                  <div className="flex items-center gap-2 mt-4 pt-3 border-t border-[var(--border-light)]">
-                    <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Accepted:</span>
-                    {["GCash", "Maya", "Visa", "Mastercard"].map(m => (
-                      <span key={m} className="text-[10px] font-bold px-2 py-0.5 bg-white border border-[var(--border-light)] rounded-lg text-[var(--text-heading)] shadow-sm">{m}</span>
-                    ))}
-                  </div>
                 </div>
+
+                {/* Loyalty Points Redemption */}
+                {user && userPoints > 0 && (
+                  <div className={`p-5 rounded-2xl border-2 transition-all ${usePoints ? 'border-emerald-500 bg-emerald-50' : 'border-[var(--border-light)] bg-white'}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${usePoints ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                          <Gift size={20} />
+                        </div>
+                        <div>
+                          <div className="font-bold text-[var(--text-heading)] text-sm">Redeem Lucky Points</div>
+                          <div className="text-xs text-[var(--text-muted)] mt-0.5">You have ₱{userPoints.toLocaleString()} available</div>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => setUsePoints(!usePoints)}
+                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${usePoints ? 'bg-emerald-500 text-white' : 'bg-[var(--brand-soft)] text-[var(--brand-primary)]'}`}
+                      >
+                        {usePoints ? 'Applied' : 'Redeem Now'}
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Order total recap */}
                 <div className="p-4 bg-[var(--bg-surface)] rounded-2xl border border-[var(--border-light)] space-y-2 text-sm font-semibold text-[var(--text-main)]">
@@ -481,6 +506,12 @@ export default function CheckoutPage() {
                     <span className="text-[var(--text-muted)]">Subtotal</span>
                     <span>₱{subtotal.toLocaleString()}</span>
                   </div>
+                  {usePoints && (
+                    <div className="flex justify-between text-emerald-600">
+                      <span className="text-[var(--text-muted)]">Points Discount</span>
+                      <span>-₱{pointsDiscount.toLocaleString()}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-[var(--text-muted)]">Shipping</span>
                     <span className={shippingFee === 0 ? "text-emerald-600 font-bold" : "text-[var(--brand-primary)] font-bold"}>
@@ -542,6 +573,15 @@ export default function CheckoutPage() {
                   <span>Total</span>
                   <span>{step < 3 && delivery === "delivery" ? `₱${subtotal.toLocaleString()}+` : `₱${total.toLocaleString()}`}</span>
                 </div>
+
+                <div className="mt-4 pt-4 border-t border-[var(--border-light)] flex items-center justify-between">
+                   <div className="flex items-center gap-2">
+                      <Coins className="w-4 h-4 text-[var(--brand-soft)]" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Lucky Points Earned</span>
+                   </div>
+                   <span className="text-xs font-black text-[var(--brand-primary)]">+{pointsEarned}</span>
+                </div>
+                <p className="text-[8px] text-center text-gray-400 font-bold mt-2 uppercase tracking-tighter">Every ₱100 spent = 1 Lucky Point</p>
               </div>
             </Card>
           </div>
