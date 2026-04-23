@@ -84,6 +84,7 @@ export default function AccountDropdown({ close }: any) {
               onClick={async () => {
                 await logout()
                 close()
+                router.push("/")
                 router.refresh()
               }}
             />

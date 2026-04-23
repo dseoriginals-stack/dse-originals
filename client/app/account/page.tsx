@@ -188,7 +188,10 @@ function AccountContent() {
             </div>
 
             <button
-              onClick={logout}
+              onClick={async () => {
+                await logout()
+                window.location.href = "/"
+              }}
               className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-white border-2 border-slate-100 text-[10px] md:text-xs font-black uppercase tracking-widest text-slate-400 hover:text-red-500 hover:border-red-50 transition-all shadow-sm w-full md:w-auto mt-4 md:mt-0"
             >
               <LogOut size={16} /> Logout
