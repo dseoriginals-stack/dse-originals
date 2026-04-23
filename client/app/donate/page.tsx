@@ -58,15 +58,14 @@ export default function DonatePage() {
   return (
     <div className="min-h-screen bg-[var(--bg-main)] overflow-hidden">
       
-      {/* HERO SECTION */}
-      <div className="relative h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden">
+      <div className="relative h-[70vh] md:h-[80vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           <img 
-            src="/community_support_hero_1776933805792.png" 
+            src="/community-support.png" 
             alt="Community Support" 
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[var(--brand-primary)]/40 via-transparent to-[var(--bg-main)]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[var(--brand-primary)]/60 via-[var(--brand-primary)]/20 to-[var(--bg-main)]" />
         </div>
 
         <div className="container relative z-10 text-center space-y-6 px-6">
@@ -129,10 +128,10 @@ export default function DonatePage() {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              className="relative h-96 rounded-[3rem] overflow-hidden group shadow-2xl"
+              className="relative h-[500px] rounded-[3rem] overflow-hidden group shadow-2xl"
             >
               <img 
-                src="/community_joy_impact_1776933827883.png" 
+                src="/community-impact.png" 
                 alt="Impact" 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               />
