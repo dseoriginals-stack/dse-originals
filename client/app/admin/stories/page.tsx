@@ -27,10 +27,10 @@ export default function AdminStoriesPage() {
   }
 
   const toggleStatus = async (id: string, currentStatus: string) => {
-    const newStatus = currentStatus === "active" ? "pending" : "active"
+    const newStatus = currentStatus === "approved" ? "pending" : "approved"
     try {
       await api.patch(`/stories/${id}/status`, { status: newStatus })
-      toast.success(newStatus === "active" ? "Story approved!" : "Story set to pending")
+      toast.success(newStatus === "approved" ? "Story approved!" : "Story set to pending")
       fetchStories()
     } catch (err) {
       toast.error("Update failed")
@@ -101,7 +101,7 @@ export default function AdminStoriesPage() {
                     {story.user?.name || 'Anonymous'}
                   </td>
                   <td className="px-6 py-6">
-                    {story.status === "active" ? (
+                    {story.status === "approved" ? (
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-600 rounded-full text-[10px] font-black uppercase tracking-widest ring-1 ring-green-100">
                         Approved
                       </span>
@@ -115,10 +115,10 @@ export default function AdminStoriesPage() {
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
                         onClick={() => toggleStatus(story.id, story.status)}
-                        className={`p-2 rounded-xl transition-all ${story.status === 'active' ? 'bg-amber-50 text-amber-500 hover:bg-amber-500 hover:text-white' : 'bg-green-50 text-green-500 hover:bg-green-500 hover:text-white'}`}
-                        title={story.status === 'active' ? 'Revert to Pending' : 'Approve Story'}
+                        className={`p-2 rounded-xl transition-all ${story.status === 'approved' ? 'bg-amber-50 text-amber-500 hover:bg-amber-500 hover:text-white' : 'bg-green-50 text-green-500 hover:bg-green-500 hover:text-white'}`}
+                        title={story.status === 'approved' ? 'Revert to Pending' : 'Approve Story'}
                       >
-                        {story.status === 'active' ? <X size={18} /> : <Check size={18} />}
+                        {story.status === 'approved' ? <X size={18} /> : <Check size={18} />}
                       </button>
                       <button 
                         onClick={() => deleteStory(story.id)}
