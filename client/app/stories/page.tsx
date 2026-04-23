@@ -1,10 +1,11 @@
 "use client"
+export const dynamic = "force-dynamic"
 
 import { useEffect, useState } from "react"
 import { api } from "@/lib/api"
 import StorySubmitModal from "@/components/stories/StorySubmitModal"
 import { motion, AnimatePresence } from "framer-motion"
-import { Heart, Clock } from "lucide-react"
+import { Heart, Clock, X, ExternalLink } from "lucide-react"
 import toast from "react-hot-toast"
 
 import { useAuth } from "@/context/AuthContext"
@@ -19,6 +20,8 @@ type Story = {
   createdAt: string
   likes: number
   status: string
+  user?: { name: string }
+  guestName?: string
 }
 
 export default function StoriesPage() {
@@ -27,13 +30,14 @@ export default function StoriesPage() {
 
   const [stories, setStories] = useState<Story[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedStory, setSelectedStory] = useState<Story | null>(null)
   const [openSubmit, setOpenSubmit] = useState(false)
   const [likedStories, setLikedStories] = useState<string[]>([])
 
   const fetchStories = async () => {
     try {
-      const data = await api.get<any>("/stories")
-      setStories(data.data || data)
+      const data = await api.get<any>(`/stories?t=${Date.now()}`)
+      setStories(data || [])
     } catch (err) {
       console.error("Failed to fetch stories")
     } finally {
@@ -57,6 +61,9 @@ export default function StoriesPage() {
       setStories(prev => prev.map(s => 
         s.id === id ? { ...s, likes: res.likes } : s
       ))
+      if (selectedStory?.id === id) {
+        setSelectedStory(prev => prev ? { ...prev, likes: res.likes } : null)
+      }
 
       const newLiked = [...likedStories, id]
       setLikedStories(newLiked)
@@ -117,17 +124,20 @@ export default function StoriesPage() {
           </p>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-          {stories.map(story => (
-            <motion.div
-              layout
-              key={story.id}
-              className="bg-[var(--bg-card)] border border-[var(--border-light)] rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl hover:border-[var(--brand-accent)]/40 transition-all duration-500 group flex flex-col relative"
-            >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {stories.map((story) => (
+          <motion.div
+            key={story.id}
+            layout
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            onClick={() => setSelectedStory(story)}
+            className="group relative bg-white rounded-[3rem] border border-[var(--border-light)] shadow-sm hover:shadow-2xl hover:scale-[1.02] transition-all duration-500 overflow-hidden cursor-pointer"
+          >
               {/* INTERACTIVE HEART (FLOATING) */}
               <div className="absolute top-6 right-6 z-10">
                 <button 
-                  onClick={() => handleLike(story.id)}
+                  onClick={(e) => { e.stopPropagation(); handleLike(story.id); }}
                   className={`p-3 rounded-2xl flex items-center gap-2 backdrop-blur-md transition-all duration-300 shadow-lg ${likedStories.includes(story.id) 
                     ? 'bg-rose-500 text-white shadow-rose-500/30' 
                     : 'bg-white/90 text-slate-400 hover:text-rose-500 border border-[var(--border-light)]'}`}
@@ -144,16 +154,6 @@ export default function StoriesPage() {
                 </button>
               </div>
 
-              {/* PENDING STATUS BADGE */}
-              {story.status === "pending" && (
-                <div className="absolute top-6 left-6 z-10">
-                  <div className="px-4 py-2 bg-amber-500 text-white rounded-2xl flex items-center gap-2 shadow-lg shadow-amber-500/30 border border-amber-400">
-                    <Clock size={14} className="animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Pending Approval</span>
-                  </div>
-                </div>
-              )}
-
               {/* IMAGE */}
               {story.image && (
                 <div className="w-full aspect-square relative overflow-hidden bg-[var(--bg-surface)] border-b border-[var(--border-light)]">
@@ -169,23 +169,6 @@ export default function StoriesPage() {
               {/* CONTENT */}
               <div className="p-8 space-y-4 flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="font-bold text-2xl text-[var(--text-heading)] leading-snug group-hover:text-[var(--brand-primary)] transition-colors">
-                    {story.title}
-                  </h3>
-
-                  <p className="text-base text-[var(--text-muted)] mt-2 leading-relaxed">
-                    {story.content.substring(0, 140)}...
-                  </p>
-                </div>
-
-                <div>
-                  {/* TAGS */}
-                  {story.productTags && story.productTags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 py-4">
-                      {story.productTags.map(tag => (
-                        <span
-                          key={tag}
-                          className="bg-[var(--brand-soft)]/20 border border-[var(--brand-accent)]/20 text-[var(--brand-primary)] text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-wider shadow-sm"
                         >
                           {tag}
                         </span>

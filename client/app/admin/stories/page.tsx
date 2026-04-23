@@ -1,4 +1,5 @@
 "use client"
+export const dynamic = "force-dynamic"
 
 import { useEffect, useState } from "react"
 import { api } from "@/lib/api"
@@ -17,7 +18,7 @@ export default function AdminStoriesPage() {
 
   const fetchStories = async () => {
     try {
-      const data = await api.get("/stories/admin/all")
+      const data = await api.get(`/stories/admin/all?t=${Date.now()}`)
       setStories(data || [])
     } catch (err) {
       console.error("Fetch stories failed", err)
