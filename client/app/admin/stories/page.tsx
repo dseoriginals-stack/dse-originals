@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { api } from "@/lib/api"
 import Link from "next/link"
-import { Check, X, Trash2, ExternalLink, Clock, ShieldCheck } from "lucide-react"
+import { Check, X, Trash2, ExternalLink, Clock, ShieldCheck, Eye } from "lucide-react"
 import toast from "react-hot-toast"
 
 export default function AdminStoriesPage() {
@@ -118,6 +118,13 @@ export default function AdminStoriesPage() {
                   </td>
                   <td className="px-6 py-6">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        onClick={() => setSelectedStory(story)}
+                        className="p-2 bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white rounded-xl transition-all"
+                        title="View Details"
+                      >
+                        <Eye size={18} />
+                      </button>
                       <button 
                         onClick={(e) => { e.stopPropagation(); toggleStatus(story.id, story.status); }}
                         className={`p-2 rounded-xl transition-all ${story.status === 'approved' ? 'bg-amber-50 text-amber-500 hover:bg-amber-500 hover:text-white' : 'bg-green-50 text-green-500 hover:bg-green-500 hover:text-white'}`}
