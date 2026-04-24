@@ -18,7 +18,8 @@ import ReviewForm from "@/components/ReviewForm"
 import CinematicLookbook from "@/components/product/CinematicLookbook"
 
 import { getImageUrl } from "@/lib/image"
-import { Check } from "lucide-react"
+import { Check, Share2, Facebook } from "lucide-react"
+import toast from "react-hot-toast"
 
 export default function ProductClient() {
   const params = useParams()
@@ -118,6 +119,19 @@ export default function ProductClient() {
       setAdding(false)
       router.push("/cart")
     }, 600)
+  }
+
+  const handleShare = () => {
+    if (typeof window === "undefined") return
+    const url = window.location.href
+    navigator.clipboard.writeText(url)
+    toast.success("Link copied to clipboard!")
+  }
+
+  const handleFBShare = () => {
+    if (typeof window === "undefined") return
+    const url = window.location.href
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank')
   }
 
   /* =========================
@@ -332,6 +346,22 @@ export default function ProductClient() {
             >
               {added && <Check size={24} />}
               {adding ? "Preparing Order..." : added ? "Successfully Added" : "Add to Cart Now"}
+            </button>
+          </div>
+
+          {/* SOCIAL SHARE */}
+          <div className="flex gap-3 pt-1">
+            <button 
+              onClick={handleShare}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-[var(--border-light)] text-[var(--text-muted)] hover:bg-[var(--bg-surface)] hover:text-[var(--brand-primary)] transition-all text-[10px] font-black uppercase tracking-widest"
+            >
+              <Share2 size={14} /> Share Link
+            </button>
+            <button 
+              onClick={handleFBShare}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#1877F2] text-white hover:brightness-110 transition-all text-[10px] font-black uppercase tracking-widest shadow-md"
+            >
+              <Facebook size={14} /> Facebook
             </button>
           </div>
         </div>
