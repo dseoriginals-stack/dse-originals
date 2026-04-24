@@ -1,12 +1,15 @@
 "use client"
 export const dynamic = "force-dynamic"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { api } from "@/lib/api"
 import StorySubmitModal from "@/components/stories/StorySubmitModal"
 import { motion, AnimatePresence } from "framer-motion"
-import { Heart, Clock, X, ExternalLink } from "lucide-react"
+import { Heart, Clock, X, ExternalLink, Sparkles, ChevronRight } from "lucide-react"
 import toast from "react-hot-toast"
+import Image from "next/image"
+import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
 
 import { useAuth } from "@/context/AuthContext"
 
@@ -22,9 +25,25 @@ interface Story {
   status: string
   user?: { name: string }
   guestName?: string
+  featuredProductId?: string
 }
 
 export default function StoriesPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-[var(--brand-primary)] border-t-transparent rounded-full animate-spin" />
+          <p className="text-[var(--text-muted)] font-black uppercase tracking-widest text-xs">Initializing Journal...</p>
+        </div>
+      </div>
+    }>
+      <StoriesContent />
+    </Suspense>
+  )
+}
+
+function StoriesContent() {
   const { user } = useAuth()
 
   const [stories, setStories] = useState<Story[]>([])
@@ -33,11 +52,33 @@ export default function StoriesPage() {
   const [openSubmit, setOpenSubmit] = useState(false)
   const [likedStories, setLikedStories] = useState<string[]>([])
 
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const storyId = searchParams.get("id")
+
   useEffect(() => {
     fetchStories()
     const savedLikes = localStorage.getItem("liked_stories")
     if (savedLikes) setLikedStories(JSON.parse(savedLikes))
   }, [])
+
+  // Sync selected story with URL
+  useEffect(() => {
+    if (storyId && stories.length > 0) {
+      const found = stories.find(s => s.id === storyId)
+      if (found) setSelectedStory(found)
+    } else if (!storyId) {
+      setSelectedStory(null)
+    }
+  }, [storyId, stories])
+
+  const handleOpenStory = (story: Story) => {
+    router.push(`/stories?id=${story.id}`, { scroll: false })
+  }
+
+  const handleCloseStory = () => {
+    router.push("/stories", { scroll: false })
+  }
 
   const fetchStories = async () => {
     try {
@@ -108,9 +149,26 @@ export default function StoriesPage() {
 
       {/* STORIES CAROUSEL / GRID */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-32 space-y-4">
-          <svg className="animate-spin h-8 w-8 text-[var(--brand-primary)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-          <div className="text-[var(--text-muted)] font-semibold tracking-wider uppercase text-sm">Fetching Stories...</div>
+        <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 -mx-4 px-4 md:mx-0 md:px-0">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="bg-white rounded-[2.5rem] md:rounded-[3rem] border border-[var(--border-light)] shadow-sm overflow-hidden flex flex-col shrink-0 w-[85vw] md:w-auto animate-pulse">
+              <div className="w-full aspect-square bg-slate-100" />
+              <div className="p-8 space-y-4">
+                <div className="h-6 bg-slate-100 rounded-full w-3/4" />
+                <div className="space-y-2">
+                  <div className="h-3 bg-slate-100 rounded-full w-full" />
+                  <div className="h-3 bg-slate-100 rounded-full w-5/6" />
+                </div>
+                <div className="pt-6 flex items-center gap-3 mt-auto">
+                  <div className="w-8 h-8 rounded-full bg-slate-100" />
+                  <div className="space-y-1">
+                    <div className="h-2 bg-slate-100 rounded-full w-20" />
+                    <div className="h-2 bg-slate-100 rounded-full w-12" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : stories.length === 0 ? (
         <div className="max-w-2xl mx-auto text-center py-24 px-8 bg-white/80 backdrop-blur-md rounded-[2.5rem] border border-[var(--border-light)] shadow-sm flex flex-col items-center justify-center gap-4">
@@ -130,7 +188,7 @@ export default function StoriesPage() {
               layout
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              onClick={() => setSelectedStory(story)}
+              onClick={() => handleOpenStory(story)}
               className="group relative bg-white rounded-[2.5rem] md:rounded-[3rem] border border-[var(--border-light)] shadow-sm hover:shadow-2xl hover:scale-[1.02] transition-all duration-500 overflow-hidden cursor-pointer flex flex-col shrink-0 w-[85vw] md:w-auto snap-center"
             >
               {/* INTERACTIVE HEART (FLOATING) */}
@@ -166,10 +224,12 @@ export default function StoriesPage() {
               {/* IMAGE */}
               {story.image && (
                 <div className="w-full aspect-square relative overflow-hidden bg-[var(--bg-surface)] border-b border-[var(--border-light)]">
-                  <img
+                  <Image
                     src={story.image}
                     alt={story.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    fill
+                    sizes="(max-width: 768px) 85vw, 33vw"
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 </div>
@@ -218,7 +278,7 @@ export default function StoriesPage() {
             >
               {/* Close Button */}
               <button
-                onClick={() => setSelectedStory(null)}
+                onClick={handleCloseStory}
                 className="absolute top-6 right-6 z-20 p-2 bg-white/90 rounded-full text-slate-500 hover:text-slate-900 shadow-lg transition-colors"
               >
                 <X size={20} />
@@ -227,7 +287,12 @@ export default function StoriesPage() {
               {/* Modal Image */}
               {selectedStory.image && (
                 <div className="h-64 md:h-80 w-full relative">
-                  <img src={selectedStory.image} className="w-full h-full object-cover" />
+                  <Image 
+                    src={selectedStory.image} 
+                    alt={selectedStory.title}
+                    fill 
+                    className="object-cover" 
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                 </div>
               )}
@@ -267,6 +332,22 @@ export default function StoriesPage() {
                 <p className="text-slate-600 leading-relaxed font-medium whitespace-pre-wrap text-base md:text-lg">
                   {selectedStory.content}
                 </p>
+
+                {selectedStory.featuredProductId && (
+                  <Link 
+                    href={`/products/${selectedStory.featuredProductId}`}
+                    className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-[var(--brand-primary)] transition-all group/prod"
+                  >
+                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-[var(--brand-primary)] shadow-sm">
+                      <Sparkles size={20} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Featured Product</p>
+                      <p className="text-sm font-bold text-[var(--text-heading)] group-hover/prod:text-[var(--brand-primary)] transition-colors">View tagged item</p>
+                    </div>
+                    <ChevronRight size={18} className="ml-auto text-slate-300 group-hover/prod:translate-x-1 transition-transform" />
+                  </Link>
+                )}
 
                 <div className="pt-6 flex justify-between items-center">
                   <button

@@ -7,6 +7,7 @@ import { api } from "@/lib/api"
 import toast from "react-hot-toast"
 import { useAuth } from "@/context/AuthContext"
 import { useEffect, useRef } from "react"
+import Image from "next/image"
 
 export default function StorySubmitModal({ open, onClose }: any) {
   const { user } = useAuth()
@@ -189,7 +190,14 @@ export default function StorySubmitModal({ open, onClose }: any) {
                       }}
                       className="w-full flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"
                     >
-                      <img src={p.image} className="w-10 h-10 rounded-lg object-cover" />
+                    <div className="w-10 h-10 relative shrink-0">
+                      <Image 
+                        src={p.image} 
+                        alt={p.name}
+                        fill
+                        className="rounded-lg object-cover" 
+                      />
+                    </div>
                       <div className="text-left">
                         <p className="text-[10px] font-black uppercase tracking-tight text-slate-800">{p.name}</p>
                         <p className="text-[8px] font-bold text-[var(--brand-primary)] uppercase tracking-widest">{p.category}</p>
@@ -275,7 +283,12 @@ export default function StorySubmitModal({ open, onClose }: any) {
                 <div className="w-full aspect-video md:aspect-[4/5] rounded-2xl md:rounded-3xl overflow-hidden bg-slate-100 shadow-xl relative">
                    {image ? (
                      <>
-                        <img src={image} className="w-full h-full object-cover" />
+                        <Image 
+                          src={image} 
+                          alt="Story preview"
+                          fill
+                          className="object-cover" 
+                        />
                         <button onClick={() => setImage(null)} className="absolute top-3 right-3 p-1.5 bg-white/90 rounded-full text-red-500 shadow-xl opacity-0 group-hover:opacity-100 transition">
                           <X size={12} />
                         </button>
