@@ -57,23 +57,21 @@ model User {
   // @@index([shopId])
 }
 
-/*
-model Referral {
-  id          String   @id @default(uuid())
-  referrerId  String
-  refereeId   String   @unique
-  status      String   @default("pending") // pending, rewarded
-  rewardType  String?  // points
-  rewardValue Int?     // 50
-  createdAt   DateTime @default(now())
-
-  referrer    User     @relation("Referrer", fields: [referrerId], references: [id])
-  referee     User     @relation("Referee", fields: [refereeId], references: [id])
-
-  @@index([referrerId])
-  @@index([refereeId])
-}
-*/
+// model Referral {
+//   id          String   @id @default(uuid())
+//   referrerId  String
+//   refereeId   String   @unique
+//   status      String   @default("pending") // pending, rewarded
+//   rewardType  String?  // points
+//   rewardValue Int?     // 50
+//   createdAt   DateTime @default(now())
+// 
+//   referrer    User     @relation("Referrer", fields: [referrerId], references: [id])
+//   referee     User     @relation("Referee", fields: [refereeId], references: [id])
+// 
+//   @@index([referrerId])
+//   @@index([refereeId])
+// }
 
 model EmailVerificationToken {
   id        String   @id @default(uuid())
