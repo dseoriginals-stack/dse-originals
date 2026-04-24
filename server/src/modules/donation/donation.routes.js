@@ -12,7 +12,10 @@ router.post("/", async (req, res, next) => {
   if (token) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET)
-      const user = await prisma.user.findUnique({ where: { id: decoded.id } })
+      const user = await prisma.user.findUnique({ 
+        where: { id: decoded.id },
+        select: { id: true, email: true, role: true }
+      })
       if (user) {
         req.user = { id: user.id, email: user.email, role: user.role }
       }

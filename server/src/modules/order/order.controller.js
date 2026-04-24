@@ -202,7 +202,8 @@ export const createOrder = async (req, res, next) => {
           where: { id: userId },
           data: {
             luckyPoints: { decrement: Math.floor(pointsDiscount) }
-          }
+          },
+          select: { id: true }
         })
       }
 

@@ -145,6 +145,15 @@ router.post("/login", authLimiter, async (req, res) => {
           mode: "insensitive",
         },
       },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        role: true,
+        provider: true,
+        luckyPoints: true,
+        createdAt: true
+      }
     })
 
     if (!user) {
@@ -311,6 +320,15 @@ router.get("/me", authenticate, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        name: true,
+        phone: true,
+        luckyPoints: true,
+        createdAt: true
+      }
     })
 
     if (!user) {

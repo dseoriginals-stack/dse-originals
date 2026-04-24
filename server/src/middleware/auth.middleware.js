@@ -15,7 +15,8 @@ export default async function authenticate(req, res, next) {
     )
 
     const user = await prisma.user.findUnique({
-      where: { id: decoded.id }
+      where: { id: decoded.id },
+      select: { id: true, email: true, role: true }
     })
 
     if (!user) {
@@ -47,7 +48,8 @@ export async function optionalAuthenticate(req, res, next) {
     )
 
     const user = await prisma.user.findUnique({
-      where: { id: decoded.id }
+      where: { id: decoded.id },
+      select: { id: true, email: true, role: true }
     })
 
     if (user) {
