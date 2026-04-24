@@ -26,54 +26,65 @@ export default function ProductsClient({ initialProducts }: Props) {
   const [sort, setSort] = useState("latest")
   const [showFilters, setShowFilters] = useState(false)
 
+  // 🚀 INSTANT FILTERING LOGIC
+  const filteredProducts = useMemo(() => {
+    let result = [...products]
+
+    // 1. Category Filter
+    if (categoryQuery) {
+      result = result.filter(p => 
+        (p.category || "").toLowerCase() === categoryQuery.toLowerCase()
+      )
+    }
+
+    // 2. Search Filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      result = result.filter(p => 
+        p.name.toLowerCase().includes(q) || 
+        (p.description || "").toLowerCase().includes(q)
+      )
+    }
+
+    // 3. Sorting
+    if (sort === "price_low") {
+      result.sort((a, b) => {
+        const pA = a.variants?.[0]?.price || 0
+        const pB = b.variants?.[0]?.price || 0
+        return pA - pB
+      })
+    } else if (sort === "price_high") {
+      result.sort((a, b) => {
+        const pA = a.variants?.[0]?.price || 0
+        const pB = b.variants?.[0]?.price || 0
+        return pB - pA
+      })
+    }
+
+    return result
+  }, [products, categoryQuery, searchQuery, sort])
 
   useEffect(() => {
-    const controller = new AbortController()
+    if (initialProducts?.length > 0) return
 
     async function fetchProducts() {
       try {
-        if (
-          !categoryQuery &&
-          !searchQuery &&
-          initialProducts?.length
-        ) {
-          setProducts(initialProducts)
-          return
-        }
-
         setLoading(true)
-
-        const query = new URLSearchParams()
-
-        if (categoryQuery) query.append("category", categoryQuery)
-        if (searchQuery) query.append("search", searchQuery)
-
-        if (sort === "price_low") query.append("sort", "price_asc")
-        if (sort === "price_high") query.append("sort", "price_desc")
-
-        const endpoint = `/products?${query.toString()}`
-
-        const data = await api.get<{ data: ProductFull[] }>(endpoint)
-
+        const data = await api.get<{ data: ProductFull[] }>("/products")
         setProducts(Array.isArray(data?.data) ? data.data : [])
-      } catch (err: any) {
-        if (err.name !== "AbortError") {
-          console.error("❌ Product fetch failed", err)
-          setProducts([])
-        }
+      } catch (err) {
+        console.error("❌ Product fetch failed", err)
       } finally {
         setLoading(false)
       }
     }
 
     fetchProducts()
-
-    return () => controller.abort()
-  }, [categoryQuery, searchQuery, sort])
+  }, [initialProducts])
 
   const uiProducts = useMemo(() => {
     // 🎨 CUSTOM SORT: Force specific category priority
-    const sorted = [...products].sort((a, b) => {
+    const sorted = [...filteredProducts].sort((a, b) => {
       // Only apply this specific category priority when "latest" is selected
       if (sort === "latest") {
         const order = ["perfume", "apparel", "dsecollection"]
@@ -91,7 +102,7 @@ export default function ProductsClient({ initialProducts }: Props) {
     })
 
     return sorted.map(transformProductToCard)
-  }, [products, sort])
+  }, [filteredProducts, sort])
 
   return (
     <div className="max-w-[1300px] mx-auto py-7 px-4 md:px-8">

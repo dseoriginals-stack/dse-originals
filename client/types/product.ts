@@ -24,6 +24,8 @@ export type ProductFull = {
   tags?: string[]
   images: ProductImage[]
   variants: ProductVariant[]
+  videoUrl?: string
+  storyHtml?: string
 }
 
 export type ProductCardType = {
