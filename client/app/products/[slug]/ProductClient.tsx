@@ -119,8 +119,9 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
       productId: product.id,
       variantId: variant.id,
       name: product.name,
-      price: price, // Use calculated price (249/349)
+      price: price,
       quantity: qty,
+      category: product.category,
       image: getImageUrl(activeImage),
       attributes: variant.attributes.map(a => ({ name: a.name, value: a.value }))
     })

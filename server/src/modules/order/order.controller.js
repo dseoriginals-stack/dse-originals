@@ -12,6 +12,7 @@ import {
 import { createOrderEvent } from "../../services/orderEvent.service.js"
 import { createInvoice } from "../../config/xendit.js"
 import { awardOrderPoints } from "../../services/loyalty.service.js"
+import { getBaseShippingFee, calculateOrderWeight, calculateFinalShippingFee } from "../../utils/shipping.js"
 
 /* ============================
 INTERNAL CLEANUP HELPER
@@ -180,7 +181,9 @@ export const createOrder = async (req, res, next) => {
           variantId: variant.id,
           productName: variant.product.name,
           quantity: quantity,
-          price: standardPrice
+          price: standardPrice,
+          category: variant.product.category,
+          attributes: variant.attributes
         })
       }
 
@@ -203,7 +206,15 @@ export const createOrder = async (req, res, next) => {
         })
       }
 
-      const totalAmount = subtotal + Number(shippingFee) - pointsDiscount
+      const totalWeight = calculateOrderWeight(orderItems)
+      let finalShippingFee = 0
+
+      if (deliveryMethod === "delivery" && address?.region) {
+        const baseFee = getBaseShippingFee(address.region)
+        finalShippingFee = calculateFinalShippingFee(baseFee, totalWeight)
+      }
+
+      const totalAmount = subtotal + finalShippingFee - pointsDiscount
 
       return tx.order.create({
         data: {
@@ -211,7 +222,7 @@ export const createOrder = async (req, res, next) => {
           guestEmail: userId ? null : guestEmail,
           guestName: userId ? null : guestName,
           totalAmount,
-          shippingFee: Number(shippingFee),
+          shippingFee: finalShippingFee,
           pointsUsed: userId ? Math.floor(pointsDiscount) : 0,
           pointsDiscount: pointsDiscount,
           deliveryMethod,

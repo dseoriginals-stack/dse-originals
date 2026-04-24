@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
 import { regions, provinces, cities } from "philippines"
 import { Truck, Store, CreditCard, Check, Package, MapPin, ChevronDown, Home, Briefcase, Gift, Coins } from "lucide-react"
-import { getShippingRate, ShippingZone } from "@/lib/shipping"
+import { getShippingRate, calculateWeight, calculateShippingTotal, ShippingZone } from "@/lib/shipping"
 import PaymentModal from "@/components/PaymentModal"
 import toast from "react-hot-toast"
 import { motion, AnimatePresence } from "framer-motion"
@@ -104,7 +104,9 @@ export default function CheckoutPage() {
   }
 
   const subtotal = itemsToCheckout.reduce((acc, item) => acc + item.price * item.quantity, 0)
-  const shippingFee = delivery === "pickup" ? 0 : (shipping?.fee ?? 0)
+  const baseShippingFee = delivery === "pickup" ? 0 : (shipping?.fee ?? 0)
+  const shippingFee = calculateShippingTotal(baseShippingFee, itemsToCheckout)
+  const totalWeight = calculateWeight(itemsToCheckout)
   
   // Loyalty Points Logic
   const userPoints = (user as any)?.luckyPoints || 0
@@ -452,7 +454,8 @@ export default function CheckoutPage() {
                       <span className="text-[var(--brand-primary)] font-bold text-sm">₱{shipping.fee.toLocaleString()}</span>
                     </div>
                     <p className="text-[9px] text-[var(--text-muted)] pt-1 border-t border-blue-200">
-                      * Rate applies to standard parcel ≤1kg. Actual fee may vary based on final parcel weight and J&T surcharges.
+                      * Base rate covers ≤1kg. Your order is est. <strong>{calculateWeight(itemsToCheckout).toFixed(2)}kg</strong>. 
+                      Additional ₱45 applies per extra kilo.
                     </p>
                   </div>
                 )}
@@ -578,6 +581,13 @@ export default function CheckoutPage() {
                   <span>Total</span>
                   <span>{step < 3 && delivery === "delivery" ? `₱${subtotal.toLocaleString()}+` : `₱${total.toLocaleString()}`}</span>
                 </div>
+
+                {delivery === "delivery" && (
+                  <div className="flex justify-between mt-2 pt-2 border-t border-[var(--border-light)]">
+                    <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Est. Weight</span>
+                    <span className="text-[10px] font-black text-[var(--text-heading)]">{totalWeight.toFixed(2)} kg</span>
+                  </div>
+                )}
 
                 <div className="mt-4 pt-4 border-t border-[var(--border-light)] flex items-center justify-between">
                    <div className="flex items-center gap-2">

@@ -26,6 +26,7 @@ export type CartItem = {
   name: string
   price: number
   quantity: number
+  category?: string
   image?: string
   attributes?: { name: string, value: string }[]
 }

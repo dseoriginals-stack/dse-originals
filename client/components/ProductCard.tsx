@@ -63,6 +63,7 @@ export default function ProductCard({
         name: product.name,
         price: currentPrice,
         quantity: 1,
+        category: product.category,
         image: imageUrl,
         attributes: activeVariant?.attributes?.map(a => ({ name: a.name, value: a.value })) || []
       })

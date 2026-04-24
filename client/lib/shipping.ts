@@ -165,3 +165,44 @@ const FALLBACK_ZONE: ShippingZone = {
 export function getShippingRate(regionKey: string): ShippingZone {
   return REGION_ZONES[regionKey] ?? FALLBACK_ZONE
 }
+
+/**
+ * Calculates the estimated weight of cart items in Kilograms.
+ * Perfume: 1ml ≈ 1g
+ * Apparel: 1 item ≈ 250g (4 items = 1kg)
+ * Others: 1 item ≈ 200g
+ */
+export function calculateWeight(items: any[]): number {
+  let totalGrams = 0
+  
+  items.forEach(item => {
+    const cat = (item.category || "").toLowerCase()
+    const qty = item.quantity || 1
+    
+    if (cat === 'perfume') {
+      const volAttr = item.attributes?.find((a: any) => a.name.toLowerCase().includes('volume'))
+      const mlStr = volAttr?.value || "55"
+      const ml = parseInt(mlStr) || 55
+      totalGrams += ml * qty
+    } else if (cat === 'apparel') {
+      totalGrams += 250 * qty
+    } else {
+      totalGrams += 200 * qty
+    }
+  })
+  
+  return totalGrams / 1000
+}
+
+/**
+ * Calculates final shipping fee including weight surcharges.
+ * Base rate covers up to 1kg.
+ * Each additional 1kg (rounded up) adds ₱45.
+ */
+export function calculateShippingTotal(baseFee: number, items: any[]): number {
+  const weightKg = calculateWeight(items)
+  if (weightKg <= 1) return baseFee
+  
+  const extraKg = Math.ceil(weightKg - 1)
+  return baseFee + (extraKg * 45)
+}
