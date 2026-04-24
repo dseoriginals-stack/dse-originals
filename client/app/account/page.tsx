@@ -232,10 +232,6 @@ function AccountContent() {
                   <ProfileStat label="Loyalty Tier" value={userTier} icon={<Heart size={20} />} color={userTier === "Love" ? "bg-rose-50 text-rose-500" : userTier === "Hope" ? "bg-amber-50 text-amber-500" : "bg-blue-50 text-blue-500"} />
                 </div>
 
-                </div>
-
-                </div>
-
                 {/* LOYALTY PROGRESSION CARD */}
                 <div className="bg-[var(--bg-surface)] rounded-3xl md:rounded-[2.5rem] border border-[var(--border-light)] p-6 md:p-8 relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-8 md:p-12 opacity-[0.03] scale-[2] md:scale-[3] pointer-events-none">
