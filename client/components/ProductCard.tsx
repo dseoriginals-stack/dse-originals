@@ -128,11 +128,7 @@ export default function ProductCard({
             placeholder="blur"
             blurDataURL={getCloudinaryBlurUrl(imageUrl)}
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-            className={`transition-transform duration-700 ease-out group-hover:scale-105 ${
-              product.name.toLowerCase().includes("hope") || product.name.toLowerCase().includes("slvrgn") || product.name.toLowerCase().includes("tee")
-              ? "object-contain p-10" 
-              : "object-cover"
-            }`}
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
           />
 
           {/* DESKTOP CTA */}
@@ -169,48 +165,53 @@ export default function ProductCard({
           <div className="flex flex-col gap-2 mt-3 md:mt-4">
             {/* VARIANT PICKER */}
             {product.variants && product.variants.length > 1 && (
-              <div className="flex flex-wrap gap-1.5 mb-1">
-                {[...product.variants]
-                  .sort((a, b) => {
-                    const sizeOrder = ["XS", "S", "M", "L", "XL", "2XL", "3XL"]
-                    const volOrder = ["55ml", "30ml"]
-                    
-                    const getVal = (v: any) => v.attributes?.find((at: any) => at.name.toLowerCase() === "size" || at.name.toLowerCase() === "volume")?.value || v.attributes?.[0]?.value || ""
-                    const valA = getVal(a)
-                    const valB = getVal(b)
-                    
-                    if (sizeOrder.includes(valA) && sizeOrder.includes(valB)) {
-                      return sizeOrder.indexOf(valA) - sizeOrder.indexOf(valB)
-                    }
-                    if (volOrder.includes(valA) && volOrder.includes(valB)) {
-                      return volOrder.indexOf(valA) - volOrder.indexOf(valB)
-                    }
-                    return 0
-                  })
-                  .map((v) => {
-                    const size = v.attributes?.find(a => a.name.toLowerCase() === "size" || a.name.toLowerCase() === "volume")?.value || 
-                                 v.attributes?.[0]?.value || ""
-                    if (!size) return null
-                    
-                    const isActive = activeVariant?.id === v.id
-                    return (
-                      <button
-                        key={v.id}
-                        onClick={(e) => {
-                          e.preventDefault()
-                          e.stopPropagation()
-                          setActiveVariant(v)
-                        }}
-                        className={`text-[9px] font-black px-2 py-1 rounded-md border transition-all ${
-                          isActive 
-                          ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white shadow-sm' 
-                          : 'bg-white/50 border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)]'
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    )
-                  })}
+              <div className="flex flex-wrap gap-1 mb-1">
+                {(() => {
+                  const seen = new Set()
+                  return [...product.variants]
+                    .filter(v => {
+                      const val = v.attributes?.find((at: any) => at.name.toLowerCase() === "size" || at.name.toLowerCase() === "volume")?.value || v.attributes?.[0]?.value || ""
+                      if (seen.has(val)) return false
+                      seen.add(val)
+                      return true
+                    })
+                    .sort((a, b) => {
+                      const sizeOrder = ["XS", "S", "M", "L", "XL", "2XL", "3XL"]
+                      const volOrder = ["55ml", "30ml"]
+                      
+                      const getVal = (v: any) => v.attributes?.find((at: any) => at.name.toLowerCase() === "size" || at.name.toLowerCase() === "volume")?.value || v.attributes?.[0]?.value || ""
+                      const valA = getVal(a)
+                      const valB = getVal(b)
+                      
+                      if (sizeOrder.includes(valA) && sizeOrder.includes(valB)) return sizeOrder.indexOf(valA) - sizeOrder.indexOf(valB)
+                      if (volOrder.includes(valA) && volOrder.includes(valB)) return volOrder.indexOf(valA) - volOrder.indexOf(valB)
+                      return 0
+                    })
+                    .map((v) => {
+                      const size = v.attributes?.find(a => a.name.toLowerCase() === "size" || a.name.toLowerCase() === "volume")?.value || 
+                                   v.attributes?.[0]?.value || ""
+                      if (!size) return null
+                      
+                      const isActive = activeVariant?.id === v.id
+                      return (
+                        <button
+                          key={v.id}
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            setActiveVariant(v)
+                          }}
+                          className={`text-[8px] font-black px-1.5 py-0.5 rounded-md border transition-all ${
+                            isActive 
+                            ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white shadow-sm' 
+                            : 'bg-white/50 border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)]'
+                          }`}
+                        >
+                          {size}
+                        </button>
+                      )
+                    })
+                })()}
               </div>
             )}
 
