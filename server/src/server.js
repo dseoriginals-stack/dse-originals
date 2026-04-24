@@ -12,6 +12,7 @@ import { fileURLToPath } from "url"
 import logger from "./config/logger.js"
 import passport from "./config/passport.js"
 import errorHandler from "./middleware/error.middleware.js"
+import { globalLimiter } from "./config/rateLimit.js"
 
 // Routes
 import authRoutes from "./modules/auth/auth.routes.js"
@@ -77,6 +78,7 @@ app.use(cors({
 // SECURITY
 // =========================
 app.use(helmet())
+app.use(globalLimiter)
 
 // =========================
 // WEBHOOK RAW (MUST be before json)

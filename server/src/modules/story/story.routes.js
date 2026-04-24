@@ -11,6 +11,7 @@ import {
 
 import { validate } from "../../middleware/validate.middleware.js"
 import { createStorySchema, updateStatusSchema } from "./story.validation.js"
+import { storyLimiter } from "../../config/rateLimit.js"
 
 const router = express.Router()
 
@@ -33,7 +34,7 @@ router.post("/", async (req, res, next) => {
     }
   }
   next()
-}, validate(createStorySchema), createStory)
+}, storyLimiter, validate(createStorySchema), createStory)
 
 import requireRole from "../../middleware/role.middleware.js"
 

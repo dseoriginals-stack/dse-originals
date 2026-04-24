@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken"
 import crypto from "crypto"
 import passport from "passport"
 import prisma from "../../config/prisma.js"
-import authLimiter from "../../middleware/authRateLimiter.js"
+import { authLimiter } from "../../config/rateLimit.js"
 import { loginSchema, registerSchema } from "../../validators/auth.validator.js"
 import logger from "../../config/logger.js"
 import { sendPasswordResetEmail, sendVerificationEmail } from "../../config/email.js"
@@ -133,7 +133,7 @@ router.post("/register", async (req, res) => {
    LOGIN
 ============================= */
 
-router.post("/login", async (req, res) => {
+router.post("/login", authLimiter, async (req, res) => {
   try {
     const validatedData = loginSchema.parse(req.body)
     const { email, password } = validatedData
