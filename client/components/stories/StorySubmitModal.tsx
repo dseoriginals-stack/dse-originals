@@ -19,6 +19,7 @@ export default function StorySubmitModal({ open, onClose }: any) {
   const [image, setImage] = useState<string | null>(null)
   const [selectedFeeling, setSelectedFeeling] = useState("Inspired")
   const [tags, setTags] = useState<string[]>(["#DSEoriginals"])
+  const [customTagInput, setCustomTagInput] = useState("")
 
   // PRODUCT SELECTION STATE
   const [allProducts, setAllProducts] = useState<any[]>([])
@@ -64,7 +65,21 @@ export default function StorySubmitModal({ open, onClose }: any) {
 
   const toggleTag = (tag: string) => {
     if (tags.includes(tag)) setTags(tags.filter(t => t !== tag))
-    else if (tags.length < 5) setTags([...tags, tag])
+    else if (tags.length < 8) {
+      // Auto-add # if missing
+      const formattedTag = tag.startsWith("#") ? tag : `#${tag}`
+      if (!tags.includes(formattedTag)) {
+        setTags([...tags, formattedTag])
+      }
+    }
+  }
+
+  const handleCustomTagAdd = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && customTagInput.trim()) {
+      e.preventDefault()
+      toggleTag(customTagInput.trim())
+      setCustomTagInput("")
+    }
   }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -214,7 +229,8 @@ export default function StorySubmitModal({ open, onClose }: any) {
                 <Star size={12} className="text-[var(--brand-primary)]" /> Tags
               </label>
               <div className="flex flex-wrap gap-1.5 md:gap-2">
-                {[...tags, ...suggestedTags.filter(st => !tags.includes(st))].slice(0, 6).map(tag => (
+                {/* PREDEFINED & SELECTED TAGS */}
+                {[...new Set([...tags, ...suggestedTags])].map(tag => (
                   <button
                     key={tag}
                     onClick={() => toggleTag(tag)}
@@ -227,6 +243,21 @@ export default function StorySubmitModal({ open, onClose }: any) {
                     {tag}
                   </button>
                 ))}
+              </div>
+
+              {/* CUSTOM TAG INPUT */}
+              <div className="mt-3 relative">
+                <input
+                  type="text"
+                  value={customTagInput}
+                  onChange={(e) => setCustomTagInput(e.target.value)}
+                  onKeyDown={handleCustomTagAdd}
+                  placeholder="Type your own tag and press Enter..."
+                  className="w-full px-4 py-2 bg-slate-50 border-2 border-transparent focus:bg-white focus:border-[var(--brand-primary)] rounded-xl font-bold text-[9px] md:text-[10px] outline-none transition-all placeholder:text-slate-300"
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                   <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Enter to add</span>
+                </div>
               </div>
             </div>
 

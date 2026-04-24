@@ -245,6 +245,20 @@ function StoriesContent() {
                     {story.content}
                   </p>
 
+                  {/* TAGS PREVIEW */}
+                  {story.productTags && story.productTags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      {story.productTags.slice(0, 3).map(tag => (
+                        <span key={tag} className="text-[8px] font-black uppercase tracking-widest text-[var(--brand-primary)] bg-[var(--brand-soft)]/10 px-2 py-0.5 rounded-full">
+                          {tag}
+                        </span>
+                      ))}
+                      {story.productTags.length > 3 && (
+                        <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">+{story.productTags.length - 3} more</span>
+                      )}
+                    </div>
+                  )}
+
                   {/* CONTRIBUTOR */}
                   <div className="pt-6 flex items-center gap-3 mt-auto">
                     <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-[var(--brand-primary)] text-[10px] font-black border border-slate-100">
@@ -332,6 +346,17 @@ function StoriesContent() {
                 <p className="text-slate-600 leading-relaxed font-medium whitespace-pre-wrap text-base md:text-lg">
                   {selectedStory.content}
                 </p>
+
+                {/* MODAL TAGS */}
+                {selectedStory.productTags && selectedStory.productTags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedStory.productTags.map(tag => (
+                      <span key={tag} className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-50 border border-slate-100 px-3 py-1 rounded-full">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 {selectedStory.featuredProductId && (
                   <Link 
