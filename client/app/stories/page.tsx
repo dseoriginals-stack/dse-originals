@@ -14,6 +14,8 @@ import useSWR, { mutate } from "swr"
 import { fetcher } from "@/lib/fetcher"
 import { getCloudinaryBlurUrl } from "@/lib/imageUtils"
 
+import StorySkeleton from "@/components/ui/StorySkeleton"
+
 import { useAuth } from "@/context/AuthContext"
 
 interface Story {
@@ -151,23 +153,7 @@ function StoriesContent() {
       {loading ? (
         <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 -mx-4 px-4 md:mx-0 md:px-0">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="bg-white rounded-[2.5rem] md:rounded-[3rem] border border-[var(--border-light)] shadow-sm overflow-hidden flex flex-col shrink-0 w-[85vw] md:w-auto animate-pulse">
-              <div className="w-full aspect-square bg-slate-100" />
-              <div className="p-8 space-y-4">
-                <div className="h-6 bg-slate-100 rounded-full w-3/4" />
-                <div className="space-y-2">
-                  <div className="h-3 bg-slate-100 rounded-full w-full" />
-                  <div className="h-3 bg-slate-100 rounded-full w-5/6" />
-                </div>
-                <div className="pt-6 flex items-center gap-3 mt-auto">
-                  <div className="w-8 h-8 rounded-full bg-slate-100" />
-                  <div className="space-y-1">
-                    <div className="h-2 bg-slate-100 rounded-full w-20" />
-                    <div className="h-2 bg-slate-100 rounded-full w-12" />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <StorySkeleton key={i} />
           ))}
         </div>
       ) : stories.length === 0 ? (

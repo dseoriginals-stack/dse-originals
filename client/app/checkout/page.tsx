@@ -11,6 +11,8 @@ import PaymentModal from "@/components/PaymentModal"
 import toast from "react-hot-toast"
 import { motion, AnimatePresence } from "framer-motion"
 
+import CheckoutSkeleton from "@/components/ui/CheckoutSkeleton"
+
 /* ============================ TYPES ============================ */
 
 type Step = 1 | 2 | 3
@@ -32,6 +34,7 @@ export default function CheckoutPage() {
   const [step, setStep] = useState<Step>(1)
   const [delivery, setDelivery] = useState<DeliveryMethod>("delivery")
   const [loading, setLoading] = useState(false)
+  const [isInitializing, setIsInitializing] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [shipping, setShipping] = useState<ShippingZone | null>(null)
   const [showPayment, setShowPayment] = useState(false)
@@ -71,6 +74,8 @@ export default function CheckoutPage() {
       if (def) applySavedAddress(def)
     } catch (err) {
       console.error("Failed to load saved addresses")
+    } finally {
+      setIsInitializing(false)
     }
   }
 
@@ -205,7 +210,7 @@ export default function CheckoutPage() {
 
   const steps = ["Delivery", "Details", "Payment"]
 
-  /* ============================ UI ============================ */
+  if (isInitializing) return <CheckoutSkeleton />
 
   return (
     <div className="bg-[var(--bg-main)] min-h-screen pb-32">

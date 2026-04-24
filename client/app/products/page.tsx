@@ -1,5 +1,6 @@
 import { Suspense } from "react"
 import ProductsClient from "./ProductsClient"
+import ProductSkeleton from "@/components/ui/ProductSkeleton"
 
 async function getProducts() {
   try {
@@ -29,8 +30,14 @@ export default async function ProductsPage() {
 
   return (
     <Suspense fallback={
-       <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center pt-24">
-         <div className="w-12 h-12 border-4 border-[var(--brand-primary)] border-t-transparent rounded-full animate-spin" />
+       <div className="min-h-screen bg-[var(--bg-main)] pt-24 pb-12">
+         <div className="container mx-auto px-4">
+           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+             {[...Array(8)].map((_, i) => (
+               <ProductSkeleton key={i} />
+             ))}
+           </div>
+         </div>
        </div>
     }>
       <ProductsClient initialProducts={products} />

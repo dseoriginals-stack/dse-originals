@@ -7,6 +7,8 @@ import requireRole from "../../middleware/role.middleware.js"
 import * as controller from "./order.controller.js"
 import { handleXenditWebhook } from "./webhook.controller.js"
 import { getTrackingInfo } from "../../services/tracking.service.js"
+import { validate } from "../../middleware/validate.middleware.js"
+import { createOrderSchema, updateStatusSchema } from "./order.validation.js"
 
 const router = express.Router()
 
@@ -26,10 +28,10 @@ router.get(
 ============================= */
 
 // Optional Authenticated checkout (supports both guests & logged-in users)
-router.post("/checkout", optionalAuthenticate, controller.createOrder)
+router.post("/checkout", optionalAuthenticate, validate(createOrderSchema), controller.createOrder)
 
 // Optional guest order creation endpoint
-router.post("/", controller.createOrder)
+router.post("/", validate(createOrderSchema), controller.createOrder)
 
 // Staff Walk-in Orders (Manual)
 router.post(
@@ -112,6 +114,7 @@ router.put(
   "/:id/status",
   authenticate,
   requireRole("admin"),
+  validate(updateStatusSchema),
   controller.updateOrderStatus
 )
 
