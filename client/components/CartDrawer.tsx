@@ -172,8 +172,16 @@ export default function CartDrawer() {
                   <div className="flex-1 flex flex-col justify-between pt-0.5">
                     <div>
                       <h4 className="text-sm font-bold text-[var(--text-heading)] line-clamp-1 leading-tight">{item.name}</h4>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tighter">Variant: Standard</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {item.attributes && item.attributes.length > 0 ? (
+                          item.attributes.map((attr, idx) => (
+                            <span key={idx} className="text-[9px] font-black uppercase tracking-tighter text-[var(--brand-primary)] bg-[var(--brand-soft)]/10 px-1.5 py-0.5 rounded">
+                              {attr.value}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tighter">Authentic / Edition</span>
+                        )}
                       </div>
                     </div>
 

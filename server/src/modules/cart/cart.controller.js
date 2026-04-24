@@ -35,20 +35,29 @@ export const getCart = async (req, res, next) => {
 
     res.json({
       items:
-        cart?.items.map(item => ({
-          variantId: item.variantId,
-          productId: item.variant.productId,
-          name: item.variant.product.name,
-          price: (() => {
-            const attrs = (item.variant.attributes || []).map(a => (a.value || "").toLowerCase())
+        cart?.items.map(item => {
+          const variant = item.variant
+          const product = variant.product
+          const attributes = variant.attributes || []
+          
+          // Consistent Price Logic
+          const getPrice = () => {
+            const attrs = attributes.map(a => (a.value || "").toLowerCase())
             if (attrs.some(a => a.includes("55ml"))) return 349
             if (attrs.some(a => a.includes("30ml"))) return 249
-            return Number(item.variant.price)
-          })(),
-          quantity: item.quantity,
-          image:
-            item.variant.product.images?.[0]?.url || null
-        })).reverse() || []
+            return Number(variant.price)
+          }
+
+          return {
+            variantId: item.variantId,
+            productId: product.id,
+            name: product.name,
+            price: getPrice(),
+            quantity: item.quantity,
+            attributes: attributes.map(a => ({ name: a.name, value: a.value })),
+            image: product.images?.[0]?.url || null
+          }
+        }).reverse() || []
     })
 
   } catch (err) {

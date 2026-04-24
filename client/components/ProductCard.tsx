@@ -64,6 +64,7 @@ export default function ProductCard({
         price: currentPrice,
         quantity: 1,
         image: imageUrl,
+        attributes: activeVariant?.attributes?.map(a => ({ name: a.name, value: a.value })) || []
       })
 
       setAdded(true)

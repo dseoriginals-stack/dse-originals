@@ -212,7 +212,17 @@ export default function CartPage() {
                     <div className="flex-1 flex flex-col justify-between py-1">
                       <div>
                         <h3 className="text-base md:text-xl font-black text-[var(--text-heading)] line-clamp-1 leading-tight">{item.name}</h3>
-                        <p className="text-[10px] md:text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">Authentic / Edition</p>
+                        {item.attributes && item.attributes.length > 0 ? (
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {item.attributes.map((attr, idx) => (
+                              <span key={idx} className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-[var(--brand-primary)] bg-[var(--brand-soft)]/10 px-2 py-0.5 rounded-md">
+                                {attr.value}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-[10px] md:text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">Authentic / Edition</p>
+                        )}
 
                         <div className="mt-3 flex items-center gap-3">
                           <span className="text-lg md:text-2xl font-black text-[var(--brand-primary)]">₱{item.price.toLocaleString()}</span>

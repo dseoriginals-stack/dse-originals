@@ -27,6 +27,7 @@ export type CartItem = {
   price: number
   quantity: number
   image?: string
+  attributes?: { name: string, value: string }[]
 }
 
 type CartContextType = {
