@@ -1,0 +1,37 @@
+{
+  "name": "DSEoriginals",
+  "short_name": "DSE",
+  "description": "Premium Faith-Inspired Modern Collective",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#274C77",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/DSEoriginals.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/DSEoriginals.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Shop New Arrivals",
+      "url": "/products",
+      "icons": [{ "src": "/DSEoriginals.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Community Stories",
+      "url": "/stories",
+      "icons": [{ "src": "/DSEoriginals.png", "sizes": "192x192" }]
+    }
+  ]
+}

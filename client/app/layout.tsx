@@ -11,6 +11,9 @@ const outfit = Outfit({
 export const metadata = {
   title: "DSEoriginals",
   description: "DSEoriginals offers premium, faith-inspired clothing and essentials designed with a modern aesthetic.",
+  manifest: "/manifest.json",
+  themeColor: "#274C77",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",
