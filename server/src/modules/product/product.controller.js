@@ -582,32 +582,61 @@ export const updateProduct = async (req, res, next) => {
       }
     }
 
-    // Replace variants if sent
+    // Handle Variants carefully to avoid foreign key violations
     if (variantsFromClient.length > 0) {
-      updateData.variants = {
-        deleteMany: {},
-        create: variantsFromClient.map((v) => ({
-          sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-          price: new Prisma.Decimal(v.price),
-          stock: parseInt(String(v.stock)) || 0,
-          attributes: {
-            create: (v.attributes || []).map((a) => ({
-              name: a.name,
-              value: a.value
-            }))
-          }
-        }))
+      // 1. Fetch current variants
+      const currentVariants = product.variants
+
+      // 2. Map through client variants and update/create
+      for (const v of variantsFromClient) {
+        // Try to find a matching existing variant by attributes (very common for this app)
+        const vAttrs = v.attributes || []
+        const existing = currentVariants.find(curr => {
+          if (curr.attributes.length !== vAttrs.length) return false
+          return vAttrs.every(va => curr.attributes.some(ca => ca.name === va.name && ca.value === va.value))
+        })
+
+        if (existing) {
+          await prisma.productVariant.update({
+            where: { id: existing.id },
+            data: {
+              price: new Prisma.Decimal(v.price),
+              stock: parseInt(String(v.stock)) || 0
+            }
+          })
+        } else {
+          await prisma.productVariant.create({
+            data: {
+              productId: id,
+              sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+              price: new Prisma.Decimal(v.price),
+              stock: parseInt(String(v.stock)) || 0,
+              attributes: {
+                create: vAttrs.map(a => ({ name: a.name, value: a.value }))
+              }
+            }
+          })
+        }
       }
     } else if (price !== undefined || stock !== undefined) {
-      updateData.variants = {
-        deleteMany: {},
-        create: [
-          {
+      // Single variant update logic
+      if (product.variants.length > 0) {
+        await prisma.productVariant.update({
+          where: { id: product.variants[0].id },
+          data: {
+            price: new Prisma.Decimal(price || 0),
+            stock: parseInt(String(stock)) || 0
+          }
+        })
+      } else {
+        await prisma.productVariant.create({
+          data: {
+            productId: id,
             sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
             price: new Prisma.Decimal(price || 0),
             stock: parseInt(String(stock)) || 0
           }
-        ]
+        })
       }
     }
 
