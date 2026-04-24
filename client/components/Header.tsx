@@ -11,12 +11,14 @@ import { useCart } from "@/context/CartContext"
 import UserMenu from "@/components/layout/UserMenu"
 import MobileNav from "@/components/layout/MobileNav"
 import SearchOverlay from "@/components/SearchOverlay"
+import { useCurrency } from "@/context/CurrencyContext"
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const pathname = usePathname()
   const { cartCount } = useCart()
+  const { currency, setCurrency } = useCurrency()
 
   const navItems = [
     { name: "products", label: "Products" },
@@ -87,6 +89,14 @@ export default function Header() {
 
             {/* UTILITY ICONS */}
             <div className="flex items-center gap-6">
+
+              {/* CURRENCY SWITCHER */}
+              <button 
+                onClick={() => setCurrency(currency === "PHP" ? "USD" : "PHP")}
+                className="hidden sm:flex text-white hover:bg-white/10 px-3 py-1.5 rounded-xl transition-all border border-white/10 text-[10px] font-black uppercase tracking-widest"
+              >
+                {currency}
+              </button>
 
               {/* SEARCH */}
               <button 
