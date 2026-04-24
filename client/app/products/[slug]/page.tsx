@@ -15,7 +15,7 @@ export async function generateMetadata(
 
   try {
     const res = await fetch(`${apiUrl}/api/products/slug/${slug}`, {
-      next: { revalidate: 3600 } // Cache for 1 hour
+      next: { revalidate: 3600 } 
     })
     
     if (!res.ok) throw new Error("Product fetch failed")
@@ -24,7 +24,6 @@ export async function generateMetadata(
     const title = `${product.name} | DSE Originals`
     const description = product.description?.substring(0, 160) || `Experience premium quality with ${product.name} from DSE Originals.`
     
-    // Ensure absolute URL for social crawlers
     let imageUrl = getImageUrl(product.images?.[0]?.url)
     if (imageUrl.startsWith('/')) {
         imageUrl = `https://www.dseoriginals.com${imageUrl}`
@@ -64,6 +63,19 @@ export async function generateMetadata(
   }
 }
 
-export default function ProductPage() {
-  return <ProductClient />
+export default async function ProductPage({ params }: Props) {
+  const slug = params.slug
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.dseoriginals.com'
+
+  let initialProduct = null
+  try {
+    const res = await fetch(`${apiUrl}/api/products/slug/${slug}`, {
+      next: { revalidate: 60 } 
+    })
+    if (res.ok) initialProduct = await res.json()
+  } catch (err) {
+    console.error("Server fetch failed", err)
+  }
+
+  return <ProductClient initialProduct={initialProduct} />
 }

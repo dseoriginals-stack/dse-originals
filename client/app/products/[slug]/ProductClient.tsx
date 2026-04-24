@@ -21,20 +21,22 @@ import { getImageUrl } from "@/lib/image"
 import { Check, Share2, Facebook } from "lucide-react"
 import toast from "react-hot-toast"
 
-export default function ProductClient() {
+export default function ProductClient({ initialProduct }: { initialProduct: ProductFull | null }) {
   const params = useParams()
   const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug
   const router = useRouter()
 
   const { addToCart } = useCart()
 
-  const [product, setProduct] = useState<ProductFull | null>(null)
+  const [product, setProduct] = useState<ProductFull | null>(initialProduct)
   const [related, setRelated] = useState<ProductFull[]>([])
-  const [variant, setVariant] = useState<ProductVariant | null>(null)
+  const [variant, setVariant] = useState<ProductVariant | null>(
+    initialProduct?.variants.find(v => v.stock > 0) || initialProduct?.variants[0] || null
+  )
 
   const [qty, setQty] = useState(1)
-  const [activeImage, setActiveImage] = useState("")
-  const [loading, setLoading] = useState(true)
+  const [activeImage, setActiveImage] = useState(initialProduct?.images?.[0]?.url ?? "/placeholder.png")
+  const [loading, setLoading] = useState(!initialProduct)
 
   const [adding, setAdding] = useState(false)
   const [added, setAdded] = useState(false)
@@ -47,8 +49,17 @@ export default function ProductClient() {
 
   useEffect(() => {
     if (!slug) return
-
-    async function fetchData() {
+    if (product && product.slug === slug) {
+       // Just fetch related if needed
+       async function fetchRelated() {
+         try {
+           const rel = await api.get<ProductFull[]>(`/products/${product!.id}/related`)
+           setRelated(rel)
+         } catch {}
+       }
+       fetchRelated()
+       return
+    }
       try {
         // ✅ CORRECT ENDPOINT
         const res = await api.get<ProductFull>(`/products/slug/${slug}`)
@@ -153,16 +164,8 @@ export default function ProductClient() {
   }
 
   /* =========================
-     STATES
+     STATES (REMOVED LOADING)
   ========================= */
-
-  if (loading) {
-    return (
-      <div className="container py-20 text-center">
-        Loading...
-      </div>
-    )
-  }
 
   if (!product) {
     return (
