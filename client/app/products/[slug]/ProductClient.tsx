@@ -7,6 +7,7 @@ import Image from "next/image"
 import { api } from "@/lib/api"
 import { useCart } from "@/context/CartContext"
 import ProductCard from "@/components/ProductCard"
+import RecommendationStrip from "@/components/product/RecommendationStrip"
 import { flyToCart } from "@/lib/flyToCart"
 
 import { ProductFull, ProductVariant } from "@/types/product"
@@ -337,26 +338,21 @@ export default function ProductClient() {
         <Reviews key={refreshReviews} productId={product.id} />
       </div>
 
-      {/* RELATED */}
-      {related.length > 0 && (
-        <div className="mt-14">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="h-[2px] w-8 bg-[var(--brand-primary)]"></div>
-            <h2 className="text-xl md:text-2xl font-bold tracking-[0.1em] text-[var(--brand-primary)] uppercase">
-              You May Also Like
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {related.map((p) => (
-              <ProductCard
-                key={p.id}
-                product={transformProductToCard(p)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* DYNAMIC RECOMMENDATIONS */}
+      <div className="space-y-10">
+        <RecommendationStrip 
+          type="together" 
+          productId={product.id} 
+          title="Frequently Bought Together" 
+          subtitle="Customer favorites" 
+        />
+        <RecommendationStrip 
+          type="related" 
+          productId={product.id} 
+          title="More from this collection" 
+          subtitle="Similar styles" 
+        />
+      </div>
 
       {/* MOBILE BAR */}
       <div className="fixed bottom-0 left-0 right-0 glass-header border-t p-4 md:hidden pb-safe">

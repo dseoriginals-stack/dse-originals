@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { ArrowRight, Sparkles, ChevronLeft, ChevronRight, ShieldCheck, Target, Users } from "lucide-react"
 
 import ProductCard from "@/components/ProductCard"
+import RecommendationStrip from "@/components/product/RecommendationStrip"
 import { transformProductToCard } from "@/lib/transformProduct"
 import { ProductFull } from "@/types/product"
 import { getCloudinaryBlurUrl } from "@/lib/imageUtils"
@@ -426,6 +427,13 @@ export default function HomePage({ initialProducts }: Props) {
             ))}
           </div>
         </section>
+
+        {/* PERSONALIZED RECOMMENDATIONS */}
+        <RecommendationStrip 
+          type="personalized" 
+          title="Recommended For You" 
+          subtitle="Based on your taste" 
+        />
 
         {/* MISSION CARDS SECTION (RESTORED WITH NEW DESIGN) */}
         <section className="py-20">

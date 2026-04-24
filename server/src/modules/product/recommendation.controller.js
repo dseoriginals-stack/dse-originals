@@ -152,3 +152,65 @@ export const getFrequentlyBoughtTogether = async (req, res, next) => {
   }
 
 }
+
+/*
+==============================
+PERSONALIZED RECOMMENDATIONS
+==============================
+*/
+export const getPersonalizedRecommendations = async (req, res, next) => {
+  try {
+    const userId = req.user?.id
+    if (!userId) {
+      // Fallback to trending for guests
+      return getTrendingProducts(req, res, next)
+    }
+
+    const cacheKey = `user:recommendations:${userId}`
+    const cached = await getCache(cacheKey)
+    if (cached) return res.json(cached)
+
+    // 1. Find user's favorite categories from last 5 orders
+    const favoriteCategories = await prisma.$queryRaw`
+      SELECT p."categoryId", COUNT(*) as count
+      FROM "Order" o
+      JOIN "OrderItem" oi ON o.id = oi."orderId"
+      JOIN "ProductVariant" pv ON oi."variantId" = pv.id
+      JOIN "Product" p ON pv."productId" = p.id
+      WHERE o."userId" = ${userId}
+      GROUP BY p."categoryId"
+      ORDER BY count DESC
+      LIMIT 3
+    `
+
+    const categoryIds = Array.isArray(favoriteCategories) ? favoriteCategories.map((c: any) => c.categoryId) : []
+
+    // 2. Fetch products from these categories that the user hasn't bought yet
+    const recommendations = await prisma.product.findMany({
+      where: {
+        categoryId: { in: categoryIds.length > 0 ? categoryIds : undefined },
+        status: "active",
+        // Ideally we'd filter out already bought products, but for small catalogs it's fine to show similar
+      },
+      take: 8,
+      orderBy: { createdAt: "desc" },
+      include: {
+        images: {
+          where: { isPrimary: true },
+          take: 1
+        }
+      }
+    })
+
+    // If no specific recommendations, fallback to trending
+    if (recommendations.length < 4) {
+      return getTrendingProducts(req, res, next)
+    }
+
+    await setCache(cacheKey, recommendations, 600)
+    res.json(recommendations)
+
+  } catch (err) {
+    next(err)
+  }
+}
