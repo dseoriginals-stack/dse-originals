@@ -3,16 +3,18 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
-import { Menu, ShoppingCart } from "lucide-react"
+import { Menu, ShoppingCart, Search } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
 
 import { useCart } from "@/context/CartContext"
 import UserMenu from "@/components/layout/UserMenu"
 import MobileNav from "@/components/layout/MobileNav"
+import SearchOverlay from "@/components/SearchOverlay"
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const pathname = usePathname()
   const { cartCount } = useCart()
 
@@ -86,6 +88,14 @@ export default function Header() {
             {/* UTILITY ICONS */}
             <div className="flex items-center gap-6">
 
+              {/* SEARCH */}
+              <button 
+                onClick={() => setSearchOpen(true)}
+                className="text-white hover:bg-white/10 p-2 rounded-xl transition-all"
+              >
+                <Search size={22} />
+              </button>
+
               {/* CART */}
               <Link href="/cart" id="cart-icon" className="relative group text-white">
                 <ShoppingCart size={22} className="group-hover:scale-110 transition-transform" />
@@ -106,6 +116,9 @@ export default function Header() {
 
       {/* MOBILE OVERLAY */}
       <MobileNav open={menuOpen} close={() => setMenuOpen(false)} />
+
+      {/* SEARCH OVERLAY */}
+      <SearchOverlay isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   )
 }

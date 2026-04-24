@@ -22,6 +22,7 @@ import orderRoutes from "./modules/order/order.routes.js"
 import adminRoutes from "./modules/admin/admin.routes.js"
 import wishlistRoutes from "./modules/wishlist/wishlist.routes.js"
 import storyRoutes from "./modules/story/story.routes.js"
+import searchRoutes from "./modules/search/search.routes.js"
 import donationRoutes from "./modules/donation/donation.routes.js"
 import cartRoutes from "./modules/cart/cart.routes.js"
 import categoryRoutes from "./routes/category.routes.js"
@@ -108,6 +109,7 @@ app.use("/api/orders", orderRoutes)
 app.use("/api/cart", cartRoutes)
 app.use("/api/wishlist", wishlistRoutes)
 app.use("/api/stories", storyRoutes)
+app.use("/api/search", searchRoutes)
 app.use("/api/donations", donationRoutes)
 app.use("/api/categories", categoryRoutes)
 app.use("/api/admin", adminRoutes)
