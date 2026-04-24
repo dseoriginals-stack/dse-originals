@@ -7,25 +7,38 @@
 ========================= */
 
 :root {
-  /* Azure Light Premium Palette - Restored */
+  /* BACKGROUNDS */
   --bg-main: #FFFFFF;
-  --bg-surface: rgba(255, 255, 255, 0.9);
+  --bg-surface: #F8FAFC;
   --bg-card: #FFFFFF;
   --bg-glass: rgba(255, 255, 255, 0.85);
+  --bg-soft: #F1F5F9;
 
+  /* BRAND COLORS */
   --brand-primary: #274C77;
-  --brand-accent: #E7ECEF;
+  --brand-accent: #6096BA;
   --brand-soft: #A3CEF1;
+  --brand-muted: #8B8C89;
 
-  --text-main: #274C77;
-  --text-muted: #607D8B;
+  /* STATUS COLORS */
+  --status-success: #10B981;
+  --status-warning: #F59E0B;
+  --status-error: #EF4444;
+  --status-info: #3B82F6;
+
+  /* TEXT COLORS */
+  --text-main: #1E293B;
   --text-heading: #274C77;
+  --text-muted: #64748B;
+  --text-on-brand: #FFFFFF;
 
-  --border-light: rgba(39, 76, 119, 0.1);
-  --border-focus: rgba(39, 76, 119, 0.3);
-
+  /* BORDERS & SHADOWS */
+  --border-light: #E2E8F0;
+  --border-focus: #274C77;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
-  --shadow-glow: 0 0 20px rgba(39, 76, 119, 0.05);
 }
 
 /* =========================

@@ -9,6 +9,9 @@ import {
   likeStory 
 } from "./story.controller.js"
 
+import { validate } from "../../middleware/validate.middleware.js"
+import { createStorySchema, updateStatusSchema } from "./story.validation.js"
+
 const router = express.Router()
 
 router.get("/", getStories)
@@ -30,13 +33,13 @@ router.post("/", async (req, res, next) => {
     }
   }
   next()
-}, createStory)
+}, validate(createStorySchema), createStory)
 
 import requireRole from "../../middleware/role.middleware.js"
 
 // Admin
 router.get("/admin/all", authenticate, requireRole("admin"), getAdminStories)
-router.patch("/:id/status", authenticate, requireRole("admin"), updateStoryStatus)
+router.patch("/:id/status", authenticate, requireRole("admin"), validate(updateStatusSchema), updateStoryStatus)
 router.delete("/:id", authenticate, requireRole("admin"), deleteStory)
 
 export default router

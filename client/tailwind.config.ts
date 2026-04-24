@@ -13,21 +13,17 @@ const config: Config = {
     extend: {
 
       colors: {
-
-        background: "#E7ECEF",
-
-        primary: "#274C77",
-
-        accent: "#6096BA",
-
-        soft: "#A3CEF1",
-
-        muted: "#8B8C89",
-
-        surface: "#FFFFFF",
-
-        card: "#F4F7FA"
-
+        background: "var(--bg-main)",
+        primary: "var(--brand-primary)",
+        accent: "var(--brand-accent)",
+        soft: "var(--brand-soft)",
+        muted: "var(--brand-muted)",
+        surface: "var(--bg-surface)",
+        card: "var(--bg-card)",
+        success: "var(--status-success)",
+        warning: "var(--status-warning)",
+        error: "var(--status-error)",
+        info: "var(--status-info)",
       }
 
     }
