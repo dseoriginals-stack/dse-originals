@@ -148,7 +148,8 @@ export default function ProductClient() {
   const handleFBShare = () => {
     if (typeof window === "undefined") return
     const url = window.location.href
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank')
+    const quote = `Check out ${product?.name} at DSE Originals! 🔥`
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(quote)}`, '_blank')
   }
 
   /* =========================
