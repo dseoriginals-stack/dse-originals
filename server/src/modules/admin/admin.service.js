@@ -51,7 +51,11 @@ const getAdminStats = async () => {
         where: { id: item.variantId },
         include: { 
           product: {
-            include: { images: { take: 1 } }
+            select: {
+              id: true,
+              name: true,
+              images: { take: 1, select: { url: true } }
+            }
           } 
         }
       })
@@ -74,7 +78,8 @@ const getAdminStats = async () => {
   const categories = await prisma.category.findMany({
     include: {
       products: {
-        include: {
+        select: {
+          id: true,
           variants: {
             include: {
               orderItems: {
@@ -207,9 +212,24 @@ const getProducts = async () => {
     where: {
       status: { not: "archived" }
     },
-    include: {
-      variants: true,
-      images: { take: 1 }
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      status: true,
+      categoryId: true,
+      createdAt: true,
+      updatedAt: true,
+      images: { take: 1, select: { url: true } },
+      variants: {
+        select: {
+          id: true,
+          sku: true,
+          name: true,
+          price: true,
+          stock: true
+        }
+      }
     },
     orderBy: {
       createdAt: "desc"

@@ -183,8 +183,8 @@ export const createProduct = async (req, res, next) => {
       slug,
       description,
       status: "active",
-      videoUrl,
-      storyHtml,
+      // videoUrl,
+      // storyHtml,
       categoryId: category.id,
       ...(imageUrl && {
         images: {
@@ -202,8 +202,8 @@ export const createProduct = async (req, res, next) => {
       product = await prisma.product.create({
         data: {
           ...baseData,
-          isBestseller: !!isBestseller,
-          isPopular: !!isPopular
+          // isBestseller: !!isBestseller,
+          // isPopular: !!isPopular
         }
       })
     } catch (err) {
@@ -298,7 +298,7 @@ export const getProducts = async (req, res) => {
             take: 1,
             select: { url: true }
           },
-          isBestseller: true,
+          // isBestseller: true,
 
           variants: {
             select: {
@@ -334,7 +334,7 @@ export const getProducts = async (req, res) => {
           ? Number(p.variants[0].price)
           : 0,
         stock: p.variants.reduce((acc, v) => acc + (v.stock || 0), 0),
-        isBestseller: p.isBestseller,
+        isBestseller: false, // p.isBestseller,
 
         variantId: p.variants.length > 0
           ? p.variants[0].id
@@ -567,10 +567,10 @@ export const updateProduct = async (req, res, next) => {
     const updateData = {
       name,
       description,
-      isBestseller: !!isBestseller,
-      isPopular: !!isPopular,
-      videoUrl,
-      storyHtml,
+      // isBestseller: !!isBestseller,
+      // isPopular: !!isPopular,
+      // videoUrl,
+      // storyHtml,
       ...(categoryId && { categoryId })
     }
 
