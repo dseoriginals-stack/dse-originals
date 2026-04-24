@@ -121,11 +121,28 @@ export default function ProductClient() {
     }, 600)
   }
 
-  const handleShare = () => {
+  const handleShare = async () => {
     if (typeof window === "undefined") return
     const url = window.location.href
-    navigator.clipboard.writeText(url)
-    toast.success("Link copied to clipboard!")
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: product?.name || "DSE Originals",
+          text: product?.description || "Check out this product from DSE Originals!",
+          url: url,
+        })
+      } catch (err) {
+        // User cancelled or error
+        if ((err as Error).name !== 'AbortError') {
+          navigator.clipboard.writeText(url)
+          toast.success("Link copied to clipboard!")
+        }
+      }
+    } else {
+      navigator.clipboard.writeText(url)
+      toast.success("Link copied to clipboard!")
+    }
   }
 
   const handleFBShare = () => {
