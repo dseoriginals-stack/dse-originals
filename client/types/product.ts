@@ -36,6 +36,7 @@ export type ProductCardType = {
   image: string | null
   variantId: string
   stock: number
+  category?: string
   isBestseller?: boolean
   isPopular?: boolean
   description?: string

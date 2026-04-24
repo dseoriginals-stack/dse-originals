@@ -22,7 +22,7 @@ export default function ProductCard({
   const router = useRouter()
   const { addToCart } = useCart()
   const { toggleWishlist, isInWishlist } = useWishlist()
-  
+
   const isWishlisted = isInWishlist(product.id)
   const [loading, setLoading] = useState(false)
   const [added, setAdded] = useState(false)
@@ -102,20 +102,19 @@ export default function ProductCard({
             e.stopPropagation()
             toggleWishlist(product.id)
           }}
-          className={`absolute top-4 right-4 z-10 rounded-full p-2 backdrop-blur-md transition-all duration-300 shadow-md border group/heart ${
-            isWishlisted 
-            ? 'bg-[var(--brand-primary)] border-transparent text-white' 
-            : 'bg-white/60 border-[var(--border-light)] text-[var(--brand-primary)] hover:bg-[var(--brand-accent)] hover:text-white'
-          }`}
+          className={`absolute top-4 right-4 z-10 rounded-full p-2 backdrop-blur-md transition-all duration-300 shadow-md border group/heart ${isWishlisted
+              ? 'bg-[var(--brand-primary)] border-transparent text-white'
+              : 'bg-white/60 border-[var(--border-light)] text-[var(--brand-primary)] hover:bg-[var(--brand-accent)] hover:text-white'
+            }`}
         >
           <motion.div
             whileTap={{ scale: 1.5 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
           >
-            <Heart 
-              size={16} 
+            <Heart
+              size={16}
               fill={isWishlisted ? "currentColor" : "none"}
-              className={`${isWishlisted ? 'animate-heart-beat' : 'group-hover/heart:scale-110'} transition-all`} 
+              className={`${isWishlisted ? 'animate-heart-beat' : 'group-hover/heart:scale-110'} transition-all`}
             />
           </motion.div>
         </button>
@@ -180,20 +179,20 @@ export default function ProductCard({
                     .sort((a, b) => {
                       const sizeOrder = ["XS", "S", "M", "L", "XL", "2XL", "3XL"]
                       const volOrder = ["55ml", "30ml"]
-                      
+
                       const getVal = (v: any) => v.attributes?.find((at: any) => at.name.toLowerCase() === "size" || at.name.toLowerCase() === "volume")?.value || v.attributes?.[0]?.value || ""
                       const valA = getVal(a)
                       const valB = getVal(b)
-                      
+
                       if (sizeOrder.includes(valA) && sizeOrder.includes(valB)) return sizeOrder.indexOf(valA) - sizeOrder.indexOf(valB)
                       if (volOrder.includes(valA) && volOrder.includes(valB)) return volOrder.indexOf(valA) - volOrder.indexOf(valB)
                       return 0
                     })
                     .map((v) => {
-                      const size = v.attributes?.find(a => a.name.toLowerCase() === "size" || a.name.toLowerCase() === "volume")?.value || 
-                                   v.attributes?.[0]?.value || ""
+                      const size = v.attributes?.find(a => a.name.toLowerCase() === "size" || a.name.toLowerCase() === "volume")?.value ||
+                        v.attributes?.[0]?.value || ""
                       if (!size) return null
-                      
+
                       const isActive = activeVariant?.id === v.id
                       return (
                         <button
@@ -203,11 +202,10 @@ export default function ProductCard({
                             e.stopPropagation()
                             setActiveVariant(v)
                           }}
-                          className={`text-[8px] font-black px-1.5 py-0.5 rounded-md border transition-all ${
-                            isActive 
-                            ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white shadow-sm' 
-                            : 'bg-white/50 border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)]'
-                          }`}
+                          className={`text-[8px] font-black px-1.5 py-0.5 rounded-md border transition-all ${isActive
+                              ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white shadow-sm'
+                              : 'bg-white/50 border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)]'
+                            }`}
                         >
                           {size}
                         </button>

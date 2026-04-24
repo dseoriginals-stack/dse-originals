@@ -43,6 +43,7 @@ export function transformProductToCard(
     isBestseller: !!p.isBestseller,
     isPopular: !!p.isPopular,
     description: product.description,
+    category: product.category,
     variants
   }
 }
