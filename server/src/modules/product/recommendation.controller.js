@@ -183,7 +183,7 @@ export const getPersonalizedRecommendations = async (req, res, next) => {
       LIMIT 3
     `
 
-    const categoryIds = Array.isArray(favoriteCategories) ? favoriteCategories.map((c: any) => c.categoryId) : []
+    const categoryIds = Array.isArray(favoriteCategories) ? favoriteCategories.map((c) => c.categoryId) : []
 
     // 2. Fetch products from these categories that the user hasn't bought yet
     const recommendations = await prisma.product.findMany({

@@ -103,8 +103,8 @@ export default function ProductCard({
             toggleWishlist(product.id)
           }}
           className={`absolute top-4 right-4 z-10 rounded-full p-2 backdrop-blur-md transition-all duration-300 shadow-md border group/heart ${isWishlisted
-              ? 'bg-[var(--brand-primary)] border-transparent text-white'
-              : 'bg-white/60 border-[var(--border-light)] text-[var(--brand-primary)] hover:bg-[var(--brand-accent)] hover:text-white'
+            ? 'bg-[var(--brand-primary)] border-transparent text-white'
+            : 'bg-white/60 border-[var(--border-light)] text-[var(--brand-primary)] hover:bg-[var(--brand-accent)] hover:text-white'
             }`}
         >
           <motion.div
@@ -203,8 +203,8 @@ export default function ProductCard({
                             setActiveVariant(v)
                           }}
                           className={`text-[8px] font-black px-1.5 py-0.5 rounded-md border transition-all ${isActive
-                              ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white shadow-sm'
-                              : 'bg-white/50 border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)]'
+                            ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white shadow-sm'
+                            : 'bg-white/50 border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)]'
                             }`}
                         >
                           {size}
