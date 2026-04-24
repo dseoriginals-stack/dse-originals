@@ -10,7 +10,9 @@ import { WishlistProvider } from "@/context/WishlistContext"
 import Footer from "@/components/Footer"
 import FloatingChat from "@/components/FloatingChat"
 import RecentPurchasePopup from "@/components/RecentPurchasePopup"
+import ReferralTracker from "@/components/ReferralTracker"
 import { usePathname } from "next/navigation"
+import { Suspense } from "react"
 
 export default function RootClientLayout({
   children,
@@ -29,6 +31,10 @@ export default function RootClientLayout({
           <div className="fixed inset-0 -z-10">
             <AnimatedBackground />
           </div>
+
+          <Suspense fallback={null}>
+            <ReferralTracker />
+          </Suspense>
 
           <div className="flex flex-col min-h-screen">
             <Header />

@@ -4,6 +4,9 @@ import { Strategy as FacebookStrategy } from "passport-facebook"
 
 import prisma from "./prisma.js"
 import logger from "./logger.js"
+import { customAlphabet } from "nanoid"
+
+const nanoid = customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 8)
 
 /* =============================
    GOOGLE STRATEGY
@@ -44,7 +47,8 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
                 provider: "google",
                 emailVerified: true,
                 role: "customer",
-                luckyPoints: 0
+                luckyPoints: 0,
+                referralCode: `DSE-${nanoid()}`
               }
             })
             logger.info(`Auto-created user from Google: ${email}`)

@@ -61,6 +61,14 @@ export const handleXenditWebhook = async (req, res) => {
         await createOrderEvent(orderId, "paid", "Payment confirmed")
       })
 
+      // Handle referral rewards
+      try {
+        const { rewardReferral } = await import("../modules/referral/referral.service.js")
+        await rewardReferral(orderId)
+      } catch (refErr) {
+        logger.error("Referral Reward Error:", refErr)
+      }
+
       logger.info("Order PAID", { orderId })
       try {
         await sendOrderPaidEmail(order.user?.email || order.guestEmail, order)

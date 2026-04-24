@@ -55,6 +55,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const data = await api.get<{ user: User }>("/auth/me")
       setUser(data.user)
+
+      // ✅ LINK REFERRAL IF EXISTS
+      if (data.user) {
+        const storedCode = localStorage.getItem("dse_referral_code")
+        if (storedCode) {
+          try {
+            await api.post("/user/me/link-referral", { code: storedCode })
+            localStorage.removeItem("dse_referral_code")
+            toast.success("Referral linked! Enjoy your rewards after your first purchase.")
+          } catch (err) {
+            // Silently fail if already linked or invalid
+            localStorage.removeItem("dse_referral_code")
+          }
+        }
+      }
     } catch {
       setUser(null)
     } finally {

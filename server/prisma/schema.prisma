@@ -25,6 +25,8 @@ model User {
   lifetimePoints Int         @default(0)
   tier           LoyaltyTier @default(Faith)
   emailVerified  Boolean     @default(true)
+  referralCode   String?     @unique
+  referredById   String?
   createdAt      DateTime    @default(now())
 
   // shopId String?
@@ -46,8 +48,29 @@ model User {
   addresses     Address[]
   donations     Donation[]
 
+  // ✅ REFERRALS
+  referrals     Referral[] @relation("Referrer")
+  referredBy    Referral[] @relation("Referee")
+
   @@index([email])
+  @@index([referralCode])
   // @@index([shopId])
+}
+
+model Referral {
+  id          String   @id @default(uuid())
+  referrerId  String
+  refereeId   String   @unique
+  status      String   @default("pending") // pending, rewarded
+  rewardType  String?  // points
+  rewardValue Int?     // 50
+  createdAt   DateTime @default(now())
+
+  referrer    User     @relation("Referrer", fields: [referrerId], references: [id])
+  referee     User     @relation("Referee", fields: [refereeId], references: [id])
+
+  @@index([referrerId])
+  @@index([refereeId])
 }
 
 model EmailVerificationToken {

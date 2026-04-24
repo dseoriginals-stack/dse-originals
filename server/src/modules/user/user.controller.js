@@ -162,3 +162,25 @@ export const deleteAddress = async (req, res, next) => {
     next(err)
   }
 }
+
+export const linkReferral = async (req, res, next) => {
+  try {
+    const { code } = req.body
+    if (!code) return res.status(400).json({ message: "Code required" })
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id }
+    })
+
+    if (user.referredById) {
+      return res.status(400).json({ message: "Referral already linked" })
+    }
+
+    const { processReferralSignup } = await import("../referral/referral.service.js")
+    await processReferralSignup(req.user.id, code)
+
+    res.json({ success: true })
+  } catch (err) {
+    next(err)
+  }
+}

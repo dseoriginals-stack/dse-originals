@@ -8,7 +8,8 @@ import {
   getAddresses,
   createAddress,
   updateAddress,
-  deleteAddress
+  deleteAddress,
+  linkReferral
 } from "./user.controller.js"
 
 const router = express.Router()
@@ -18,6 +19,7 @@ router.use(authenticate)
 /* PROFILE */
 router.get("/me", getMe)
 router.patch("/me", updateProfile)
+router.post("/me/link-referral", linkReferral)
 
 /* ORDERS */
 router.get("/me/orders", getMyOrders)

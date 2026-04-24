@@ -232,6 +232,10 @@ function AccountContent() {
                   <ProfileStat label="Loyalty Tier" value={userTier} icon={<Heart size={20} />} color={userTier === "Love" ? "bg-rose-50 text-rose-500" : userTier === "Hope" ? "bg-amber-50 text-amber-500" : "bg-blue-50 text-blue-500"} />
                 </div>
 
+                </div>
+
+                </div>
+
                 {/* LOYALTY PROGRESSION CARD */}
                 <div className="bg-[var(--bg-surface)] rounded-3xl md:rounded-[2.5rem] border border-[var(--border-light)] p-6 md:p-8 relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-8 md:p-12 opacity-[0.03] scale-[2] md:scale-[3] pointer-events-none">
@@ -275,6 +279,52 @@ function AccountContent() {
                       <p className="text-[10px] italic font-bold text-gray-400 text-center">
                         {userTier === "Faith" ? "500 points to unlock Hope" : userTier === "Hope" ? "1,000 points to unlock Love" : "You have reached the highest tier of love."}
                       </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* REFERRAL PROGRAM CARD */}
+                <div className="bg-gradient-to-br from-indigo-50 to-white rounded-3xl md:rounded-[2.5rem] border border-indigo-100 p-6 md:p-8 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-8 md:p-12 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                    <TrendingUp size={64} className="text-indigo-500" />
+                  </div>
+                  <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+                    <div className="flex-1 text-center md:text-left">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500 text-white rounded-lg text-[9px] font-black uppercase tracking-[0.2em] mb-4">
+                        <Plus size={12} /> Earn 50 Lucky Points
+                      </div>
+                      <h3 className="text-xl md:text-2xl font-[1000] text-[var(--text-heading)] tracking-tighter mb-2">Refer a friend, get rewarded.</h3>
+                      <p className="text-[var(--text-muted)] text-sm font-bold leading-relaxed max-w-sm">
+                        Share your unique referral code. When your friend makes their first purchase, you both get <span className="text-indigo-600">50 Lucky Points</span>.
+                      </p>
+                    </div>
+                    <div className="w-full md:w-auto bg-white p-6 rounded-[2rem] border border-indigo-100 shadow-xl shadow-indigo-500/5 space-y-4 min-w-[280px]">
+                      <div className="space-y-1 text-center">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Your Referral Code</p>
+                        <p className="text-2xl font-[1000] text-indigo-600 tracking-tighter font-mono">{user.referralCode || 'DSE-XXXXXX'}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}?ref=${user.referralCode}`)
+                            toast.success("Referral link copied!")
+                          }}
+                          className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
+                        >
+                          Copy Link
+                        </button>
+                        <button 
+                          onClick={() => {
+                            const text = `Check out DSEoriginals for premium faith-inspired apparel! Use my code: ${user.referralCode}`
+                            const url = `${window.location.origin}?ref=${user.referralCode}`
+                            window.open(`https://wa.me/?text=${encodeURIComponent(text + " " + url)}`)
+                          }}
+                          className="p-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl transition-all active:scale-95"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-11.7 8.38 8.38 0 0 1 3.8.9L22 2l-2 5.1z"></path></svg>
+                        </button>
+                      </div>
+                      <p className="text-[8px] text-center text-gray-400 font-bold uppercase tracking-tighter">No limits on referrals • Points never expire</p>
                     </div>
                   </div>
                 </div>
