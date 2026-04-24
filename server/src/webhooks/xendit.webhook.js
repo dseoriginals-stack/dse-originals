@@ -61,6 +61,18 @@ export const handleXenditWebhook = async (req, res) => {
         await createOrderEvent(orderId, "paid", "Payment confirmed")
       })
 
+      // Notify Admins in Real-Time
+      try {
+        const { notifyAdmins } = await import("../config/socket.js")
+        notifyAdmins("order:new", { 
+          id: orderId, 
+          amount: order.totalAmount,
+          customer: order.user?.name || order.guestName || "Guest"
+        })
+      } catch (socErr) {
+        logger.error("Socket Notification Error:", socErr)
+      }
+
       // Handle referral rewards
       try {
         const { rewardReferral } = await import("../modules/referral/referral.service.js")

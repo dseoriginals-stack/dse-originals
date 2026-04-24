@@ -9,6 +9,7 @@ import { useAuth } from "@/context/AuthContext"
 import { useEffect, useState } from "react"
 import NotificationPanel from "@/components/admin/NotificationPanel"
 import AdminSearch from "@/components/admin/AdminSearch"
+import RealTimeAdmin from "@/components/admin/RealTimeAdmin"
 
 const nav = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -59,6 +60,7 @@ export default function AdminLayout({
 
   return (
     <div className="flex min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-sans selection:bg-[var(--brand-accent)] selection:text-white relative">
+      <RealTimeAdmin />
 
       {/* MOBILE OVERLAY */}
       {sidebarOpen && (

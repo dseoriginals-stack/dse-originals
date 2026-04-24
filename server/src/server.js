@@ -9,6 +9,9 @@ import { fileURLToPath } from "url"
 
 // Environment loading via dotenv/config on line 1
 
+import { createServer } from "http"
+import { initSocket } from "./config/socket.js"
+
 import logger from "./config/logger.js"
 import passport from "./config/passport.js"
 import errorHandler from "./middleware/error.middleware.js"
@@ -146,8 +149,12 @@ app.use(errorHandler)
 // START SERVER
 // =========================
 const PORT = process.env.PORT || 10000
+const httpServer = createServer(app)
 
-app.listen(PORT, () => {
+// Initialize Socket.io
+initSocket(httpServer)
+
+httpServer.listen(PORT, () => {
   console.log(`🔥 SERVER RUNNING ON PORT ${PORT}`)
   console.log(`🌍 ENV: ${process.env.NODE_ENV || "development"}`)
 })
