@@ -60,6 +60,7 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
        fetchRelated()
        return
     }
+    async function fetchData() {
       try {
         // ✅ CORRECT ENDPOINT
         const res = await api.get<ProductFull>(`/products/slug/${slug}`)
