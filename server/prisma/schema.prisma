@@ -25,8 +25,8 @@ model User {
   lifetimePoints Int         @default(0)
   tier           LoyaltyTier @default(Faith)
   emailVerified  Boolean     @default(true)
-  referralCode   String?     @unique
-  referredById   String?
+  // referralCode   String?     @unique
+  // referredById   String?
   createdAt      DateTime    @default(now())
 
   // shopId String?
@@ -49,14 +49,15 @@ model User {
   donations     Donation[]
 
   // ✅ REFERRALS
-  referrals     Referral[] @relation("Referrer")
-  referredBy    Referral[] @relation("Referee")
+  // referrals     Referral[] @relation("Referrer")
+  // referredBy    Referral[] @relation("Referee")
 
   @@index([email])
-  @@index([referralCode])
+  // @@index([referralCode])
   // @@index([shopId])
 }
 
+/*
 model Referral {
   id          String   @id @default(uuid())
   referrerId  String
@@ -72,6 +73,7 @@ model Referral {
   @@index([referrerId])
   @@index([refereeId])
 }
+*/
 
 model EmailVerificationToken {
   id        String   @id @default(uuid())
