@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { api } from "@/lib/api"
-import ProductCard from "./ProductCard"
+import ProductCard from "../ProductCard"
 import { Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
 

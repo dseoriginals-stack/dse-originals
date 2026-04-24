@@ -18,7 +18,6 @@ import ReviewForm from "@/components/ReviewForm"
 import CinematicLookbook from "@/components/product/CinematicLookbook"
 
 import { getImageUrl } from "@/lib/image"
-import { useCurrency } from "@/context/CurrencyContext"
 import { Check } from "lucide-react"
 
 export default function ProductClient() {
@@ -27,7 +26,6 @@ export default function ProductClient() {
   const router = useRouter()
 
   const { addToCart } = useCart()
-  const { formatPrice } = useCurrency()
 
   const [product, setProduct] = useState<ProductFull | null>(null)
   const [related, setRelated] = useState<ProductFull[]>([])
@@ -215,7 +213,7 @@ export default function ProductClient() {
           </div>
 
           <div className="text-2xl md:text-3xl font-black text-[var(--brand-primary)]">
-            {formatPrice(price)}
+            ₱{Number(price).toLocaleString()}
           </div>
 
           <p className="text-[var(--text-muted)] text-sm md:text-base leading-relaxed font-medium">{product.description || "Premium product meticulously crafted for a refined and luxurious experience."}</p>

@@ -47,7 +47,9 @@ const updateProductSchema = z.object({
   variants: z.string().optional(),
 
   isBestseller: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional(),
-  isPopular: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional()
+  isPopular: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional(),
+  videoUrl: z.string().url().optional().or(z.literal('')),
+  storyHtml: z.string().optional()
 })
 
 /* ================================
@@ -181,6 +183,8 @@ export const createProduct = async (req, res, next) => {
       slug,
       description,
       status: "active",
+      videoUrl,
+      storyHtml,
       categoryId: category.id,
       ...(imageUrl && {
         images: {
@@ -565,6 +569,8 @@ export const updateProduct = async (req, res, next) => {
       description,
       isBestseller: !!isBestseller,
       isPopular: !!isPopular,
+      videoUrl,
+      storyHtml,
       ...(categoryId && { categoryId })
     }
 

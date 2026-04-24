@@ -11,7 +11,6 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { getImageUrl } from "@/lib/image"
 import { getCloudinaryBlurUrl } from "@/lib/imageUtils"
-import { useCurrency } from "@/context/CurrencyContext"
 
 export default function ProductCard({
   product,
@@ -23,7 +22,6 @@ export default function ProductCard({
   const router = useRouter()
   const { addToCart } = useCart()
   const { toggleWishlist, isInWishlist } = useWishlist()
-  const { formatPrice } = useCurrency()
   
   const isWishlisted = isInWishlist(product.id)
   const [loading, setLoading] = useState(false)
@@ -198,7 +196,7 @@ export default function ProductCard({
             <div className="flex items-end justify-between">
               <div className="flex flex-col">
                 <span className="text-base md:text-lg font-bold text-[var(--text-heading)]">
-                  {currentPrice > 0 ? formatPrice(currentPrice) : "Price on Request"}
+                  {currentPrice > 0 ? `₱${currentPrice.toLocaleString()}` : "Price on Request"}
                 </span>
                 {(activeVariant?.stock || product.stock) > 0 ? (
                   <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest mt-1">In Stock</span>
