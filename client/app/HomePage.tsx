@@ -429,10 +429,10 @@ export default function HomePage({ initialProducts }: Props) {
         </section>
 
         {/* PERSONALIZED RECOMMENDATIONS */}
-        <RecommendationStrip 
-          type="personalized" 
-          title="Recommended For You" 
-          subtitle="Based on your taste" 
+        <RecommendationStrip
+          type="personalized"
+          title="Recommended For You"
+          subtitle="Based on your taste"
         />
 
         {/* MISSION CARDS SECTION (RESTORED WITH NEW DESIGN) */}

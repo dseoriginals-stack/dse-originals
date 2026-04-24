@@ -123,7 +123,18 @@ const getOrders = async () => {
   return prisma.order.findMany({
     include: {
       items: true,
-      user: true
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          address: true,
+          phone: true,
+          luckyPoints: true,
+          tier: true
+        }
+      }
     },
     orderBy: {
       createdAt: "desc"
@@ -208,6 +219,17 @@ const getProducts = async () => {
 
 const getUsers = async () => {
   return prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      address: true,
+      phone: true,
+      luckyPoints: true,
+      tier: true,
+      createdAt: true
+    },
     orderBy: {
       createdAt: "desc"
     }
@@ -217,7 +239,12 @@ const getUsers = async () => {
 const updateUserRole = async (id, role) => {
   return prisma.user.update({
     where: { id },
-    data: { role }
+    data: { role },
+    select: {
+      id: true,
+      name: true,
+      role: true
+    }
   })
 }
 
