@@ -165,6 +165,7 @@ export const deleteAddress = async (req, res, next) => {
 
 export const linkReferral = async (req, res, next) => {
   try {
+    /* (STUBBED DUE TO DB SYNC ISSUE)
     const { code } = req.body
     if (!code) return res.status(400).json({ message: "Code required" })
 
@@ -178,9 +179,10 @@ export const linkReferral = async (req, res, next) => {
 
     const { processReferralSignup } = await import("../referral/referral.service.js")
     await processReferralSignup(req.user.id, code)
+    */
 
-    res.json({ success: true })
+    res.json({ success: true, message: "Referral system temporarily disabled" })
   } catch (err) {
     next(err)
   }
-}
+}
