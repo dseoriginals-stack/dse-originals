@@ -10,6 +10,9 @@ import toast from "react-hot-toast"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
+import useSWR, { mutate } from "swr"
+import { fetcher } from "@/lib/fetcher"
+import { getCloudinaryBlurUrl } from "@/lib/imageUtils"
 
 import { useAuth } from "@/context/AuthContext"
 
@@ -46,8 +49,6 @@ export default function StoriesPage() {
 function StoriesContent() {
   const { user } = useAuth()
 
-  const [stories, setStories] = useState<Story[]>([])
-  const [loading, setLoading] = useState(true)
   const [selectedStory, setSelectedStory] = useState<Story | null>(null)
   const [openSubmit, setOpenSubmit] = useState(false)
   const [likedStories, setLikedStories] = useState<string[]>([])
@@ -56,8 +57,15 @@ function StoriesContent() {
   const searchParams = useSearchParams()
   const storyId = searchParams.get("id")
 
+  // SWR for data fetching
+  const { data: storiesData, error, isLoading: loading } = useSWR<Story[]>('/stories', fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000, // 1 minute
+  })
+
+  const stories = storiesData || []
+
   useEffect(() => {
-    fetchStories()
     const savedLikes = localStorage.getItem("liked_stories")
     if (savedLikes) setLikedStories(JSON.parse(savedLikes))
   }, [])
@@ -80,25 +88,17 @@ function StoriesContent() {
     router.push("/stories", { scroll: false })
   }
 
-  const fetchStories = async () => {
-    try {
-      const data = await api.get<any>(`/stories?t=${Date.now()}`)
-      setStories(data || [])
-    } catch (err) {
-      console.error("Failed to fetch stories")
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleLike = async (id: string) => {
     if (likedStories.includes(id)) return
 
     try {
       const res = await api.post<{ likes: number }>(`/stories/${id}/like`)
-      setStories(prev => prev.map(s =>
+      
+      // Update local SWR cache immediately
+      mutate('/stories', stories.map(s => 
         s.id === id ? { ...s, likes: res.likes } : s
-      ))
+      ), false)
+
       if (selectedStory?.id === id) {
         setSelectedStory(prev => prev ? { ...prev, likes: res.likes } : null)
       }
@@ -221,13 +221,14 @@ function StoriesContent() {
                 </div>
               )}
 
-              {/* IMAGE */}
               {story.image && (
                 <div className="w-full aspect-square relative overflow-hidden bg-[var(--bg-surface)] border-b border-[var(--border-light)]">
                   <Image
                     src={story.image}
                     alt={story.title}
                     fill
+                    placeholder="blur"
+                    blurDataURL={getCloudinaryBlurUrl(story.image)}
                     sizes="(max-width: 768px) 85vw, 33vw"
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                   />
@@ -305,6 +306,8 @@ function StoriesContent() {
                     src={selectedStory.image} 
                     alt={selectedStory.title}
                     fill 
+                    placeholder="blur"
+                    blurDataURL={getCloudinaryBlurUrl(selectedStory.image)}
                     className="object-cover" 
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />

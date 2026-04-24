@@ -273,7 +273,7 @@ model Order {
 
   @@index([userId])
   @@index([status])
-  // @@index([shopId])
+  @@index([paymentId])
   @@index([approvedById])
   @@index([shippedById])
   @@index([deliveredById])
@@ -394,6 +394,10 @@ model Story {
   likes      Int         @default(0)
 
   user User? @relation(fields: [userId], references: [id])
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId])
 }
 
 //////////////////////////////////////////////////////
@@ -477,6 +481,9 @@ model Review {
   product Product @relation(fields: [productId], references: [id])
 
   @@unique([userId, productId])
+  @@index([productId])
+  @@index([userId])
+
 }
 
 //////////////////////////////////////////////////////
@@ -494,6 +501,7 @@ model Wishlist {
   product Product @relation(fields: [productId], references: [id])
 
   @@unique([userId, productId])
+  @@index([userId])
 }
 
 model CartRecovery {

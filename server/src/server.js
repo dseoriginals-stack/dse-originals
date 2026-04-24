@@ -4,6 +4,7 @@ import cors from "cors"
 import helmet from "helmet"
 import cookieParser from "cookie-parser"
 import path from "path"
+import compression from "compression"
 import { fileURLToPath } from "url"
 
 // Environment loading via dotenv/config on line 1
@@ -32,6 +33,7 @@ import { handleXenditWebhook } from "./webhooks/xendit.webhook.js"
 
 const app = express()
 app.set("trust proxy", 1)
+app.use(compression())
 
 // =========================
 // __dirname FIX

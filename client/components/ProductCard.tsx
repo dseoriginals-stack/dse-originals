@@ -10,6 +10,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { getImageUrl } from "@/lib/image"
+import { getCloudinaryBlurUrl } from "@/lib/imageUtils"
 
 export default function ProductCard({
   product,
@@ -124,6 +125,8 @@ export default function ProductCard({
             alt={product.name}
             fill
             priority={priority}
+            placeholder="blur"
+            blurDataURL={getCloudinaryBlurUrl(imageUrl)}
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
           />
