@@ -15,6 +15,7 @@ import { transformProductToCard } from "@/lib/transformProduct"
 
 import Reviews from "@/components/Reviews"
 import ReviewForm from "@/components/ReviewForm"
+import CinematicLookbook from "@/components/product/CinematicLookbook"
 
 import { getImageUrl } from "@/lib/image"
 import { Check } from "lucide-react"
@@ -216,6 +217,13 @@ export default function ProductClient() {
           </div>
 
           <p className="text-[var(--text-muted)] text-sm md:text-base leading-relaxed font-medium">{product.description || "Premium product meticulously crafted for a refined and luxurious experience."}</p>
+
+          {/* CINEMATIC LOOKBOOK TRIGGER */}
+          {(product.videoUrl || product.storyHtml) && (
+            <div className="pt-2">
+              <CinematicLookbook product={product as any} />
+            </div>
+          )}
 
           <div className="h-px w-full bg-[var(--border-light)]"></div>
 

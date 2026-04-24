@@ -157,6 +157,8 @@ model Product {
 
   status ProductStatus @default(active)
 
+  videoUrl     String?
+  storyHtml    String?
   isBestseller Boolean @default(false)
   isPopular    Boolean @default(false)
 
