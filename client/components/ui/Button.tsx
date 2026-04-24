@@ -1,7 +1,7 @@
-import { ReactNode, ButtonHTMLAttributes } from "react"
-import { motion } from "framer-motion"
+import { ReactNode } from "react"
+import { motion, HTMLMotionProps } from "framer-motion"
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends HTMLMotionProps<"button"> {
   children: ReactNode
   variant?: "primary" | "secondary" | "outline" | "ghost" | "rose" | "emerald"
   size?: "sm" | "md" | "lg"
