@@ -376,21 +376,7 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
             </button>
           </div>
 
-          {/* SOCIAL SHARE */}
-          <div className="flex gap-3 pt-1">
-            <button 
-              onClick={handleShare}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-[var(--border-light)] text-[var(--text-muted)] hover:bg-[var(--bg-surface)] hover:text-[var(--brand-primary)] transition-all text-[10px] font-black uppercase tracking-widest"
-            >
-              <Share2 size={14} /> Share Link
-            </button>
-            <button 
-              onClick={handleFBShare}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#1877F2] text-white hover:brightness-110 transition-all text-[10px] font-black uppercase tracking-widest shadow-md"
-            >
-              <Facebook size={14} /> Facebook
-            </button>
-          </div>
+          {/* SOCIAL SHARE REMOVED */}
         </div>
       </div>
 
