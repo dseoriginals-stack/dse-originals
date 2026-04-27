@@ -203,16 +203,18 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
 
         {/* IMAGE */}
         <div>
-          <div className="relative bg-[var(--bg-surface)] rounded-2xl md:rounded-3xl border border-[var(--border-light)] shadow-xl w-full aspect-square md:aspect-[4/5] max-h-[350px] md:max-h-[600px] overflow-hidden flex items-center justify-center group">
+          <div className="relative bg-[var(--bg-surface)] rounded-2xl md:rounded-3xl border border-[var(--border-light)] shadow-xl w-full aspect-square md:aspect-[4/5] max-h-[400px] md:max-h-[650px] overflow-hidden group">
             <Image
               id="product-main-image"
               src={getImageUrl(activeImage || "/placeholder.png")}
               alt={product.name}
               fill
               sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-contain transition-transform duration-700 ease-out md:group-hover:scale-105 p-4"
+              className="object-cover transition-transform duration-700 ease-out md:group-hover:scale-105"
               priority
             />
+            {/* Optional subtle gradient overlay for premium feel */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent pointer-events-none"></div>
           </div>
 
           <div className="flex gap-3 mt-4 overflow-x-auto px-1 py-2 custom-scrollbar">
