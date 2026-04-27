@@ -112,6 +112,17 @@ const deleteReview = async (req, res, next) => {
   }
 }
 
+const deleteOrder = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    await adminService.deleteOrder(id)
+    res.json({ success: true, message: "Order deleted permanently" })
+  } catch (err) {
+    logger.error("Admin order delete failed", { error: err })
+    next(err)
+  }
+}
+
 export default {
   getAdminStats,
   getOrders,
@@ -122,5 +133,6 @@ export default {
   updateUserRole,
   getStories,
   getReviews,
-  deleteReview
+  deleteReview,
+  deleteOrder
 }

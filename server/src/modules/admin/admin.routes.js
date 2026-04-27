@@ -24,5 +24,6 @@ router.patch("/users/:id/role", authorize("admin"), adminController.updateUserRo
 router.get("/stories", authorize("admin"), adminController.getStories)
 router.get("/reviews", authorize("admin"), adminController.getReviews)
 router.delete("/reviews/:id", authorize("admin"), adminController.deleteReview)
+router.delete("/orders/:id", authorize("admin"), adminController.deleteOrder)
 
 export default router

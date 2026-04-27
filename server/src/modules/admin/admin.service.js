@@ -294,6 +294,25 @@ const deleteReview = async (id) => {
   })
 }
 
+const deleteOrder = async (id) => {
+  return prisma.$transaction(async (tx) => {
+    // 1. Delete associated inventory reservations (they don't cascade)
+    await tx.inventoryReservation.deleteMany({
+      where: { orderId: id }
+    })
+
+    // 2. Delete associated inventory movements (they don't cascade)
+    await tx.inventoryMovement.deleteMany({
+      where: { orderId: id }
+    })
+
+    // 3. Delete the order (items, events, and address will cascade)
+    await tx.order.delete({
+      where: { id }
+    })
+  })
+}
+
 export default {
   getAdminStats,
   getOrders,
@@ -304,5 +323,6 @@ export default {
   updateUserRole,
   getStories,
   getReviews,
-  deleteReview
+  deleteReview,
+  deleteOrder
 }
