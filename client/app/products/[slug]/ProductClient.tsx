@@ -18,7 +18,8 @@ import ReviewForm from "@/components/ReviewForm"
 import CinematicLookbook from "@/components/product/CinematicLookbook"
 
 import { getImageUrl } from "@/lib/image"
-import { Check, Share2, Facebook } from "lucide-react"
+import { Check, Share2, Facebook, ArrowLeft } from "lucide-react"
+import Link from "next/link"
 import toast from "react-hot-toast"
 
 export default function ProductClient({ initialProduct }: { initialProduct: ProductFull | null }) {
@@ -198,6 +199,18 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
 
   return (
     <div className="max-w-[1300px] mx-auto py-6 md:py-10 px-4 md:px-8 pb-28">
+      {/* BACK BUTTON */}
+      <div className="mb-6">
+        <Link 
+          href="/products"
+          className="group flex items-center gap-2 text-xs font-black text-[var(--text-muted)] hover:text-[var(--brand-primary)] transition-all uppercase tracking-[0.2em]"
+        >
+          <div className="w-8 h-8 rounded-full bg-white border border-[var(--border-light)] flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:-translate-x-1 transition-all">
+            <ArrowLeft size={16} />
+          </div>
+          Back to Products
+        </Link>
+      </div>
 
       <div className="grid lg:grid-cols-2 gap-6 md:gap-10">
 
