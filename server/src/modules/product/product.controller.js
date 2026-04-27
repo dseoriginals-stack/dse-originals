@@ -334,7 +334,10 @@ export const getProducts = async (req, res) => {
           ? Number(p.variants[0].price)
           : 0,
         stock: p.variants.reduce((acc, v) => acc + (v.stock || 0), 0),
-        isBestseller: false, // p.isBestseller,
+        isBestseller: p.isBestseller,
+        isPopular: p.isPopular,
+        videoUrl: p.videoUrl,
+        storyHtml: p.storyHtml,
 
         variantId: p.variants.length > 0
           ? p.variants[0].id
@@ -573,8 +576,8 @@ export const updateProduct = async (req, res, next) => {
     const updateData = {
       name,
       description,
-      isBestseller: !!isBestseller,
-      isPopular: !!isPopular,
+      isBestseller: isBestseller === true || isBestseller === 'true',
+      isPopular: isPopular === true || isPopular === 'true',
       videoUrl,
       storyHtml,
       ...(categoryId && { categoryId })
