@@ -18,7 +18,8 @@ import {
   X,
   Layers,
   Archive,
-  QrCode
+  QrCode,
+  ArrowLeft
 } from "lucide-react"
 import toast from "react-hot-toast"
 import QRScanner from "@/components/admin/QRScanner"
