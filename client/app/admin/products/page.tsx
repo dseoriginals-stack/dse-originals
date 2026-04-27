@@ -55,8 +55,8 @@ export default function AdminProducts() {
 
   const [variantOptions, setVariantOptions] = useState<string[]>(["M"])
 
-  const [variantData, setVariantData] = useState<Record<string, { price: string; stock: string }>>({
-    M: { price: "", stock: "" },
+  const [variantData, setVariantData] = useState<Record<string, { price: string; stock: string; image?: File | null; preview?: string | null }>>({
+    M: { price: "", stock: "", image: null, preview: null },
   })
   const [form, setForm] = useState({
     name: "",
@@ -169,6 +169,13 @@ export default function AdminProducts() {
       formData.append("isPopular", String(form.isPopular))
       if (form.image) formData.append("image", form.image)
 
+      // ✅ ADD VARIANT IMAGES
+      variantOptions.forEach((opt, idx) => {
+        if (variantData[opt]?.image) {
+          formData.append(`variant_image_${idx}`, variantData[opt].image!)
+        }
+      })
+
       if (editing) {
         await api.put(`/products/${editing.id}`, formData)
         toast.success("Product updated successfully")
@@ -209,18 +216,19 @@ export default function AdminProducts() {
       const options = product.variants.map((v: any) => v.attributes?.[0]?.value).filter(Boolean)
       setVariantOptions(options)
 
-      const mapped: Record<string, { price: string; stock: string }> = {}
+      const mapped: Record<string, { price: string; stock: string; preview?: string | null }> = {}
       product.variants.forEach((v: any) => {
         const key = v.attributes?.[0]?.value
         if (key) {
           mapped[key] = {
             price: String(v.price ?? ""),
-            stock: String(v.stock ?? "")
+            stock: String(v.stock ?? ""),
+            preview: v.image || null
           }
         }
       })
 
-      setVariantData(mapped)
+      setVariantData(mapped as any)
     }
 
     setPreview(product.image || null)
@@ -423,36 +431,78 @@ export default function AdminProducts() {
                       </div>
 
                       {/* VARIANT LIST */}
-                      <div className="space-y-2">
-                        {variantOptions.map((opt) => (
-                          <div key={opt} className="grid grid-cols-3 gap-2">
-                            <div className="flex items-center text-xs font-bold px-3">
-                              {opt}
+                      <div className="space-y-3">
+                        {variantOptions.map((opt, idx) => (
+                          <div key={opt} className="bg-[var(--bg-surface)] p-4 rounded-2xl border border-[var(--border-light)] space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-black text-[var(--brand-primary)] uppercase tracking-widest">{opt} Configuration</span>
+                              <button 
+                                type="button"
+                                onClick={() => setVariantOptions(prev => prev.filter(o => o !== opt))}
+                                className="text-red-400 hover:text-red-600 transition"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-3">
+                              <input
+                                placeholder="Price (₱)"
+                                type="number"
+                                value={variantData[opt]?.price || ""}
+                                onChange={(e) =>
+                                  setVariantData((prev) => ({
+                                    ...prev,
+                                    [opt]: { ...prev[opt], price: e.target.value },
+                                  }))
+                                }
+                                className="px-4 py-3 rounded-xl border border-[var(--border-light)] text-xs font-bold focus:ring-2 focus:ring-[var(--brand-primary)] outline-none bg-white transition-all"
+                              />
+
+                              <input
+                                placeholder="Stock Units"
+                                type="number"
+                                value={variantData[opt]?.stock || ""}
+                                onChange={(e) =>
+                                  setVariantData((prev) => ({
+                                    ...prev,
+                                    [opt]: { ...prev[opt], stock: e.target.value },
+                                  }))
+                                }
+                                className="px-4 py-3 rounded-xl border border-[var(--border-light)] text-xs font-bold focus:ring-2 focus:ring-[var(--brand-primary)] outline-none bg-white transition-all"
+                              />
                             </div>
 
-                            <input
-                              placeholder="Price"
-                              value={variantData[opt]?.price || ""}
-                              onChange={(e) =>
-                                setVariantData((prev) => ({
-                                  ...prev,
-                                  [opt]: { ...prev[opt], price: e.target.value },
-                                }))
-                              }
-                              className="px-3 py-2 rounded-lg border"
-                            />
-
-                            <input
-                              placeholder="Stock"
-                              value={variantData[opt]?.stock || ""}
-                              onChange={(e) =>
-                                setVariantData((prev) => ({
-                                  ...prev,
-                                  [opt]: { ...prev[opt], stock: e.target.value },
-                                }))
-                              }
-                              className="px-3 py-2 rounded-lg border"
-                            />
+                            {/* VARIANT IMAGE UPLOAD */}
+                            <div className="relative group/vimg">
+                              <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] mb-2 block">Variant Visual (Size/Color Specific)</label>
+                              <div className="relative h-20 w-full border-2 border-dashed border-[var(--border-light)] rounded-xl flex flex-col items-center justify-center bg-white hover:bg-gray-50 transition-colors overflow-hidden">
+                                <input 
+                                  type="file"
+                                  className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                  onChange={async (e: any) => {
+                                    const f = e.target.files?.[0]; if (!f) return;
+                                    const comp = await imageCompression(f, { maxSizeMB: 0.5, maxWidthOrHeight: 800 });
+                                    setVariantData(prev => ({
+                                      ...prev,
+                                      [opt]: { 
+                                        ...prev[opt], 
+                                        image: new File([comp], f.name, { type: comp.type }),
+                                        preview: URL.createObjectURL(comp)
+                                      }
+                                    }))
+                                  }}
+                                />
+                                {variantData[opt]?.preview ? (
+                                  <img src={variantData[opt].preview!} className="absolute inset-0 w-full h-full object-cover" />
+                                ) : (
+                                  <div className="flex flex-col items-center gap-1 opacity-40">
+                                    <ImageIcon size={20} />
+                                    <span className="text-[8px] font-black uppercase tracking-widest">Attach Variant Photo</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         ))}
                       </div>

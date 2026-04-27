@@ -21,9 +21,9 @@ router.get("/slug/:slug", getProductBySlugController)
 /* =========================
    ADMIN
 ========================= */
-router.post("/", upload.single("image"), createProduct)
+router.post("/", upload.any(), createProduct)
 
-router.put("/:id", upload.single("image"), updateProduct)
+router.put("/:id", upload.any(), updateProduct)
 
 router.delete("/:id", deleteProduct)
 

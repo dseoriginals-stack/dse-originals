@@ -127,18 +127,26 @@ export const createProduct = async (req, res, next) => {
     }
 
     // ================================
-    // UPLOAD IMAGE (SAFE VERSION)
+    // UPLOAD IMAGES (SAFE VERSION)
     // ================================
     let imageUrl = null
+    const variantImages = {} // map index to url
 
-    if (req.file) {
-      try {
-        const result = await uploadFromPath(req.file.path)
-        if (result?.secure_url) {
-          imageUrl = result.secure_url
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        try {
+          const result = await uploadFromPath(file.path)
+          if (result?.secure_url) {
+            if (file.fieldname === "image") {
+              imageUrl = result.secure_url
+            } else if (file.fieldname.startsWith("variant_image_")) {
+              const index = file.fieldname.replace("variant_image_", "")
+              variantImages[index] = result.secure_url
+            }
+          }
+        } catch (err) {
+          console.error("⚠️ CLOUDINARY FAILED for file:", file.fieldname, err.message)
         }
-      } catch (err) {
-        console.error("⚠️ CLOUDINARY FAILED:", err.message)
       }
     }
 
@@ -151,10 +159,11 @@ export const createProduct = async (req, res, next) => {
 
     if (variantsFromClient.length > 0) {
       // ✅ USE FRONTEND DATA
-      variantsCreate = variantsFromClient.map((v) => ({
+      variantsCreate = variantsFromClient.map((v, index) => ({
         sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
         price: new Prisma.Decimal(v.price),
         stock: parseInt(String(v.stock)) || 0,
+        image: variantImages[index] || null, // ✅ ASSIGN VARIANT IMAGE
         attributes: {
           create: v.attributes.map((a) => ({
             name: a.name,
@@ -567,16 +576,24 @@ export const updateProduct = async (req, res, next) => {
     }
 
     let imageUrl = null
+    const variantImages = {} // map index to url
 
-    // Upload new image if exists
-    if (req.file) {
-      try {
-        const result = await uploadFromPath(req.file.path)
-        if (result?.secure_url) {
-          imageUrl = result.secure_url
+    // Upload new images if exists
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        try {
+          const result = await uploadFromPath(file.path)
+          if (result?.secure_url) {
+            if (file.fieldname === "image") {
+              imageUrl = result.secure_url
+            } else if (file.fieldname.startsWith("variant_image_")) {
+              const index = file.fieldname.replace("variant_image_", "")
+              variantImages[index] = result.secure_url
+            }
+          }
+        } catch (err) {
+          console.error("⚠️ CLOUDINARY UPDATE FAILED for file:", file.fieldname, err.message)
         }
-      } catch (err) {
-        console.error("⚠️ CLOUDINARY UPDATE FAILED:", err.message)
       }
     }
 
@@ -604,7 +621,8 @@ export const updateProduct = async (req, res, next) => {
       const currentVariants = product.variants
 
       // 2. Map through client variants and update/create
-      for (const v of variantsFromClient) {
+      for (let i = 0; i < variantsFromClient.length; i++) {
+        const v = variantsFromClient[i]
         // Try to find a matching existing variant by attributes (very common for this app)
         const vAttrs = v.attributes || []
         const existing = currentVariants.find(curr => {
@@ -612,12 +630,15 @@ export const updateProduct = async (req, res, next) => {
           return vAttrs.every(va => curr.attributes.some(ca => ca.name === va.name && ca.value === va.value))
         })
 
+        const vImage = variantImages[i] || v.image
+
         if (existing) {
           await prisma.productVariant.update({
             where: { id: existing.id },
             data: {
               price: new Prisma.Decimal(v.price),
-              stock: parseInt(String(v.stock)) || 0
+              stock: parseInt(String(v.stock)) || 0,
+              ...(vImage && { image: vImage })
             }
           })
         } else {
@@ -627,6 +648,7 @@ export const updateProduct = async (req, res, next) => {
               sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
               price: new Prisma.Decimal(v.price),
               stock: parseInt(String(v.stock)) || 0,
+              image: vImage,
               attributes: {
                 create: vAttrs.map(a => ({ name: a.name, value: a.value }))
               }
