@@ -507,9 +507,9 @@ export default function AdminProducts() {
                           </div>
                         ))}
                         </div>
-                      </div>
+                      </section>
                     </div>
-                  </section>
+                  </div>
                 </div>
               </div>
             </div>
