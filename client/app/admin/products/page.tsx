@@ -327,108 +327,109 @@ export default function AdminProducts() {
 
       {/* MODALS */}
       {showModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-fade-in">
-          <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/20 animate-scale-up">
-            <div className="bg-[var(--bg-surface)] px-10 py-8 border-b border-[var(--border-light)] flex justify-between items-center">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 bg-black/40 backdrop-blur-md animate-fade-in">
+          <div className="bg-white w-full max-w-5xl rounded-[3rem] shadow-2xl overflow-hidden border border-white/20 animate-scale-up flex flex-col max-h-[90vh]">
+            <div className="bg-[var(--bg-surface)] px-10 py-8 border-b border-[var(--border-light)] flex justify-between items-center flex-shrink-0">
               <div>
-                <h2 className="text-2xl font-[1000] text-[var(--text-heading)] tracking-tighter">
-                  {editing ? 'Update Record' : 'Deploy Product'}
+                <h2 className="text-3xl font-[1000] text-[var(--text-heading)] tracking-tighter">
+                  {editing ? 'Update Production Record' : 'Deploy New Product'}
                 </h2>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand-primary)] mt-1">Catalog Integrity System</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.3em] text-[var(--brand-primary)] mt-1">High-Precision Catalog Management</p>
               </div>
-              <button onClick={closeModal} className="p-2 hover:bg-gray-200 rounded-full transition text-gray-400">
-                <X size={24} />
+              <button onClick={closeModal} className="p-3 hover:bg-gray-200 rounded-2xl transition-all text-gray-400 hover:text-red-500">
+                <X size={28} />
               </button>
             </div>
 
-            <div className="p-10 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <InputField label="Product Designation" value={form.name} onChange={(v: string) => setForm({ ...form, name: v })} placeholder="e.g. Classic Marine Shirt" />
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">Composition Description</label>
-                    <textarea
-                      value={form.description}
-                      onChange={(e: any) => setForm({ ...form, description: e.target.value })}
-                      className="w-full px-5 py-4 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] text-sm font-bold min-h-[120px] transition-all"
-                      placeholder="Detail the product unique features..."
-                    />
-                  </div>
+            <div className="p-10 space-y-10 overflow-y-auto custom-scrollbar flex-1">
+              <div className="grid lg:grid-cols-12 gap-12">
+                {/* LEFT COLUMN: CORE INFO */}
+                <div className="lg:col-span-5 space-y-8">
+                  <section className="space-y-6">
+                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand-primary)] flex items-center gap-2">
+                      <Package size={14} /> Basic Information
+                    </h4>
+                    <InputField label="Product Designation" value={form.name} onChange={(v: string) => setForm({ ...form, name: v })} placeholder="e.g. Celestial Aura Parfum" />
+                    
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">Composition Description</label>
+                      <textarea
+                        value={form.description}
+                        onChange={(e: any) => setForm({ ...form, description: e.target.value })}
+                        className="w-full px-5 py-4 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] text-sm font-bold min-h-[140px] transition-all"
+                        placeholder="Detail the product unique features..."
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">Classification</label>
+                        <select
+                          value={form.categoryId}
+                          onChange={(e: any) => setForm({ ...form, categoryId: e.target.value })}
+                          className="w-full px-5 py-4 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] text-sm font-bold transition-all"
+                        >
+                          <option value="">Category</option>
+                          {categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        </select>
+                      </div>
+                      <InputField label="Base Price (₱)" value={form.price} onChange={(v: string) => setForm({ ...form, price: v })} type="number" />
+                    </div>
+                  </section>
+
+                  <section className="space-y-6">
+                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand-primary)] flex items-center gap-2">
+                      <ImageIcon size={14} /> Master Visual
+                    </h4>
+                    <div className="relative border-2 border-dashed border-[var(--border-light)] rounded-3xl p-8 text-center hover:bg-gray-50 transition min-h-[200px] flex flex-col items-center justify-center gap-3 overflow-hidden">
+                      <input
+                        type="file"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        onChange={async (e: any) => {
+                          const f = e.target.files?.[0]; if (!f) return;
+                          const comp = await imageCompression(f, { maxSizeMB: 1, maxWidthOrHeight: 1200 });
+                          setForm({ ...form, image: new File([comp], f.name, { type: comp.type }) });
+                          setPreview(URL.createObjectURL(comp));
+                        }}
+                      />
+                      {preview ? (
+                        <img src={preview} className="absolute inset-0 w-full h-full object-cover" />
+                      ) : (
+                        <>
+                          <div className="w-16 h-16 bg-[var(--bg-surface)] rounded-2xl flex items-center justify-center text-gray-300">
+                            <ImageIcon size={32} />
+                          </div>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Upload Primary Asset</span>
+                        </>
+                      )}
+                    </div>
+                  </section>
                 </div>
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">Classification Group</label>
-                    <select
-                      value={form.categoryId}
-                      onChange={(e: any) => setForm({ ...form, categoryId: e.target.value })}
-                      className="w-full px-5 py-4 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] text-sm font-bold transition-all"
-                    >
-                      <option value="">Select Category</option>
-                      {categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
-                  </div>
-                  <div className="flex flex-wrap gap-4 py-2 px-1">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="isBestseller"
-                        checked={form.isBestseller}
-                        onChange={(e) => setForm({ ...form, isBestseller: e.target.checked })}
-                        className="w-5 h-5 rounded border-[var(--border-light)] text-[var(--brand-primary)] focus:ring-[var(--brand-primary)] cursor-pointer"
-                      />
-                      <label htmlFor="isBestseller" className="text-xs font-bold text-[var(--text-heading)] cursor-pointer uppercase tracking-wider">Best Seller</label>
-                    </div>
 
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="isPopular"
-                        checked={form.isPopular}
-                        onChange={(e) => setForm({ ...form, isPopular: e.target.checked })}
-                        className="w-5 h-5 rounded border-[var(--border-light)] text-[var(--brand-primary)] focus:ring-[var(--brand-primary)] cursor-pointer"
-                      />
-                      <label htmlFor="isPopular" className="text-xs font-bold text-[var(--text-heading)] cursor-pointer uppercase tracking-wider">Popular</label>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <InputField label="Market Value (₱)" value={form.price} onChange={(v: string) => setForm({ ...form, price: v })} type="number" />
-                    <InputField label="Stock Units" value={form.stock} onChange={(v: string) => setForm({ ...form, stock: v })} type="number" />
-                    {/* VARIANTS */}
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">
-                        Variant System
-                      </label>
-
-                      {/* TYPE SELECT */}
-                      <div className="flex gap-2">
+                {/* RIGHT COLUMN: VARIANT SYSTEM */}
+                <div className="lg:col-span-7 space-y-8">
+                  <section className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand-primary)] flex items-center gap-2">
+                        <Layers size={14} /> Variant Architecture
+                      </h4>
+                      <div className="flex gap-2 p-1 bg-[var(--bg-surface)] rounded-xl border border-[var(--border-light)]">
                         <button
                           type="button"
-                          onClick={() => {
-                            setVariantType("size")
-                            setVariantOptions(["XS", "S", "M", "L", "XL", "2XL"])
-                          }}
-                          className={`px-4 py-2 rounded-xl text-xs font-bold ${variantType === "size"
-                            ? "bg-[var(--brand-primary)] text-white"
-                            : "bg-[var(--bg-surface)]"
-                            }`}
+                          onClick={() => { setVariantType("size"); setVariantOptions(["XS", "S", "M", "L", "XL", "2XL"]); }}
+                          className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${variantType === "size" ? "bg-[var(--brand-primary)] text-white shadow-md" : "text-gray-400 hover:text-[var(--text-heading)]"}`}
                         >
-                          Apparel (Size)
+                          Apparel
                         </button>
-
                         <button
                           type="button"
-                          onClick={() => {
-                            setVariantType("volume")
-                            setVariantOptions(["55ml", "30ml"])
-                          }}
-                          className={`px-4 py-2 rounded-xl text-xs font-bold ${variantType === "volume"
-                            ? "bg-[var(--brand-primary)] text-white"
-                            : "bg-[var(--bg-surface)]"
-                            }`}
+                          onClick={() => { setVariantType("volume"); setVariantOptions(["55ml", "30ml"]); }}
+                          className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${variantType === "volume" ? "bg-[var(--brand-primary)] text-white shadow-md" : "text-gray-400 hover:text-[var(--text-heading)]"}`}
                         >
-                          Perfume (Volume)
+                          Perfume
                         </button>
                       </div>
+                    </div>
 
                       {/* VARIANT LIST */}
                       <div className="space-y-3">
@@ -505,32 +506,10 @@ export default function AdminProducts() {
                             </div>
                           </div>
                         ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">Product Media</label>
-                    <div className="relative border-2 border-dashed border-[var(--border-light)] rounded-2xl p-6 text-center hover:bg-gray-50 transition min-h-[140px] flex flex-col items-center justify-center gap-2">
-                      <input
-                        type="file"
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        onChange={async (e: any) => {
-                          const f = e.target.files?.[0]; if (!f) return;
-                          const comp = await imageCompression(f, { maxSizeMB: 1, maxWidthOrHeight: 1200, useWebWorker: true });
-                          setForm({ ...form, image: new File([comp], f.name, { type: comp.type }) });
-                          setPreview(URL.createObjectURL(comp));
-                        }}
-                      />
-                      {preview ? (
-                        <img src={preview} className="absolute inset-0 w-full h-full object-cover rounded-2xl" />
-                      ) : (
-                        <>
-                          <ImageIcon className="text-gray-300" size={32} />
-                          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Drop visual asset here</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
+                  </section>
                 </div>
               </div>
             </div>
