@@ -2,6 +2,7 @@ export type ProductVariant = {
   id: string
   price: number
   stock: number
+  image?: string | null
   attributes: {
     name: string
     value: string

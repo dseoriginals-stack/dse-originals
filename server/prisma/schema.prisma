@@ -215,6 +215,7 @@ model ProductVariant {
   price         Decimal @db.Decimal(10, 2)
   resellerPrice Decimal @default(0) @db.Decimal(10, 2)
   stock         Int     @default(0)
+  image         String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
