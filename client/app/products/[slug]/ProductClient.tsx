@@ -372,7 +372,7 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
               className="btn-premium flex-1 !h-12 !rounded-xl !text-sm shadow-lg"
             >
               {added && <Check size={24} />}
-              {adding ? "Preparing Order..." : added ? "Successfully Added" : "Add to Cart Now"}
+              {adding ? "Preparing Order..." : added ? "Successfully Added" : "Buy Now"}
             </button>
           </div>
 
@@ -406,20 +406,15 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
         />
       </div>
 
-      {/* MOBILE BAR */}
+      {/* MOBILE BAR (CLEANED) */}
       <div className="fixed bottom-0 left-0 right-0 glass-header border-t p-4 md:hidden pb-safe">
-        <div className="flex gap-4 items-center max-w-lg mx-auto">
-          <div className="flex-1">
-            <div className="text-xs text-[var(--text-muted)] font-bold uppercase tracking-wider">Total</div>
-            <div className="font-bold text-base text-[var(--brand-primary)]">₱{Number(price * qty).toLocaleString()}</div>
-          </div>
-
+        <div className="max-w-lg mx-auto">
           <button
             onClick={handleAdd}
             disabled={stock === 0 || adding}
-            className="btn-premium flex-1 !py-3 px-2 shadow-md flex items-center justify-center"
+            className="btn-premium w-full !py-4 shadow-xl flex items-center justify-center text-sm font-black uppercase tracking-[0.2em]"
           >
-            Add to Cart
+            {adding ? "Processing..." : "Buy Now"}
           </button>
         </div>
       </div>
