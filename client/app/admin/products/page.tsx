@@ -327,6 +327,7 @@ export default function AdminProducts() {
       </div>
 
       {/* MODALS */}
+      {showModal && (
         <div className="fixed inset-0 z-[100] bg-[var(--bg-surface)] flex flex-col animate-fade-in overflow-y-auto custom-scrollbar">
           {/* TOP BAR */}
           <div className="sticky top-0 z-20 bg-white border-b border-[var(--border-light)] px-8 py-4 flex items-center justify-between shadow-sm">
