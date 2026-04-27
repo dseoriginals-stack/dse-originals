@@ -513,6 +513,8 @@ export const updateProduct = async (req, res, next) => {
       description,
       isBestseller,
       isPopular,
+      videoUrl,
+      storyHtml,
       variants
     } = data
 
@@ -571,10 +573,10 @@ export const updateProduct = async (req, res, next) => {
     const updateData = {
       name,
       description,
-      // isBestseller: !!isBestseller,
-      // isPopular: !!isPopular,
-      // videoUrl,
-      // storyHtml,
+      isBestseller: !!isBestseller,
+      isPopular: !!isPopular,
+      videoUrl,
+      storyHtml,
       ...(categoryId && { categoryId })
     }
 
