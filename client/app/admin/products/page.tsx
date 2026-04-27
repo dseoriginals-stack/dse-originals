@@ -715,4 +715,3 @@ function InputField({ label, value, onChange, type = "text", placeholder }: any)
 function SkeletonProductCard() {
   return <div className="bg-white rounded-[2rem] border border-gray-100 p-6 shadow-sm animate-pulse h-[350px]" />
 }
-}
