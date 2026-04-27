@@ -42,7 +42,7 @@ export default function CartPage() {
   const points = user?.luckyPoints || 0
   const REWARD_THRESHOLD = 50
   const canRedeem = points >= REWARD_THRESHOLD
-  
+
   // Logic: 1 point = ₱1.00 discount
   const [usePoints, setUsePoints] = useState(false)
   const pointsDiscount = usePoints ? Math.min(points, selectedSubtotal) : 0
@@ -92,74 +92,73 @@ export default function CartPage() {
 
             {/* LOYALTY POINTS DASHBOARD */}
             <div className="bg-[var(--brand-primary)] rounded-[2.5rem] p-6 text-white shadow-2xl shadow-[var(--brand-primary)]/20 relative overflow-hidden mb-8 group">
-               {/* Background Glow */}
-               <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-white/10 transition-colors duration-700"></div>
+              {/* Background Glow */}
+              <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-white/10 transition-colors duration-700"></div>
 
-               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-                  <div className="flex items-center gap-5">
-                     <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner">
-                        <Coins className="w-8 h-8 text-[var(--brand-soft)] animate-pulse" />
-                     </div>
-                     <div>
-                        <h2 className="text-xl font-black tracking-tight text-white leading-tight">
-                          {!user ? "Join the Circle" : canRedeem ? "Reward Unlocked" : "Lucky Points"}
-                        </h2>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand-soft)] mt-1">
-                          {!user 
-                            ? "Register to earn 1 point for every ₱100 spent" 
-                            : canRedeem 
-                              ? `You have ${points.toLocaleString()} points! (Earn 1 pt per ₱100)` 
-                              : `${points.toLocaleString()} / 50 points (Earn 1 pt per ₱100)`}
-                        </p>
-                     </div>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                <div className="flex items-center gap-5">
+                  <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner">
+                    <Coins className="w-8 h-8 text-[var(--brand-soft)] animate-pulse" />
                   </div>
+                  <div>
+                    <h2 className="text-xl font-black tracking-tight text-white leading-tight">
+                      {!user ? "Join the Circle" : canRedeem ? "Reward Unlocked" : "Lucky Points"}
+                    </h2>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--brand-soft)] mt-1">
+                      {!user
+                        ? "Register to earn 1 point for every ₱100 spent"
+                        : canRedeem
+                          ? `You have ${points.toLocaleString()} points! (Earn 1 pt per ₱100)`
+                          : `${points.toLocaleString()} / 50 points (Earn 1 pt per ₱100)`}
+                    </p>
+                  </div>
+                </div>
 
-                  {!user ? (
-                    <Link 
-                      href="/account"
-                      className="px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-[var(--brand-soft)] text-[var(--brand-primary)] hover:bg-white transition-all shadow-lg hover:scale-105 text-center"
-                    >
-                      Login to unlock loyalty points
-                    </Link>
-                  ) : canRedeem ? (
-                    <button 
-                      onClick={() => setUsePoints(!usePoints)}
-                      className={`px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-500 shadow-lg ${
-                        usePoints 
-                        ? "bg-white text-[var(--brand-primary)] shadow-white/20 scale-[0.98]" 
-                        : "bg-[var(--brand-soft)] text-[var(--brand-primary)] hover:bg-white hover:scale-105"
+                {!user ? (
+                  <Link
+                    href="/account"
+                    className="px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-[var(--brand-soft)] text-[var(--brand-primary)] hover:bg-white transition-all shadow-lg hover:scale-105 text-center"
+                  >
+                    Login to unlock loyalty points
+                  </Link>
+                ) : canRedeem ? (
+                  <button
+                    onClick={() => setUsePoints(!usePoints)}
+                    className={`px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-500 shadow-lg ${usePoints
+                      ? "bg-white text-[var(--brand-primary)] shadow-white/20 scale-[0.98]"
+                      : "bg-[var(--brand-soft)] text-[var(--brand-primary)] hover:bg-white hover:scale-105"
                       }`}
-                    >
-                      {usePoints ? "Reward Applied" : "Redeem ₱" + points.toLocaleString()}
-                    </button>
-                  ) : (
-                    <div className="bg-white/10 backdrop-blur-sm border border-white/20 px-6 py-4 rounded-2xl text-center">
-                       <p className="text-[9px] font-black uppercase tracking-widest opacity-80 mb-2">Reach 50 to unlock</p>
-                       <div className="h-1.5 w-32 bg-white/20 rounded-full overflow-hidden">
-                          <motion.div 
-                            initial={{ width: 0 }}
-                            animate={{ width: `${(points/50)*100}%` }}
-                            className="h-full bg-[var(--brand-soft)] shadow-[0_0_10px_#A9D6E5]"
-                          />
-                       </div>
+                  >
+                    {usePoints ? "Reward Applied" : "Redeem ₱" + points.toLocaleString()}
+                  </button>
+                ) : (
+                  <div className="bg-white/10 backdrop-blur-sm border border-white/20 px-6 py-4 rounded-2xl text-center">
+                    <p className="text-[9px] font-black uppercase tracking-widest opacity-80 mb-2">Reach 50 to unlock</p>
+                    <div className="h-1.5 w-32 bg-white/20 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(points / 50) * 100}%` }}
+                        className="h-full bg-[var(--brand-soft)] shadow-[0_0_10px_#A9D6E5]"
+                      />
                     </div>
-                  )}
-               </div>
+                  </div>
+                )}
+              </div>
 
-               <div className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-4 border-t border-white/10 pt-6">
-                  <div className="space-y-1">
-                     <p className="text-[8px] font-black uppercase tracking-widest opacity-50">Points Value</p>
-                     <p className="text-sm font-black text-[var(--brand-soft)]">{!user ? "Exclusive" : `₱${points.toLocaleString()}.00`}</p>
-                  </div>
-                  <div className="space-y-1">
-                     <p className="text-[8px] font-black uppercase tracking-widest opacity-50">Points in Use</p>
-                     <p className="text-sm font-black text-emerald-400">-{usePoints ? `₱${pointsDiscount.toLocaleString()}` : "₱0"}</p>
-                  </div>
-                  <div className="space-y-1 hidden md:block">
-                     <p className="text-[8px] font-black uppercase tracking-widest opacity-50">Tier Status</p>
-                     <p className="text-sm font-black text-white">{!user ? "Member Only" : `${user?.tier || "Faith"} Member`}</p>
-                  </div>
-               </div>
+              <div className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-4 border-t border-white/10 pt-6">
+                <div className="space-y-1">
+                  <p className="text-[8px] font-black uppercase tracking-widest opacity-50">Points Value</p>
+                  <p className="text-sm font-black text-[var(--brand-soft)]">{!user ? "Exclusive" : `₱${points.toLocaleString()}.00`}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[8px] font-black uppercase tracking-widest opacity-50">Points in Use</p>
+                  <p className="text-sm font-black text-emerald-400">-{usePoints ? `₱${pointsDiscount.toLocaleString()}` : "₱0"}</p>
+                </div>
+                <div className="space-y-1 hidden md:block">
+                  <p className="text-[8px] font-black uppercase tracking-widest opacity-50">Tier Status</p>
+                  <p className="text-sm font-black text-white">{!user ? "Member Only" : `${user?.tier || "Faith"} Member`}</p>
+                </div>
+              </div>
             </div>
 
             {/* SELECT ALL */}
@@ -348,9 +347,6 @@ export default function CartPage() {
               <div className="bg-[var(--brand-primary)] rounded-[2rem] p-6 text-white text-center shadow-lg">
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Need Assistance?</p>
                 <p className="text-sm font-bold mt-2">support@dseoriginals.com</p>
-                <button className="mt-4 text-[10px] font-black uppercase tracking-[0.2em] bg-white/10 hover:bg-white/20 py-2 px-6 rounded-full transition-colors">
-                  Live Chat
-                </button>
               </div>
             </div>
           </div>

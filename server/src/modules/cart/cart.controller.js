@@ -24,7 +24,11 @@ export const getCart = async (req, res, next) => {
           include: {
             variant: {
               include: {
-                product: true,
+                product: {
+                  include: {
+                    images: { take: 1 }
+                  }
+                },
                 attributes: true
               }
             }
@@ -55,7 +59,7 @@ export const getCart = async (req, res, next) => {
             price: getPrice(),
             quantity: item.quantity,
             attributes: attributes.map(a => ({ name: a.name, value: a.value })),
-            image: product.images?.[0]?.url || null
+            image: variant.image || product.images?.[0]?.url || null
           }
         }).reverse() || []
     })
