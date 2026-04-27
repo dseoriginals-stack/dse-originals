@@ -654,9 +654,19 @@ export const updateProduct = async (req, res, next) => {
       data: updateData
     })
 
-    console.log(`✅ Product ${id} updated, invalidating cache...`)
-    await deleteCache("products:*")
-    await deleteCache("product:*")
+    console.log(`✅ Product ${id} updated:`, {
+      isBestseller: updated.isBestseller,
+      isPopular: updated.isPopular
+    })
+
+    // Invalidate ALL caches to be absolutely sure
+    try {
+      await deleteCache("products:*")
+      await deleteCache("product:*")
+      console.log("🧹 Cache invalidated successfully")
+    } catch (cacheErr) {
+      console.warn("⚠️ Cache invalidation warning:", cacheErr.message)
+    }
 
     res.json(updated)
   } catch (err) {
