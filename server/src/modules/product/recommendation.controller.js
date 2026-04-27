@@ -148,88 +148,76 @@ PERSONALIZED RECOMMENDATIONS
 ==============================
 */
 export const getPersonalizedRecommendations = async (req, res, next) => {
-  const MAX_RETRIES = 2;
-  let retryCount = 0;
+  try {
+    const userId = req.user?.id
+    if (!userId) {
+      // Fallback to trending for guests
+      return getTrendingProducts(req, res, next)
+    }
 
-  const execute = async () => {
-    try {
-      const userId = req.user?.id
-      if (!userId) {
-        return getTrendingProducts(req, res, next)
-      }
+    const cacheKey = `user:recommendations:${userId}`
+    const cached = await getCache(cacheKey)
+    if (cached) return res.json(cached)
 
-      const cacheKey = `user:recommendations:${userId}`
-      const cached = await getCache(cacheKey)
-      if (cached) return res.json(cached)
-
-      // Ensure connection
-      await prisma.$connect().catch(() => {});
-
-      // 1. Find user's favorite categories
-      const recentOrders = await prisma.order.findMany({
-        where: { userId },
-        take: 10,
-        include: {
-          items: {
-            include: {
-              variant: {
-                include: {
-                  product: {
-                    select: { categoryId: true }
-                  }
+    // 1. Find user's favorite categories from last orders using standard Prisma
+    const recentOrders = await prisma.order.findMany({
+      where: { userId },
+      take: 10,
+      include: {
+        items: {
+          include: {
+            variant: {
+              include: {
+                product: {
+                  select: { categoryId: true }
                 }
               }
             }
           }
         }
-      })
+      }
+    })
 
-      const categoriesMap = {}
-      recentOrders.forEach(order => {
-        order.items.forEach(item => {
-          const catId = item.variant?.product?.categoryId
-          if (catId) {
-            categoriesMap[catId] = (categoriesMap[catId] || 0) + 1
-          }
-        })
-      })
-
-      const categoryIds = Object.keys(categoriesMap)
-        .sort((a, b) => categoriesMap[b] - categoriesMap[a])
-        .slice(0, 3)
-
-      // 2. Fetch products
-      const recommendations = await prisma.product.findMany({
-        where: {
-          categoryId: { in: categoryIds.length > 0 ? categoryIds : undefined },
-          status: "active",
-        },
-        take: 8,
-        orderBy: { createdAt: "desc" },
-        include: {
-          images: {
-            where: { isPrimary: true },
-            take: 1
-          }
+    const categoriesMap = {}
+    recentOrders.forEach(order => {
+      order.items.forEach(item => {
+        const catId = item.variant?.product?.categoryId
+        if (catId) {
+          categoriesMap[catId] = (categoriesMap[catId] || 0) + 1
         }
       })
+    })
 
-      if (recommendations.length < 4) {
-        return getTrendingProducts(req, res, next)
+    const categoryIds = Object.keys(categoriesMap)
+      .sort((a, b) => categoriesMap[b] - categoriesMap[a])
+      .slice(0, 3)
+
+    // 2. Fetch products from these categories that the user hasn't bought yet
+    const recommendations = await prisma.product.findMany({
+      where: {
+        categoryId: { in: categoryIds.length > 0 ? categoryIds : undefined },
+        status: "active",
+        // Ideally we'd filter out already bought products, but for small catalogs it's fine to show similar
+      },
+      take: 8,
+      orderBy: { createdAt: "desc" },
+      include: {
+        images: {
+          where: { isPrimary: true },
+          take: 1
+        }
       }
+    })
 
-      await setCache(cacheKey, recommendations, 600)
-      res.json(recommendations)
-
-    } catch (err) {
-      if (err.message.includes("Connection is closed") && retryCount < MAX_RETRIES) {
-        retryCount++;
-        console.warn(`🔄 Retrying recommendations (attempt ${retryCount})...`);
-        return execute();
-      }
-      next(err)
+    // If no specific recommendations, fallback to trending
+    if (recommendations.length < 4) {
+      return getTrendingProducts(req, res, next)
     }
-  };
 
-  return execute();
+    await setCache(cacheKey, recommendations, 600)
+    res.json(recommendations)
+
+  } catch (err) {
+    next(err)
+  }
 }

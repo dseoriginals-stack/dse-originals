@@ -8,6 +8,7 @@ GET CACHE
 
 export const getCache = async (key) => {
   try {
+    if (redis.status !== "ready") return null
     const data = await redis.get(key)
     return data ? JSON.parse(data) : null
   } catch (err) {
@@ -23,6 +24,7 @@ SET CACHE
 
 export const setCache = async (key, value, ttl = 60) => {
   try {
+    if (redis.status !== "ready") return
     await redis.set(
       key,
       JSON.stringify(value),
@@ -39,7 +41,7 @@ DELETE CACHE (PATTERN)
 */
 
 export const deleteCache = async (pattern) => {
-  if (!redis) return
+  if (!redis || redis.status !== "ready") return
 
   try {
     const keys = await redis.keys(pattern)
@@ -51,6 +53,6 @@ export const deleteCache = async (pattern) => {
       console.log(`ℹ️ CACHE: No keys found for pattern [${pattern}]`)
     }
   } catch (err) {
-    console.error(`❌ CACHE ERROR [${pattern}]:`, err)
+    console.error(`❌ CACHE ERROR [${pattern}]:`, err.message)
   }
 }
