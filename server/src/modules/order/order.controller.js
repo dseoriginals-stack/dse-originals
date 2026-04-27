@@ -362,7 +362,7 @@ export const getAllOrders = async (req, res, next) => {
     // Only show pending orders if explicitly requested (e.g., Abandoned Cart view)
     // Default is to hide them to satisfy "don't consider it as an order until paid"
     const where = {
-      ...(status ? { status } : { status: { notIn: ["initialized", "failed"] } }),
+      ...(status ? { status } : { status: { notIn: ["initialized"] } }),
       ...(includePending === "true" && { status: undefined })
     }
 
@@ -689,7 +689,7 @@ export const getMyOrders = async (req, res, next) => {
     const orders = await prisma.order.findMany({
       where: {
         userId,
-        status: { notIn: ["initialized", "failed"] }
+        status: { notIn: ["initialized"] }
       },
       include: {
         items: true,
