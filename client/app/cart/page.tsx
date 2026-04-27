@@ -29,6 +29,7 @@ export default function CartPage() {
   const {
     cart,
     removeFromCart,
+    removeSelectedItems,
     updateQuantity,
     selectedItems,
     toggleSelection,
@@ -175,7 +176,10 @@ export default function CartPage() {
               </button>
 
               {hasSelection && (
-                <button className="flex items-center gap-2 text-xs font-black text-[var(--brand-soft)] hover:text-red-500 transition-colors uppercase tracking-widest">
+                <button
+                  onClick={removeSelectedItems}
+                  className="flex items-center gap-2 text-xs font-black text-[var(--brand-soft)] hover:text-red-500 transition-colors uppercase tracking-widest"
+                >
                   <Trash2 size={14} /> Remove Selected
                 </button>
               )}

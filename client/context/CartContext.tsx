@@ -37,6 +37,7 @@ type CartContextType = {
   addToCart: (item: CartItem) => void
   updateQuantity: (variantId: string, quantity: number) => void
   removeFromCart: (variantId: string) => void
+  removeSelectedItems: () => Promise<void>
   clearCart: () => void
 
   setCartItems: (items: CartItem[]) => void
@@ -352,6 +353,31 @@ export function CartProvider({
     [user]
   )
 
+  const removeSelectedItems = useCallback(async () => {
+    if (selectedItems.length === 0) return
+
+    const itemsToRemove = [...selectedItems]
+
+    // Update local state first for instant UI feedback
+    setCart(prev => prev.filter(item => !itemsToRemove.includes(item.variantId)))
+    setSelectedItems([])
+
+    if (user) {
+      try {
+        // Run all deletions in parallel
+        await Promise.all(
+          itemsToRemove.map(id => api.delete(`/cart/item/${id}`))
+        )
+        toast.success(`${itemsToRemove.length} items removed`)
+      } catch (err) {
+        console.error("Failed to remove items from server", err)
+        toast.error("Failed to remove some items")
+      }
+    } else {
+      toast.success("Items removed")
+    }
+  }, [user, selectedItems])
+
   const clearCart = useCallback(async () => {
     setCart([])
     setSelectedItems([])
@@ -409,6 +435,7 @@ export function CartProvider({
         addToCart,
         updateQuantity,
         removeFromCart,
+        removeSelectedItems,
         clearCart,
         setCartItems,
         selectedItems,
