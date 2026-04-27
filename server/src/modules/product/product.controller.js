@@ -298,7 +298,13 @@ export const getProducts = async (req, res) => {
             take: 1,
             select: { url: true }
           },
-          // isBestseller: true,
+          isBestseller: true,
+          isPopular: true,
+          videoUrl: true,
+          storyHtml: true,
+          category: {
+            select: { id: true, name: true, slug: true }
+          },
 
           variants: {
             select: {
@@ -338,6 +344,7 @@ export const getProducts = async (req, res) => {
         isPopular: p.isPopular,
         videoUrl: p.videoUrl,
         storyHtml: p.storyHtml,
+        category: p.category ? p.category.slug : null,
 
         variantId: p.variants.length > 0
           ? p.variants[0].id
