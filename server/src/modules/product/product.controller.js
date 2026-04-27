@@ -529,7 +529,11 @@ export const updateProduct = async (req, res, next) => {
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
-        variants: true
+        variants: {
+          include: {
+            attributes: true
+          }
+        }
       }
     })
 
@@ -592,7 +596,7 @@ export const updateProduct = async (req, res, next) => {
         // Try to find a matching existing variant by attributes (very common for this app)
         const vAttrs = v.attributes || []
         const existing = currentVariants.find(curr => {
-          if (curr.attributes.length !== vAttrs.length) return false
+          if (!curr.attributes || curr.attributes.length !== vAttrs.length) return false
           return vAttrs.every(va => curr.attributes.some(ca => ca.name === va.name && ca.value === va.value))
         })
 
