@@ -117,6 +117,13 @@ router.put(
   validate(updateStatusSchema),
   controller.updateOrderStatus
 )
+ 
+router.delete(
+  "/:id",
+  authenticate,
+  requireRole("admin"),
+  controller.deleteOrder
+)
 
 /* =============================
    ORDER TRACKING

@@ -1001,3 +1001,51 @@ export const createManualOrder = async (req, res, next) => {
     next(err)
   }
 }
+
+/* ============================
+   DELETE ORDER (ADMIN ONLY)
+   ============================ */
+export const deleteOrder = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    const order = await prisma.order.findUnique({
+      where: { id },
+      include: { items: true }
+    })
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" })
+    }
+
+    // Security: Only Admin can delete
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Forbidden: Admin only" })
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Delete associated inventory reservations (they don't cascade)
+      await tx.inventoryReservation.deleteMany({
+        where: { orderId: id }
+      })
+
+      // 2. Delete associated inventory movements (they don't cascade)
+      await tx.inventoryMovement.deleteMany({
+        where: { orderId: id }
+      })
+
+      // 3. Delete the order (items, events, and address will cascade)
+      await tx.order.delete({
+        where: { id }
+      })
+    })
+
+    logger.info("Order deleted permanently", { orderId: id, adminId: req.user.id })
+
+    res.json({ message: "Order deleted permanently" })
+
+  } catch (err) {
+    logger.error("Delete order failed", { error: err.message, orderId: req.params.id })
+    next(err)
+  }
+}

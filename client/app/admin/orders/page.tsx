@@ -17,7 +17,8 @@ import {
   ChevronDown,
   User,
   Mail,
-  Phone
+  Phone,
+  Trash2
 } from "lucide-react"
 import toast from "react-hot-toast"
 
@@ -105,6 +106,17 @@ export default function AdminOrders() {
     }
   }
 
+  async function deleteOrder(id: string) {
+    if (!confirm("⚠️ PERMANENT DELETE: Are you sure you want to delete this order entirely from the database? This cannot be undone.")) return
+    try {
+      await api.delete(`/admin/orders/${id}`)
+      toast.success("Order deleted permanently")
+      fetchOrders()
+    } catch (err: any) {
+      toast.error(err.message || "Delete failed")
+    }
+  }
+
   const filteredOrders = useMemo(() => {
     return orders.filter(o => {
       const matchesSearch = 
@@ -183,6 +195,7 @@ export default function AdminOrders() {
                       onTrackingChange={(val: string) => setTrackingInputs(p => ({ ...p, [order.id]: val }))}
                       onUpdateStatus={updateStatus}
                       onCancel={cancelOrder}
+                      onDelete={deleteOrder}
                     />
                   ))}
                   {filteredOrders.length === 0 && (
@@ -202,7 +215,7 @@ export default function AdminOrders() {
   )
 }
 
-function OrderRow({ order, expanded, onExpand, trackingValue, onTrackingChange, onUpdateStatus, onCancel }: any) {
+function OrderRow({ order, expanded, onExpand, trackingValue, onTrackingChange, onUpdateStatus, onCancel, onDelete }: any) {
   const statusStyles: any = {
     pending: "bg-amber-50 text-amber-600 border-amber-100",
     accepted: "bg-violet-50 text-violet-600 border-violet-100",
@@ -302,6 +315,13 @@ function OrderRow({ order, expanded, onExpand, trackingValue, onTrackingChange, 
                 className="px-3 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-tighter transition shadow-sm"
               >
                 Done
+              </button>
+              <button 
+                onClick={() => onDelete(order.id)}
+                className="p-2 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-xl transition shadow-sm ml-2"
+                title="Permanent Delete"
+              >
+                <Trash2 size={14} />
               </button>
             </div>
           </div>
