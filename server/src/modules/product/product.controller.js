@@ -99,6 +99,8 @@ export const createProduct = async (req, res, next) => {
       description,
       isBestseller,
       isPopular,
+      videoUrl,
+      storyHtml,
       variants
     } = data
 
