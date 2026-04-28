@@ -192,8 +192,8 @@ export const createProduct = async (req, res, next) => {
       slug,
       description,
       status: "active",
-      // videoUrl,
-      // storyHtml,
+      videoUrl,
+      storyHtml,
       categoryId: category.id,
       ...(imageUrl && {
         images: {
@@ -211,8 +211,8 @@ export const createProduct = async (req, res, next) => {
       product = await prisma.product.create({
         data: {
           ...baseData,
-          // isBestseller: !!isBestseller,
-          // isPopular: !!isPopular
+          isBestseller: !!isBestseller,
+          isPopular: !!isPopular
         }
       })
     } catch (err) {
