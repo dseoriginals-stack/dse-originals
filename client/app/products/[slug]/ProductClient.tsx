@@ -385,6 +385,23 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                 </div>
               ))
             })()}
+
+            {/* APPAREL STANDARD SIZES REFERENCE */}
+            {(product.category?.toLowerCase().includes("apparel") || product.category?.toLowerCase().includes("clothing")) && (
+              <div className="space-y-4 pt-4 border-t border-[var(--border-light)]">
+                <h3 className="text-[10px] font-bold text-[var(--text-heading)] uppercase tracking-[0.2em]">Standard Fit Sizes</h3>
+                <div className="flex gap-3 flex-wrap">
+                  {["XS", "S", "M", "L", "XL", "2XL"].map((s) => (
+                    <div
+                      key={s}
+                      className="px-4 py-2 rounded-2xl text-[10px] font-black tracking-widest uppercase bg-gray-50/80 border-2 border-gray-100 text-gray-400 cursor-default select-none shadow-sm"
+                    >
+                      {s}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* STOCK */}
