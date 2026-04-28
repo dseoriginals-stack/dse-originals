@@ -18,6 +18,7 @@ import ReviewForm from "@/components/ReviewForm"
 import CinematicLookbook from "@/components/product/CinematicLookbook"
 
 import { getImageUrl } from "@/lib/image"
+import { getCloudinaryBlurUrl } from "@/lib/imageUtils"
 import { Check, Share2, Facebook, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import toast from "react-hot-toast"
@@ -235,9 +236,11 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
               src={getImageUrl(activeImage || "/placeholder.png")}
               alt={product.name}
               fill
-              sizes="(max-width: 768px) 100vw, 50vw"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
               className="object-cover transition-transform duration-700 ease-out md:group-hover:scale-105"
               priority
+              placeholder="blur"
+              blurDataURL={getCloudinaryBlurUrl(activeImage)}
             />
             {/* Optional subtle gradient overlay for premium feel */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent pointer-events-none"></div>
@@ -268,8 +271,8 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                       src={getImageUrl(img.url)}
                       alt={product.name}
                       fill
+                      sizes="(max-width: 768px) 64px, 80px"
                       className="object-cover"
-                      unoptimized
                     />
                   </button>
                 )
