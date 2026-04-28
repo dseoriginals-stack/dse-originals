@@ -21,6 +21,7 @@ export type ProductFull = {
   description?: string
   status?: string
   isBestseller?: boolean
+  isPopular?: boolean
   category?: string
   tags?: string[]
   images: ProductImage[]
