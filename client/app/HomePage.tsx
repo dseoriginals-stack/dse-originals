@@ -149,7 +149,7 @@ export default function HomePage({ initialProducts }: Props) {
     <main className="w-full">
 
       {/* ================= HERO ================= */}
-      <section className="relative w-full h-[65vh] md:h-[75vh] overflow-hidden -mt-[56px]">
+      <section className="relative w-full h-[100svh] md:h-[75vh] overflow-hidden -mt-[56px]">
 
         {/* Background Images */}
         <AnimatePresence mode="wait">
