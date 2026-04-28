@@ -32,12 +32,11 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
 
   const [product, setProduct] = useState<ProductFull | null>(initialProduct)
   const [related, setRelated] = useState<ProductFull[]>([])
-  const [variant, setVariant] = useState<ProductVariant | null>(
-    initialProduct?.variants.find(v => v.stock > 0) || initialProduct?.variants[0] || null
-  )
+  const initialVariant = initialProduct?.variants.find(v => v.stock > 0) || initialProduct?.variants[0] || null
+  const [variant, setVariant] = useState<ProductVariant | null>(initialVariant)
 
   const [qty, setQty] = useState(1)
-  const [activeImage, setActiveImage] = useState(initialProduct?.images?.[0]?.url ?? "/placeholder.png")
+  const [activeImage, setActiveImage] = useState(initialVariant?.image || initialProduct?.images?.[0]?.url || "/placeholder.png")
   const [loading, setLoading] = useState(!initialProduct)
 
   const [adding, setAdding] = useState(false)
@@ -341,18 +340,21 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                   v.attributes.every(a => next[a.name] === a.value)
                 )
 
-                const fallbackImage = product.images?.[0]?.url || product.variants.find(v => v.image)?.image || "/placeholder.png"
-
                 if (match) {
                   setVariant(match)
-                  setActiveImage(match.image || fallbackImage)
+                  // ✅ ALWAYS PRIORITIZE VARIANT IMAGE IF IT EXISTS
+                  if (match.image) {
+                    setActiveImage(match.image)
+                  }
                 } else {
                   const fallback = product.variants.find(v =>
                     v.attributes.some(a => a.name === name && a.value === value)
                   )
                   if (fallback) {
                     setVariant(fallback)
-                    setActiveImage(fallback.image || fallbackImage)
+                    if (fallback.image) {
+                      setActiveImage(fallback.image)
+                    }
                   }
                 }
               }
