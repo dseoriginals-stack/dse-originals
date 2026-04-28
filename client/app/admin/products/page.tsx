@@ -344,9 +344,9 @@ export default function AdminProducts() {
             </div>
           </div>
 
-          <div className="max-w-7xl mx-auto w-full p-8 grid lg:grid-cols-12 gap-8">
+          <div className="max-w-4xl mx-auto w-full p-8">
             {/* LEFT COLUMN: CORE INFO & VARIANTS */}
-            <div className="lg:col-span-8 space-y-8">
+            <div className="space-y-8">
               {/* PRODUCT INFORMATION */}
               <div className="bg-white rounded-3xl border border-[var(--border-light)] p-8 shadow-sm space-y-6">
                 <h3 className="text-sm font-black text-[var(--text-heading)] tracking-tight">Product Information</h3>
@@ -395,16 +395,16 @@ export default function AdminProducts() {
                           if (catName.includes('perfume')) {
                             setVariantType('volume')
                             setVariantsState([
-                              { id: "1", value: "30ml", price: form.price, stock: form.stock, image: null, preview: null },
-                              { id: "2", value: "55ml", price: form.price, stock: form.stock, image: null, preview: null }
+                              { id: "1", value: "30ml", price: "", stock: "0", image: null, preview: null },
+                              { id: "2", value: "55ml", price: "", stock: "0", image: null, preview: null }
                             ])
                           } else if (catName.includes('apparel') || catName.includes('clothing')) {
                             setVariantType('size')
                             setVariantsState([
-                              { id: "1", value: "S", price: form.price, stock: form.stock, image: null, preview: null },
-                              { id: "2", value: "M", price: form.price, stock: form.stock, image: null, preview: null },
-                              { id: "3", value: "L", price: form.price, stock: form.stock, image: null, preview: null },
-                              { id: "4", value: "XL", price: form.price, stock: form.stock, image: null, preview: null }
+                              { id: "1", value: "S", price: "", stock: "0", image: null, preview: null },
+                              { id: "2", value: "M", price: "", stock: "0", image: null, preview: null },
+                              { id: "3", value: "L", price: "", stock: "0", image: null, preview: null },
+                              { id: "4", value: "XL", price: "", stock: "0", image: null, preview: null }
                             ])
                           }
                         }
@@ -435,7 +435,7 @@ export default function AdminProducts() {
                   <button 
                     type="button"
                     onClick={() => {
-                      setVariantsState(prev => [...prev, { id: Date.now().toString(), value: "", price: form.price, stock: form.stock, image: null, preview: null }])
+                      setVariantsState(prev => [...prev, { id: Date.now().toString(), value: "", price: "", stock: "0", image: null, preview: null }])
                     }}
                     className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[var(--border-light)] text-[11px] font-black uppercase tracking-widest hover:bg-gray-50 transition"
                   >
@@ -549,7 +549,7 @@ export default function AdminProducts() {
                 <button 
                   type="button"
                   onClick={() => {
-                    setVariantsState(prev => [...prev, { id: Date.now().toString(), value: "", price: form.price, stock: form.stock, image: null, preview: null }])
+                    setVariantsState(prev => [...prev, { id: Date.now().toString(), value: "", price: "", stock: "0", image: null, preview: null }])
                   }}
                   className="mt-6 flex items-center gap-2 text-xs font-black text-[var(--brand-primary)] uppercase tracking-widest hover:opacity-70 transition"
                 >
@@ -558,121 +558,6 @@ export default function AdminProducts() {
               </div>
             </div>
 
-            {/* RIGHT COLUMN: PRICING & IMAGES */}
-            <div className="lg:col-span-4 space-y-8">
-              {/* PRICING & STOCK CARD */}
-              <div className="bg-white rounded-3xl border border-[var(--border-light)] p-8 shadow-sm space-y-6">
-                <h3 className="text-sm font-black text-[var(--text-heading)] tracking-tight">Pricing & Stock</h3>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Cost / per size <span className="text-red-500">*</span></label>
-                    <input 
-                      placeholder="Enter cost"
-                      type="number"
-                      value={form.price}
-                      onChange={(e) => setForm({ ...form, price: e.target.value })}
-                      className="w-full px-5 py-3 bg-white border border-[var(--border-light)] rounded-xl focus:ring-2 focus:ring-[var(--brand-primary)] focus:outline-none font-bold text-sm"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Stock <span className="text-red-500">*</span></label>
-                    <input 
-                      placeholder="Enter quantity"
-                      type="number"
-                      value={form.stock}
-                      onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                      className="w-full px-5 py-3 bg-white border border-[var(--border-light)] rounded-xl focus:ring-2 focus:ring-[var(--brand-primary)] focus:outline-none font-bold text-sm"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* PRODUCT IMAGES CARD */}
-              <div className="bg-white rounded-3xl border border-[var(--border-light)] p-8 shadow-sm space-y-6">
-                <h3 className="text-sm font-black text-[var(--text-heading)] tracking-tight">Product Images <span className="text-gray-400 font-medium">(Optional)</span></h3>
-                
-                <div className="relative group/mainup">
-                  <div className="border-2 border-dashed border-[var(--border-light)] rounded-3xl p-10 text-center space-y-4 hover:border-[var(--brand-primary)] transition cursor-pointer bg-gray-50/30 overflow-hidden relative min-h-[220px] flex flex-col items-center justify-center">
-                    {preview ? (
-                      <img src={preview} className="absolute inset-0 w-full h-full object-cover" />
-                    ) : (
-                      <>
-                        <div className="w-12 h-12 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center text-[var(--brand-primary)]">
-                          <Plus size={24} />
-                        </div>
-                        <div>
-                          <p className="text-xs font-black text-[var(--text-heading)] uppercase tracking-widest mb-1">Upload main product images</p>
-                          <p className="text-[10px] text-gray-400 font-medium">Drag & drop images here or click to browse</p>
-                        </div>
-                      </>
-                    )}
-                    <input 
-                      type="file" 
-                      className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                      onChange={async (e: any) => {
-                        const f = e.target.files?.[0]; if (!f) return;
-                        const comp = await imageCompression(f, { maxSizeMB: 1, maxWidthOrHeight: 1200 });
-                        setForm({ ...form, image: new File([comp], f.name, { type: comp.type }) });
-                        setPreview(URL.createObjectURL(comp));
-                      }}
-                    />
-                  </div>
-                </div>
-                <p className="text-[10px] text-gray-400 font-medium leading-relaxed italic text-center">These images will be used in the product gallery.</p>
-              </div>
-
-              {/* VARIANT IMAGE UPLOAD DIRECT PANEL */}
-              <div className="bg-[#F8F7FF] rounded-3xl border border-[#EBE9FE] p-8 space-y-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-black text-[#574EAD] tracking-tight">Variant Image Upload (Direct)</h3>
-                </div>
-                
-                <div className="flex gap-3 p-4 bg-white rounded-2xl border border-[#EBE9FE]">
-                  <div className="w-5 h-5 rounded-full bg-[#EBE9FE] flex items-center justify-center text-[#574EAD] flex-shrink-0">
-                    <span className="text-[10px] font-black">i</span>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[11px] font-bold text-[#574EAD]">Upload images directly for each variant.</p>
-                    <p className="text-[10px] text-[#574EAD]/60 font-medium">Each variant can have multiple images.</p>
-                  </div>
-                </div>
-
-                <div className="border-2 border-dashed border-[#DEDCFE] rounded-3xl p-10 text-center space-y-3 bg-white/50 group hover:border-[#574EAD] transition cursor-pointer">
-                  <div className="w-10 h-10 mx-auto bg-white rounded-xl shadow-sm border border-[#EBE9FE] flex items-center justify-center text-[#574EAD]">
-                    <Plus size={20} />
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-black text-[#574EAD] uppercase tracking-widest mb-0.5">Drag & drop images here or click to browse</p>
-                    <p className="text-[9px] text-[#574EAD]/50 font-medium uppercase tracking-tighter">PNG, JPG, WEBP UP TO 5MB</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-3">
-                  {variantsState.map((row) => row.preview && (
-                    <div key={row.id} className="relative group">
-                      <div className="w-16 h-16 rounded-xl border border-[#EBE9FE] overflow-hidden shadow-sm">
-                        <img src={row.preview} className="w-full h-full object-cover" />
-                      </div>
-                      <button 
-                        onClick={() => {
-                          const newRows = [...variantsState]
-                          const idx = newRows.findIndex(r => r.id === row.id)
-                          if (idx >= 0) {
-                            newRows[idx].image = null
-                            newRows[idx].preview = null
-                            setVariantsState(newRows)
-                          }
-                        }}
-                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 shadow-sm opacity-0 group-hover:opacity-100 transition"
-                      >
-                        <X size={10} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       )}
