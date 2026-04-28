@@ -5,7 +5,7 @@ import ProductSkeleton from "@/components/ui/ProductSkeleton"
 async function getProducts() {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/products`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/products?limit=100`,
       {
         next: { revalidate: 60 }
       }
