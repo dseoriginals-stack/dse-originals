@@ -303,6 +303,7 @@ export const getProducts = async (req, res) => {
           id: true,
           name: true,
           slug: true,
+          description: true,
 
           images: {
             orderBy: { isPrimary: "desc" }, // ✅ ensures primary first
@@ -313,6 +314,7 @@ export const getProducts = async (req, res) => {
           isPopular: true,
           videoUrl: true,
           storyHtml: true,
+          categoryId: true,
           category: {
             select: { id: true, name: true, slug: true }
           },
@@ -344,6 +346,7 @@ export const getProducts = async (req, res) => {
         id: p.id,
         name: p.name,
         slug: p.slug,
+        description: p.description,
 
         // ✅ GUARANTEED FIX
         image: p.images.length > 0 ? p.images[0].url : null,
@@ -357,6 +360,7 @@ export const getProducts = async (req, res) => {
         videoUrl: p.videoUrl,
         storyHtml: p.storyHtml,
         category: p.category ? p.category.slug : null,
+        categoryId: p.categoryId,
 
         variantId: p.variants.length > 0
           ? p.variants[0].id
