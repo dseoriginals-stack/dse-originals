@@ -618,33 +618,41 @@ export const updateProduct = async (req, res, next) => {
       }
     }
 
-    // Handle Variants carefully to avoid foreign key violations
+    // Handle Variants carefully
     if (variantsFromClient.length > 0) {
-      // 1. Fetch current variants
       const currentVariants = product.variants
+      const currentVariantIds = currentVariants.map(v => v.id)
+      const clientVariantIds = []
 
-      // 2. Map through client variants and update/create
       for (let i = 0; i < variantsFromClient.length; i++) {
         const v = variantsFromClient[i]
-        // Try to find a matching existing variant by attributes (very common for this app)
         const vAttrs = v.attributes || []
-        const existing = currentVariants.find(curr => {
-          if (!curr.attributes || curr.attributes.length !== vAttrs.length) return false
-          return vAttrs.every(va => curr.attributes.some(ca => ca.name === va.name && ca.value === va.value))
-        })
-
         const vImage = variantImages[i] || v.image
 
-        if (existing) {
+        if (v.id && currentVariantIds.includes(v.id)) {
+          clientVariantIds.push(v.id)
+          // Update existing
+          let imageUpdate = {}
+          if (vImage) {
+            imageUpdate = { image: vImage }
+          } else if (v.preview === null) {
+            imageUpdate = { image: null }
+          }
+
           await prisma.productVariant.update({
-            where: { id: existing.id },
+            where: { id: v.id },
             data: {
               price: new Prisma.Decimal(v.price),
               stock: parseInt(String(v.stock)) || 0,
-              ...(vImage && { image: vImage })
+              ...imageUpdate,
+              attributes: {
+                deleteMany: {},
+                create: vAttrs.map(a => ({ name: a.name, value: a.value }))
+              }
             }
           })
         } else {
+          // Create new
           await prisma.productVariant.create({
             data: {
               productId: id,
@@ -658,6 +666,12 @@ export const updateProduct = async (req, res, next) => {
             }
           })
         }
+      }
+
+      // Delete removed variants
+      const variantsToDelete = currentVariants.filter(curr => !clientVariantIds.includes(curr.id))
+      for (const vDel of variantsToDelete) {
+        await prisma.productVariant.delete({ where: { id: vDel.id } })
       }
     } else if (price !== undefined || stock !== undefined) {
       // Single variant update logic

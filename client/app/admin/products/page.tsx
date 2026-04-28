@@ -154,8 +154,10 @@ export default function AdminProducts() {
       formData.append("description", form.description)
       formData.append("categoryId", form.categoryId)
       const variants = variantsState.map((row) => ({
+        id: row.id.includes('-') ? row.id : undefined,
         price: Number(row.price || form.price),
         stock: Number(row.stock || form.stock),
+        preview: row.preview || null,
         attributes: [
           {
             name: variantType === "size" ? "Size" : "Volume",
@@ -213,8 +215,8 @@ export default function AdminProducts() {
 
       setVariantType(firstAttrName.toLowerCase() === "volume" ? "volume" : "size")
 
-      const mapped: VariantRow[] = product.variants.map((v: any, idx: number) => ({
-        id: String(idx),
+      const mapped: VariantRow[] = product.variants.map((v: any) => ({
+        id: v.id,
         value: v.attributes?.[0]?.value || "",
         price: String(v.price ?? ""),
         stock: String(v.stock ?? ""),
