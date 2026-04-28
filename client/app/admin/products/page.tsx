@@ -520,7 +520,7 @@ export default function AdminProducts() {
                                   className="absolute inset-0 opacity-0 cursor-pointer"
                                   onChange={async (e: any) => {
                                     const f = e.target.files?.[0]; if (!f) return;
-                                    const comp = await imageCompression(f, { maxSizeMB: 0.5, maxWidthOrHeight: 800 });
+                                    const comp = await imageCompression(f, { maxSizeMB: 1, maxWidthOrHeight: 1200 });
                                     const newRows = [...variantsState]
                                     newRows[idx].image = new File([comp], f.name, { type: comp.type })
                                     newRows[idx].preview = URL.createObjectURL(comp)
