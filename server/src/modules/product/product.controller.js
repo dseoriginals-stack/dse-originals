@@ -396,6 +396,8 @@ export const getProductBySlugController = async (req, res) => {
         name: true,
         slug: true,
         description: true,
+        isBestseller: true,
+        isPopular: true,
 
         images: {
           orderBy: { isPrimary: "desc" }

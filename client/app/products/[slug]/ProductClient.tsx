@@ -75,7 +75,7 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
 
         setVariant(firstAvailable)
 
-        setActiveImage(res.images?.[0]?.url ?? "/placeholder.png")
+        setActiveImage(firstAvailable?.image ?? res.images?.[0]?.url ?? "/placeholder.png")
 
         // OPTIONAL: related (only if you have this route)
         try {
@@ -268,9 +268,21 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
         {/* INFO */}
         <div className="bg-[var(--bg-card)] rounded-2xl md:rounded-3xl border border-[var(--border-light)] shadow-lg p-5 md:p-8 space-y-4 md:space-y-6 flex flex-col justify-center">
           <div>
-            <span className="inline-block px-2.5 py-0.5 bg-[var(--brand-soft)]/20 text-[var(--brand-primary)] text-[9px] font-bold uppercase tracking-widest rounded-full mb-2">
-              DSE Premium Collection
-            </span>
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <span className="inline-block px-2.5 py-0.5 bg-[var(--brand-soft)]/20 text-[var(--brand-primary)] text-[9px] font-bold uppercase tracking-widest rounded-full">
+                DSE Premium Collection
+              </span>
+              {product.isBestseller && (
+                <span className="inline-block px-2.5 py-0.5 bg-amber-400 text-[#274C77] text-[9px] font-black uppercase tracking-widest rounded-full shadow-sm animate-pulse-subtle">
+                  ★ BEST SELLER
+                </span>
+              )}
+              {product.isPopular && !product.isBestseller && (
+                <span className="inline-block px-2.5 py-0.5 bg-[var(--brand-accent)] text-white text-[9px] font-black uppercase tracking-widest rounded-full shadow-sm animate-pulse-subtle">
+                  POPULAR
+                </span>
+              )}
+            </div>
             <h1 className="text-2xl md:text-4xl font-extrabold text-[var(--text-heading)] leading-tight tracking-tight">{product.name}</h1>
           </div>
 
@@ -315,14 +327,14 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
 
                 if (match) {
                   setVariant(match)
-                  if (match.image) setActiveImage(match.image)
+                  setActiveImage(match.image || product.images?.[0]?.url || "/placeholder.png")
                 } else {
                   const fallback = product.variants.find(v =>
                     v.attributes.some(a => a.name === name && a.value === value)
                   )
                   if (fallback) {
                     setVariant(fallback)
-                    if (fallback.image) setActiveImage(fallback.image)
+                    setActiveImage(fallback.image || product.images?.[0]?.url || "/placeholder.png")
                   }
                 }
               }
