@@ -38,7 +38,7 @@ import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 import { regions, provinces, cities } from "philippines"
 import toast from "react-hot-toast"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 
 export default function AccountPage() {
   return (
@@ -66,6 +66,7 @@ function AccountContent() {
   const [profileForm, setProfileForm] = useState({ name: "", phone: "" })
   const [savingProfile, setSavingProfile] = useState(false)
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [oauthError, setOauthError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -78,11 +79,9 @@ function AccountContent() {
       setOauthError("Social authentication failed. Please try again.")
     } else if (success) {
       toast.success("Welcome back! Synchronizing profile...")
-      setTimeout(() => {
-        window.location.href = "/"
-      }, 1500)
+      router.push("/")
     }
-  }, [searchParams])
+  }, [searchParams, router])
 
   useEffect(() => {
     if (user) {
@@ -600,6 +599,7 @@ function GuestPortal({ login, oauthError }: any) {
 
 /* LOGIN FORM */
 function AccountLoginForm({ login, oauthError }: any) {
+  const router = useRouter()
   const [form, setForm] = useState({ email: "", password: "" })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(oauthError || null)
@@ -612,7 +612,7 @@ function AccountLoginForm({ login, oauthError }: any) {
     try {
       const res = await login(form.email, form.password)
       if (res.success) {
-        window.location.href = "/"
+        router.push("/")
       } else {
         setError(res.message)
       }
