@@ -28,7 +28,7 @@ const STORE_HOURS = "Mon–Sat, 9 AM – 6 PM"
 
 export default function CheckoutPage() {
   const { cart, selectedItems, removeFromCart } = useCart()
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const itemsToCheckout = cart.filter(item => selectedItems.includes(item.variantId))
 
   const [step, setStep] = useState<Step>(1)
@@ -59,11 +59,15 @@ export default function CheckoutPage() {
   }, [step])
 
   useEffect(() => {
-    if (user) {
-      fetchSavedAddresses()
-      setForm(p => ({ ...p, name: user.name || "", email: user.email || "", phone: user.phone || "" }))
+    if (!authLoading) {
+      if (user) {
+        fetchSavedAddresses()
+        setForm(p => ({ ...p, name: user.name || "", email: user.email || "", phone: user.phone || "" }))
+      } else {
+        setIsInitializing(false)
+      }
     }
-  }, [user])
+  }, [user, authLoading])
 
   async function fetchSavedAddresses() {
     try {

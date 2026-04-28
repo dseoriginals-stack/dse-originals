@@ -320,6 +320,7 @@ export const getProducts = async (req, res) => {
               id: true,
               price: true,
               stock: true,
+              image: true,
               attributes: {
                 select: {
                   name: true,

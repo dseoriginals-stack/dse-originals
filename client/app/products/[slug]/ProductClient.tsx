@@ -231,28 +231,37 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
           </div>
 
           <div className="flex gap-3 mt-4 overflow-x-auto px-1 py-2 custom-scrollbar">
-            {product.images.map((img, i) => {
-              const isActive = activeImage === img.url
+            {(() => {
+              const allImages = [...product.images]
+              product.variants.forEach(v => {
+                if (v.image && !allImages.some(img => img.url === v.image)) {
+                  allImages.push({ url: v.image, isPrimary: false })
+                }
+              })
 
-              return (
-                <button
-                  key={i}
-                  onClick={() => setActiveImage(img.url)}
-                  className={`relative overflow-hidden rounded-xl w-16 h-16 md:w-20 md:h-20 flex-shrink-0 transition-all duration-300 ${isActive
-                    ? "ring-2 ring-[var(--brand-primary)] ring-offset-4 opacity-100 shadow-md scale-95"
-                    : "border border-[var(--border-light)] opacity-50 hover:opacity-100 hover:scale-105"
-                    }`}
-                >
-                  <Image
-                    src={getImageUrl(img.url)}
-                    alt={product.name}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                </button>
-              )
-            })}
+              return allImages.map((img, i) => {
+                const isActive = activeImage === img.url
+
+                return (
+                  <button
+                    key={i}
+                    onClick={() => setActiveImage(img.url)}
+                    className={`relative overflow-hidden rounded-xl w-16 h-16 md:w-20 md:h-20 flex-shrink-0 transition-all duration-300 ${isActive
+                      ? "ring-2 ring-[var(--brand-primary)] ring-offset-4 opacity-100 shadow-md scale-95"
+                      : "border border-[var(--border-light)] opacity-50 hover:opacity-100 hover:scale-105"
+                      }`}
+                  >
+                    <Image
+                      src={getImageUrl(img.url)}
+                      alt={product.name}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  </button>
+                )
+              })
+            })()}
           </div>
         </div>
 

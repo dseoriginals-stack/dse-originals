@@ -181,9 +181,7 @@ export const createOrder = async (req, res, next) => {
           variantId: variant.id,
           productName: variant.product.name,
           quantity: quantity,
-          price: standardPrice,
-          category: variant.product.category,
-          attributes: variant.attributes
+          price: standardPrice
         })
       }
 
