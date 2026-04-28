@@ -71,9 +71,10 @@ export default function ProductModal({
     }
   }
 
-  const imageUrl = product.image
-    ? getImageUrl(product.image)
-    : "/placeholder.png"
+  const fallbackImage = product.image || product.variants?.find(v => v.image)?.image || "/placeholder.png"
+  const imageUrl = selectedVariant?.image
+    ? getImageUrl(selectedVariant.image)
+    : getImageUrl(fallbackImage)
 
   // ✅ Lock scroll
   useEffect(() => {
