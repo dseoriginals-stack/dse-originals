@@ -53,12 +53,11 @@ export default function AdminProducts() {
   const [showModal, setShowModal] = useState(false)
   const [showScanner, setShowScanner] = useState(false)
   const [variantType, setVariantType] = useState<"size" | "volume">("size")
-
-  const [variantOptions, setVariantOptions] = useState<string[]>(["M"])
-
-  const [variantData, setVariantData] = useState<Record<string, { price: string; stock: string; image?: File | null; preview?: string | null }>>({
-    M: { price: "", stock: "", image: null, preview: null },
-  })
+  
+  type VariantRow = { id: string; value: string; price: string; stock: string; image?: File | null; preview?: string | null }
+  const [variantsState, setVariantsState] = useState<VariantRow[]>([
+    { id: "1", value: "M", price: "", stock: "", image: null, preview: null }
+  ])
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -154,13 +153,13 @@ export default function AdminProducts() {
       formData.append("name", form.name)
       formData.append("description", form.description)
       formData.append("categoryId", form.categoryId)
-      const variants = variantOptions.map((opt) => ({
-        price: Number(variantData[opt]?.price || form.price),
-        stock: Number(variantData[opt]?.stock || form.stock),
+      const variants = variantsState.map((row) => ({
+        price: Number(row.price || form.price),
+        stock: Number(row.stock || form.stock),
         attributes: [
           {
             name: variantType === "size" ? "Size" : "Volume",
-            value: opt,
+            value: row.value,
           },
         ],
       }))
@@ -171,9 +170,9 @@ export default function AdminProducts() {
       if (form.image) formData.append("image", form.image)
 
       // ✅ ADD VARIANT IMAGES
-      variantOptions.forEach((opt, idx) => {
-        if (variantData[opt]?.image) {
-          formData.append(`variant_image_${idx}`, variantData[opt].image!)
+      variantsState.forEach((row, idx) => {
+        if (row.image) {
+          formData.append(`variant_image_${idx}`, row.image)
         }
       })
 
@@ -214,22 +213,17 @@ export default function AdminProducts() {
 
       setVariantType(firstAttrName.toLowerCase() === "volume" ? "volume" : "size")
 
-      const options = product.variants.map((v: any) => v.attributes?.[0]?.value).filter(Boolean)
-      setVariantOptions(options)
-
-      const mapped: Record<string, { price: string; stock: string; preview?: string | null }> = {}
-      product.variants.forEach((v: any) => {
-        const key = v.attributes?.[0]?.value
-        if (key) {
-          mapped[key] = {
-            price: String(v.price ?? ""),
-            stock: String(v.stock ?? ""),
-            preview: v.image || null
-          }
-        }
-      })
-
-      setVariantData(mapped as any)
+      const mapped: VariantRow[] = product.variants.map((v: any, idx: number) => ({
+        id: String(idx),
+        value: v.attributes?.[0]?.value || "",
+        price: String(v.price ?? ""),
+        stock: String(v.stock ?? ""),
+        preview: v.image || null,
+        image: null
+      }))
+      setVariantsState(mapped)
+    } else {
+      setVariantsState([])
     }
 
     setPreview(product.image || null)
@@ -240,6 +234,7 @@ export default function AdminProducts() {
     setEditing(null)
     setShowModal(false)
     setPreview(null)
+    setVariantsState([{ id: "1", value: "M", price: "", stock: "", image: null, preview: null }])
     setForm({ name: "", description: "", categoryId: "", price: "", stock: "", isBestseller: false, isPopular: false, image: null })
   }
 
@@ -390,7 +385,30 @@ export default function AdminProducts() {
                     <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Category <span className="text-red-500">*</span></label>
                     <select
                       value={form.categoryId}
-                      onChange={(e: any) => setForm({ ...form, categoryId: e.target.value })}
+                      onChange={(e: any) => {
+                        const selectedId = e.target.value
+                        setForm({ ...form, categoryId: selectedId })
+                        
+                        const selectedCat = categories.find(c => c.id === selectedId)
+                        if (selectedCat && !editing) {
+                          const catName = selectedCat.name.toLowerCase()
+                          if (catName.includes('perfume')) {
+                            setVariantType('volume')
+                            setVariantsState([
+                              { id: "1", value: "30ml", price: form.price, stock: form.stock, image: null, preview: null },
+                              { id: "2", value: "55ml", price: form.price, stock: form.stock, image: null, preview: null }
+                            ])
+                          } else if (catName.includes('apparel') || catName.includes('clothing')) {
+                            setVariantType('size')
+                            setVariantsState([
+                              { id: "1", value: "S", price: form.price, stock: form.stock, image: null, preview: null },
+                              { id: "2", value: "M", price: form.price, stock: form.stock, image: null, preview: null },
+                              { id: "3", value: "L", price: form.price, stock: form.stock, image: null, preview: null },
+                              { id: "4", value: "XL", price: form.price, stock: form.stock, image: null, preview: null }
+                            ])
+                          }
+                        }
+                      }}
                       className="w-full px-5 py-3 bg-white border border-[var(--border-light)] rounded-xl focus:ring-2 focus:ring-[var(--brand-primary)] focus:outline-none font-bold text-sm"
                     >
                       <option value="">Select category</option>
@@ -417,9 +435,7 @@ export default function AdminProducts() {
                   <button 
                     type="button"
                     onClick={() => {
-                      const next = variantOptions.length === 0 ? "M" : `Option ${variantOptions.length + 1}`
-                      setVariantOptions([...variantOptions, next])
-                      setVariantData({...variantData, [next]: { price: form.price, stock: "0", image: null, preview: null }})
+                      setVariantsState(prev => [...prev, { id: Date.now().toString(), value: "", price: form.price, stock: form.stock, image: null, preview: null }])
                     }}
                     className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[var(--border-light)] text-[11px] font-black uppercase tracking-widest hover:bg-gray-50 transition"
                   >
@@ -439,38 +455,41 @@ export default function AdminProducts() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                      {variantOptions.map((opt, idx) => (
-                        <tr key={opt} className="group hover:bg-gray-50/50 transition">
+                      {variantsState.map((row, idx) => (
+                        <tr key={row.id} className="group hover:bg-gray-50/50 transition">
                           <td className="py-4 relative">
-                            <div className="absolute left-0 top-1/2 -translate-y-1/2 flex flex-col gap-0.5 opacity-20">
-                              <div className="grid grid-cols-2 gap-0.5">
-                                <div className="w-1 h-1 rounded-full bg-gray-900" />
-                                <div className="w-1 h-1 rounded-full bg-gray-900" />
-                              </div>
-                              <div className="grid grid-cols-2 gap-0.5">
-                                <div className="w-1 h-1 rounded-full bg-gray-900" />
-                                <div className="w-1 h-1 rounded-full bg-gray-900" />
-                              </div>
-                              <div className="grid grid-cols-2 gap-0.5">
-                                <div className="w-1 h-1 rounded-full bg-gray-900" />
-                                <div className="w-1 h-1 rounded-full bg-gray-900" />
-                              </div>
-                            </div>
-                            <div className="flex gap-2 pl-12 pr-4">
-                              <select className="bg-white border border-[var(--border-light)] rounded-lg px-3 py-2 text-sm font-bold w-full focus:outline-none focus:ring-1 focus:ring-[var(--brand-primary)]">
-                                <option>{variantType === 'size' ? 'Size' : 'Volume'}</option>
+                            <div className="flex gap-2 pl-4 pr-4">
+                              <select 
+                                value={variantType}
+                                onChange={(e: any) => setVariantType(e.target.value)}
+                                className="bg-white border border-[var(--border-light)] rounded-lg px-3 py-2 text-sm font-bold w-1/3 focus:outline-none focus:ring-1 focus:ring-[var(--brand-primary)]"
+                              >
+                                <option value="size">Size</option>
+                                <option value="volume">Volume</option>
                               </select>
-                              <select className="bg-white border border-[var(--border-light)] rounded-lg px-3 py-2 text-sm font-bold w-full focus:outline-none focus:ring-1 focus:ring-[var(--brand-primary)]" value={opt}>
-                                <option value={opt}>{opt}</option>
-                              </select>
+                              <input 
+                                type="text"
+                                placeholder={variantType === 'size' ? "e.g. M, L" : "e.g. 30ml"}
+                                value={row.value}
+                                onChange={(e) => {
+                                  const newRows = [...variantsState]
+                                  newRows[idx].value = e.target.value
+                                  setVariantsState(newRows)
+                                }}
+                                className="bg-white border border-[var(--border-light)] rounded-lg px-3 py-2 text-sm font-bold w-full focus:outline-none focus:ring-1 focus:ring-[var(--brand-primary)]"
+                              />
                             </div>
                           </td>
                           <td className="py-4">
                             <input 
                               type="number"
                               placeholder="₱ 0.00"
-                              value={variantData[opt]?.price || ""}
-                              onChange={(e) => setVariantData({...variantData, [opt]: { ...variantData[opt], price: e.target.value }})}
+                              value={row.price}
+                              onChange={(e) => {
+                                const newRows = [...variantsState]
+                                newRows[idx].price = e.target.value
+                                setVariantsState(newRows)
+                              }}
                               className="w-32 bg-white border border-[var(--border-light)] rounded-lg px-3 py-2 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-[var(--brand-primary)]"
                             />
                           </td>
@@ -478,16 +497,20 @@ export default function AdminProducts() {
                             <input 
                               type="number"
                               placeholder="0"
-                              value={variantData[opt]?.stock || ""}
-                              onChange={(e) => setVariantData({...variantData, [opt]: { ...variantData[opt], stock: e.target.value }})}
+                              value={row.stock}
+                              onChange={(e) => {
+                                const newRows = [...variantsState]
+                                newRows[idx].stock = e.target.value
+                                setVariantsState(newRows)
+                              }}
                               className="w-24 bg-white border border-[var(--border-light)] rounded-lg px-3 py-2 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-[var(--brand-primary)]"
                             />
                           </td>
                           <td className="py-4">
                             <div className="flex items-center gap-2">
-                              {variantData[opt]?.preview ? (
+                              {row.preview ? (
                                 <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-gray-100 shadow-sm">
-                                  <img src={variantData[opt].preview!} className="w-full h-full object-cover" />
+                                  <img src={row.preview} className="w-full h-full object-cover" />
                                 </div>
                               ) : null}
                               <button className="w-10 h-10 rounded-lg border-2 border-dashed border-gray-100 flex items-center justify-center text-gray-300 hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] transition relative overflow-hidden group/vup">
@@ -498,14 +521,10 @@ export default function AdminProducts() {
                                   onChange={async (e: any) => {
                                     const f = e.target.files?.[0]; if (!f) return;
                                     const comp = await imageCompression(f, { maxSizeMB: 0.5, maxWidthOrHeight: 800 });
-                                    setVariantData(prev => ({
-                                      ...prev,
-                                      [opt]: { 
-                                        ...prev[opt], 
-                                        image: new File([comp], f.name, { type: comp.type }),
-                                        preview: URL.createObjectURL(comp)
-                                      }
-                                    }))
+                                    const newRows = [...variantsState]
+                                    newRows[idx].image = new File([comp], f.name, { type: comp.type })
+                                    newRows[idx].preview = URL.createObjectURL(comp)
+                                    setVariantsState(newRows)
                                   }}
                                 />
                               </button>
@@ -513,7 +532,9 @@ export default function AdminProducts() {
                           </td>
                           <td className="py-4 pr-4">
                             <button 
-                              onClick={() => setVariantOptions(prev => prev.filter(o => o !== opt))}
+                              onClick={() => {
+                                setVariantsState(prev => prev.filter(r => r.id !== row.id))
+                              }}
                               className="p-2 text-gray-300 hover:text-red-400 transition opacity-0 group-hover:opacity-100"
                             >
                               <Trash2 size={16} />
@@ -528,9 +549,7 @@ export default function AdminProducts() {
                 <button 
                   type="button"
                   onClick={() => {
-                    const next = `Option ${variantOptions.length + 1}`
-                    setVariantOptions([...variantOptions, next])
-                    setVariantData({...variantData, [next]: { price: form.price, stock: "0", image: null, preview: null }})
+                    setVariantsState(prev => [...prev, { id: Date.now().toString(), value: "", price: form.price, stock: form.stock, image: null, preview: null }])
                   }}
                   className="mt-6 flex items-center gap-2 text-xs font-black text-[var(--brand-primary)] uppercase tracking-widest hover:opacity-70 transition"
                 >
@@ -630,12 +649,23 @@ export default function AdminProducts() {
                 </div>
 
                 <div className="flex flex-wrap gap-3">
-                  {variantOptions.map((opt) => variantData[opt]?.preview && (
-                    <div key={opt} className="relative group">
+                  {variantsState.map((row) => row.preview && (
+                    <div key={row.id} className="relative group">
                       <div className="w-16 h-16 rounded-xl border border-[#EBE9FE] overflow-hidden shadow-sm">
-                        <img src={variantData[opt].preview!} className="w-full h-full object-cover" />
+                        <img src={row.preview} className="w-full h-full object-cover" />
                       </div>
-                      <button className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 shadow-sm opacity-0 group-hover:opacity-100 transition">
+                      <button 
+                        onClick={() => {
+                          const newRows = [...variantsState]
+                          const idx = newRows.findIndex(r => r.id === row.id)
+                          if (idx >= 0) {
+                            newRows[idx].image = null
+                            newRows[idx].preview = null
+                            setVariantsState(newRows)
+                          }
+                        }}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 shadow-sm opacity-0 group-hover:opacity-100 transition"
+                      >
                         <X size={10} />
                       </button>
                     </div>
