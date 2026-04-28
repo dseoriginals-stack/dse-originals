@@ -37,11 +37,7 @@ export default function FloatingChat() {
   ]
 
   return (
-    <div
-      className="fixed bottom-8 right-8 z-[9999]"
-      onMouseEnter={() => setIsOpen(true)}
-      onMouseLeave={() => setIsOpen(false)}
-    >
+    <div className="fixed bottom-8 right-8 z-[9999]">
       <div className="flex flex-col items-end gap-3 px-2 pb-2">
         <AnimatePresence>
           {isOpen && (
@@ -85,6 +81,7 @@ export default function FloatingChat() {
         </AnimatePresence>
 
         <motion.div
+          onClick={() => setIsOpen(!isOpen)}
           animate={{
             rotate: isOpen ? 90 : 0,
             scale: isOpen ? 1.1 : 1
