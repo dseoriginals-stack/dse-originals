@@ -86,7 +86,7 @@ export default function RecentPurchasePopup() {
           {/* Product Thumbnail */}
           <div className="relative w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200 ring-4 ring-white/20">
             <Image 
-              src={getImageUrl(current.images?.[0]?.url || current.image)} 
+              src={getImageUrl(current.images?.[0]?.url || current.image || current.variants?.find((v: any) => v.image)?.image || "/placeholder.png")} 
               alt={current.name} 
               fill 
               className="object-cover transition-transform group-hover:scale-110 duration-700"

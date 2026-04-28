@@ -161,7 +161,7 @@ export default function SearchOverlay({ isOpen, onClose }: { isOpen: boolean; on
                         >
                           <div className="w-20 h-20 relative rounded-2xl overflow-hidden flex-shrink-0 bg-gray-100">
                             <Image 
-                              src={s.image || "/placeholder.png"} 
+                              src={s.image || s.variants?.find((v: any) => v.image)?.image || "/placeholder.png"}
                               alt={s.title} 
                               fill 
                               className="object-cover group-hover:scale-110 transition-transform duration-500"
