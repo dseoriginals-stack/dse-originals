@@ -184,10 +184,10 @@ export default function ProductCard({
                       return true
                     })
                     .sort((a, b) => {
-                      const sizeOrder = ["XS", "S", "M", "L", "XL", "2XL", "3XL"]
+                      const sizeOrder = ["xs", "s", "m", "l", "xl", "2xl", "3xl"]
                       const volOrder = ["55ml", "30ml"]
 
-                      const getVal = (v: any) => v.attributes?.find((at: any) => at.name.toLowerCase() === "size" || at.name.toLowerCase() === "volume")?.value || v.attributes?.[0]?.value || ""
+                      const getVal = (v: any) => v.attributes?.find((at: any) => at.name.toLowerCase() === "size" || at.name.toLowerCase() === "volume")?.value?.toLowerCase() || v.attributes?.[0]?.value?.toLowerCase() || ""
                       const valA = getVal(a)
                       const valB = getVal(b)
 

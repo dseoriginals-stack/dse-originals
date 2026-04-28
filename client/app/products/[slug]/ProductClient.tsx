@@ -68,6 +68,18 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
 
         if (!res) throw new Error("Product not found")
 
+        // Sort variants so 55ml comes before 30ml
+        if (res.variants) {
+          res.variants.sort((a, b) => {
+            const aVol = a.attributes?.find(at => at.name.toLowerCase() === "volume" || at.name.toLowerCase() === "size")?.value?.toLowerCase() || ""
+            const bVol = b.attributes?.find(at => at.name.toLowerCase() === "volume" || at.name.toLowerCase() === "size")?.value?.toLowerCase() || ""
+            
+            if (aVol.includes("55ml") && bVol.includes("30ml")) return -1
+            if (aVol.includes("30ml") && bVol.includes("55ml")) return 1
+            return 0
+          })
+        }
+
         setProduct(res)
 
         const firstAvailable =
