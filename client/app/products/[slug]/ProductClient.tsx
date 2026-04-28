@@ -370,7 +370,7 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                           key={val}
                           disabled={isOut}
                           onClick={() => handleAttrClick(name, val)}
-                          className={`px-4 py-2 rounded-2xl text-[10px] font-black tracking-widest uppercase transition-all duration-300 border-2 ${isOut
+                          className={`px-6 py-3.5 md:px-5 md:py-2 rounded-2xl text-[11px] md:text-[10px] font-black tracking-widest uppercase transition-all duration-300 border-2 ${isOut
                             ? "opacity-30 bg-gray-50 border-gray-100 line-through cursor-not-allowed"
                             : isActive
                               ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-[0_8px_20px_rgba(39,76,119,0.25)] scale-[1.05]"

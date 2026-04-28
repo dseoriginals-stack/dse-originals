@@ -192,7 +192,7 @@ export default function ProductModal({
                           disabled={isUnavailable}
                           onClick={() => handleAttributeClick(name, val)}
                           className={`
-                            px-6 py-3 rounded-2xl text-[11px] font-bold transition-all duration-300 border-2
+                            px-7 py-4 md:px-6 md:py-3 rounded-2xl text-[12px] md:text-[11px] font-bold transition-all duration-300 border-2
                             ${isUnavailable 
                               ? "opacity-20 cursor-not-allowed line-through bg-gray-50 border-gray-100" 
                               : isActive

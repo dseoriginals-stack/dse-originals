@@ -210,7 +210,7 @@ export default function ProductCard({
                             e.stopPropagation()
                             setActiveVariant(v)
                           }}
-                          className={`text-[8px] font-black px-1.5 py-0.5 rounded-md border transition-all ${isActive
+                          className={`text-[10px] md:text-[8px] font-black px-3 py-1.5 md:px-1.5 md:py-0.5 rounded-md border transition-all ${isActive
                             ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white shadow-sm'
                             : 'bg-white/50 border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)]'
                             }`}
