@@ -144,8 +144,8 @@ export default function AdminProducts() {
   async function handleSubmit() {
     try {
       setSaving(true)
-      if (!form.name || !form.categoryId || !form.price || !form.stock) {
-        toast.error("All core fields are required")
+      if (!form.name || !form.categoryId) {
+        toast.error("Name and Category are required")
         return
       }
 
