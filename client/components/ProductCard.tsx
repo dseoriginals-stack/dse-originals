@@ -41,9 +41,10 @@ export default function ProductCard({
 
   const currentPrice = getDisplayPrice(activeVariant)
 
-  const imageUrl = activeVariant?.image || product.image
-    ? getImageUrl(activeVariant?.image || product.image || "/placeholder.png")
-    : "/placeholder.png"
+  const fallbackImage = product.image || product.variants?.find(v => v.image)?.image || "/placeholder.png"
+  const imageUrl = activeVariant?.image
+    ? getImageUrl(activeVariant.image)
+    : getImageUrl(fallbackImage)
 
   // prevent broken data
   if (!product.slug) return null

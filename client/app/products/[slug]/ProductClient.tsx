@@ -87,7 +87,8 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
 
         setVariant(firstAvailable)
 
-        setActiveImage(firstAvailable?.image ?? res.images?.[0]?.url ?? "/placeholder.png")
+        const fallbackImage = res.images?.[0]?.url || res.variants.find(v => v.image)?.image || "/placeholder.png"
+        setActiveImage(firstAvailable?.image || fallbackImage)
 
         // OPTIONAL: related (only if you have this route)
         try {
@@ -337,16 +338,18 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                   v.attributes.every(a => next[a.name] === a.value)
                 )
 
+                const fallbackImage = product.images?.[0]?.url || product.variants.find(v => v.image)?.image || "/placeholder.png"
+
                 if (match) {
                   setVariant(match)
-                  setActiveImage(match.image || product.images?.[0]?.url || "/placeholder.png")
+                  setActiveImage(match.image || fallbackImage)
                 } else {
                   const fallback = product.variants.find(v =>
                     v.attributes.some(a => a.name === name && a.value === value)
                   )
                   if (fallback) {
                     setVariant(fallback)
-                    setActiveImage(fallback.image || product.images?.[0]?.url || "/placeholder.png")
+                    setActiveImage(fallback.image || fallbackImage)
                   }
                 }
               }
