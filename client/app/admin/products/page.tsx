@@ -52,7 +52,7 @@ export default function AdminProducts() {
   const [editing, setEditing] = useState<Product | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showScanner, setShowScanner] = useState(false)
-  const [variantType, setVariantType] = useState<"size" | "volume">("size")
+  const [variantType, setVariantType] = useState<"size" | "volume" | "color_size">("size")
   
   type VariantRow = { id: string; value: string; price: string; stock: string; image?: File | null; preview?: string | null }
   const [variantsState, setVariantsState] = useState<VariantRow[]>([
@@ -160,7 +160,7 @@ export default function AdminProducts() {
         preview: row.preview || null,
         attributes: [
           {
-            name: variantType === "size" ? "Size" : "Volume",
+            name: variantType === "size" ? "Size" : variantType === "volume" ? "Volume" : "Color / Size",
             value: row.value,
           },
         ],
@@ -404,12 +404,16 @@ export default function AdminProducts() {
                                 { id: "2", value: "30ml", price: "", stock: "0", image: null, preview: null }
                               ])
                             } else if (catName.includes('apparel') || catName.includes('clothing')) {
-                              setVariantType('size')
+                              setVariantType('color_size')
                               setVariantsState([
-                                { id: "1", value: "S", price: "", stock: "0", image: null, preview: null },
-                                { id: "2", value: "M", price: "", stock: "0", image: null, preview: null },
-                                { id: "3", value: "L", price: "", stock: "0", image: null, preview: null },
-                                { id: "4", value: "XL", price: "", stock: "0", image: null, preview: null }
+                                { id: "1", value: "Black - S", price: "", stock: "0", image: null, preview: null },
+                                { id: "2", value: "Black - M", price: "", stock: "0", image: null, preview: null },
+                                { id: "3", value: "Black - L", price: "", stock: "0", image: null, preview: null },
+                                { id: "4", value: "Black - XL", price: "", stock: "0", image: null, preview: null },
+                                { id: "5", value: "White - S", price: "", stock: "0", image: null, preview: null },
+                                { id: "6", value: "White - M", price: "", stock: "0", image: null, preview: null },
+                                { id: "7", value: "White - L", price: "", stock: "0", image: null, preview: null },
+                                { id: "8", value: "White - XL", price: "", stock: "0", image: null, preview: null }
                               ])
                             }
                           }
@@ -472,10 +476,11 @@ export default function AdminProducts() {
                               >
                                 <option value="size">Size</option>
                                 <option value="volume">Volume</option>
+                                <option value="color_size">Color/Size</option>
                               </select>
                               <input 
                                 type="text"
-                                placeholder={variantType === 'size' ? "e.g. M, L" : "e.g. 30ml"}
+                                placeholder={variantType === 'size' ? "e.g. M, L" : variantType === 'volume' ? "e.g. 30ml" : "e.g. Black - M"}
                                 value={row.value}
                                 onChange={(e) => {
                                   const newRows = [...variantsState]
