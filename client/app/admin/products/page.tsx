@@ -154,7 +154,7 @@ export default function AdminProducts() {
       formData.append("description", form.description)
       formData.append("categoryId", form.categoryId)
       const variants = variantsState.map((row) => ({
-        id: row.id.includes('-') ? row.id : undefined,
+        id: row.id.length > 15 ? row.id : undefined,
         price: Number(row.price || form.price),
         stock: Number(row.stock || form.stock),
         preview: row.preview || null,
@@ -394,20 +394,24 @@ export default function AdminProducts() {
                         const selectedCat = categories.find(c => c.id === selectedId)
                         if (selectedCat && !editing) {
                           const catName = selectedCat.name.toLowerCase()
-                          if (catName.includes('perfume')) {
-                            setVariantType('volume')
-                            setVariantsState([
-                              { id: "1", value: "30ml", price: "", stock: "0", image: null, preview: null },
-                              { id: "2", value: "55ml", price: "", stock: "0", image: null, preview: null }
-                            ])
-                          } else if (catName.includes('apparel') || catName.includes('clothing')) {
-                            setVariantType('size')
-                            setVariantsState([
-                              { id: "1", value: "S", price: "", stock: "0", image: null, preview: null },
-                              { id: "2", value: "M", price: "", stock: "0", image: null, preview: null },
-                              { id: "3", value: "L", price: "", stock: "0", image: null, preview: null },
-                              { id: "4", value: "XL", price: "", stock: "0", image: null, preview: null }
-                            ])
+                          const isPristine = variantsState.length === 1 && !variantsState[0].value && !variantsState[0].price && !variantsState[0].preview
+                          
+                          if (isPristine) {
+                            if (catName.includes('perfume')) {
+                              setVariantType('volume')
+                              setVariantsState([
+                                { id: "1", value: "55ml", price: "", stock: "0", image: null, preview: null },
+                                { id: "2", value: "30ml", price: "", stock: "0", image: null, preview: null }
+                              ])
+                            } else if (catName.includes('apparel') || catName.includes('clothing')) {
+                              setVariantType('size')
+                              setVariantsState([
+                                { id: "1", value: "S", price: "", stock: "0", image: null, preview: null },
+                                { id: "2", value: "M", price: "", stock: "0", image: null, preview: null },
+                                { id: "3", value: "L", price: "", stock: "0", image: null, preview: null },
+                                { id: "4", value: "XL", price: "", stock: "0", image: null, preview: null }
+                              ])
+                            }
                           }
                         }
                       }}
