@@ -416,7 +416,7 @@ export const getProductBySlugController = async (req, res) => {
         },
 
         category: {
-          select: { id: true, name: true }
+          select: { id: true, name: true, slug: true }
         }
       }
     })
@@ -425,9 +425,15 @@ export const getProductBySlugController = async (req, res) => {
       return res.status(404).json({ message: "Product not found" })
     }
 
-    await setCache(cacheKey, product, 180)
+    const formattedProduct = {
+      ...product,
+      category: product.category ? product.category.slug : null,
+      categoryId: product.category ? product.category.id : null
+    }
 
-    res.json(product)
+    await setCache(cacheKey, formattedProduct, 180)
+
+    res.json(formattedProduct)
   } catch (err) {
     console.error("❌ GET PRODUCT ERROR:", err)
     res.status(500).json({ error: err.message })

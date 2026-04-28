@@ -71,8 +71,8 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
         // Sort variants so 55ml comes before 30ml
         if (res.variants) {
           res.variants.sort((a, b) => {
-            const aVol = a.attributes?.find(at => at.name.toLowerCase() === "volume" || at.name.toLowerCase() === "size")?.value?.toLowerCase() || ""
-            const bVol = b.attributes?.find(at => at.name.toLowerCase() === "volume" || at.name.toLowerCase() === "size")?.value?.toLowerCase() || ""
+            const aVol = a.attributes?.find(at => String(at.name || "").toLowerCase() === "volume" || String(at.name || "").toLowerCase() === "size")?.value?.toLowerCase() || ""
+            const bVol = b.attributes?.find(at => String(at.name || "").toLowerCase() === "volume" || String(at.name || "").toLowerCase() === "size")?.value?.toLowerCase() || ""
             
             if (aVol.includes("55ml") && bVol.includes("30ml")) return -1
             if (aVol.includes("30ml") && bVol.includes("55ml")) return 1
@@ -196,7 +196,7 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
   // ✅ CUSTOM PRICE LOGIC (Standardized for Perfumes)
   const getDisplayPrice = () => {
     if (!variant) return 0
-    const attrValues = (variant.attributes || []).map((a) => (a.value || "").toLowerCase())
+    const attrValues = (variant.attributes || []).map((a) => String(a.value || "").toLowerCase())
     
     if (attrValues.some(v => v.includes("55ml"))) return 349
     if (attrValues.some(v => v.includes("30ml"))) return 249
@@ -387,7 +387,7 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
             })()}
 
             {/* APPAREL STANDARD SIZES REFERENCE */}
-            {(product.category?.toLowerCase().includes("apparel") || product.category?.toLowerCase().includes("clothing")) && (
+            {(String(product.category || "").toLowerCase().includes("apparel") || String(product.category || "").toLowerCase().includes("clothing")) && (
               <div className="space-y-4 pt-4 border-t border-[var(--border-light)]">
                 <h3 className="text-[10px] font-bold text-[var(--text-heading)] uppercase tracking-[0.2em]">Standard Fit Sizes</h3>
                 <div className="flex gap-3 flex-wrap">
