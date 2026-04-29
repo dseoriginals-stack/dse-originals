@@ -365,11 +365,6 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                 selections[a.name] = a.value
               })
 
-              const selections: Record<string, string> = {}
-              variant?.attributes.forEach(a => {
-                selections[a.name] = a.value
-              })
-
               const handleAttrClick = (name: string, value: string) => {
                 const next = { ...selections, [name]: value }
                 
