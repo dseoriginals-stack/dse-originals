@@ -42,14 +42,19 @@ export default function Reviews({ productId }: { productId: string }) {
   const [loading, setLoading] = useState(true)
 
   const fetchReviews = async () => {
-    try {
-      const res = await api.get<ReviewData>(`/reviews/${productId}`)
-      setData(res)
-    } catch (err) {
-      console.error("Failed to fetch reviews:", err)
-    } finally {
-      setLoading(false)
-    }
+      try {
+        const res = await api.get<ReviewData>(`/reviews/${productId}`)
+        // Robust check: Ensure reviews is always an array
+        setData({
+          ...res,
+          reviews: Array.isArray(res?.reviews) ? res.reviews : []
+        })
+        setLoading(false)
+      } catch (err) {
+        console.error("❌ Reviews fetch error:", err)
+        setData((prev) => ({ ...prev, reviews: [] }))
+        setLoading(false)
+      }
   }
 
   useEffect(() => {
