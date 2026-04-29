@@ -54,10 +54,19 @@ export default function AdminProducts() {
   const [showScanner, setShowScanner] = useState(false)
   const [variantType, setVariantType] = useState<"size" | "volume" | "color_size">("size")
   
-  type VariantRow = { id: string; value: string; secondaryValue?: string; price: string; stock: string; image?: File | null; preview?: string | null }
-  const [variantsState, setVariantsState] = useState<VariantRow[]>([
-    { id: "1", value: "M", secondaryValue: "", price: "", stock: "", image: null, preview: null }
-  ])
+  type ProductOption = { name: string; values: string[] }
+  const [options, setOptions] = useState<ProductOption[]>([])
+
+  type VariantRow = { 
+    id: string; 
+    optionValues: Record<string, string>; // Map option name to value
+    price: string; 
+    stock: string; 
+    image?: File | null; 
+    preview?: string | null 
+  }
+  const [variantsState, setVariantsState] = useState<VariantRow[]>([])
+  
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -153,26 +162,13 @@ export default function AdminProducts() {
       formData.append("name", form.name)
       formData.append("description", form.description)
       formData.append("categoryId", form.categoryId)
-      const variants = variantsState.map((row) => {
-        const attributes = []
-        if (variantType === "color_size") {
-          attributes.push({ name: "Color", value: row.value })
-          attributes.push({ name: "Size", value: row.secondaryValue || "" })
-        } else {
-          attributes.push({
-            name: variantType === "size" ? "Size" : "Volume",
-            value: row.value,
-          })
-        }
-
-        return {
-          id: row.id.length > 15 ? row.id : undefined,
-          price: Number(row.price || form.price),
-          stock: Number(row.stock || form.stock),
-          preview: row.preview || null,
-          attributes
-        }
-      })
+      const variants = variantsState.map((row) => ({
+        id: row.id.length > 15 ? row.id : undefined,
+        price: Number(row.price || form.price),
+        stock: Number(row.stock || form.stock),
+        preview: row.preview || null,
+        attributes: Object.entries(row.optionValues).map(([name, value]) => ({ name, value }))
+      }))
 
       formData.append("variants", JSON.stringify(variants))
       formData.append("isBestseller", String(form.isBestseller))
@@ -218,25 +214,30 @@ export default function AdminProducts() {
     })
 
     if (product.variants?.length) {
-      const v0 = product.variants[0]
-      const hasMultiple = (v0.attributes?.length || 0) > 1
+      // Reverse engineer options from variants
+      const optionMap: Record<string, Set<string>> = {}
+      product.variants.forEach((v: any) => {
+        v.attributes?.forEach((a: any) => {
+          if (!optionMap[a.name]) optionMap[a.name] = new Set()
+          optionMap[a.name].add(a.value)
+        })
+      })
       
-      if (hasMultiple) {
-        setVariantType("color_size")
-      } else {
-        const name0 = v0.attributes?.[0]?.name?.toLowerCase() || ""
-        setVariantType(name0 === "volume" ? "volume" : "size")
-      }
+      const newOptions = Object.entries(optionMap).map(([name, values]) => ({
+        name,
+        values: Array.from(values)
+      }))
+      setOptions(newOptions)
 
       const mapped: VariantRow[] = product.variants.map((v: any) => {
-        const colorAttr = v.attributes?.find((a: any) => a.name === "Color")?.value
-        const sizeAttr = v.attributes?.find((a: any) => a.name === "Size")?.value
-        const singleAttr = v.attributes?.[0]?.value || ""
+        const optionValues: Record<string, string> = {}
+        v.attributes?.forEach((a: any) => {
+          optionValues[a.name] = a.value
+        })
 
         return {
           id: v.id,
-          value: colorAttr || (hasMultiple ? "" : singleAttr),
-          secondaryValue: sizeAttr || "",
+          optionValues,
           price: String(v.price ?? ""),
           stock: String(v.stock ?? ""),
           preview: v.image || null,
@@ -245,6 +246,7 @@ export default function AdminProducts() {
       })
       setVariantsState(mapped)
     } else {
+      setOptions([])
       setVariantsState([])
     }
 
@@ -255,8 +257,8 @@ export default function AdminProducts() {
   function closeModal() {
     setEditing(null)
     setShowModal(false)
-    setPreview(null)
-    setVariantsState([{ id: "1", value: "M", secondaryValue: "", price: "", stock: "", image: null, preview: null }])
+    setOptions([])
+    setVariantsState([])
     setForm({ name: "", description: "", categoryId: "", price: "", stock: "", isBestseller: false, isPopular: false, image: null })
   }
 
@@ -417,28 +419,17 @@ export default function AdminProducts() {
                         if (selectedCat && !editing) {
                           const catName = selectedCat.name.toLowerCase()
                           const isPristine = variantsState.length === 1 && !variantsState[0].value && !variantsState[0].price && !variantsState[0].preview
-                          
-                          if (isPristine) {
+                                                   if (options.length === 0) {
                             if (catName.includes('perfume')) {
-                              setVariantType('volume')
-                              setVariantsState([
-                                { id: "1", value: "55ml", secondaryValue: "", price: "", stock: "0", image: null, preview: null },
-                                { id: "2", value: "30ml", secondaryValue: "", price: "", stock: "0", image: null, preview: null }
-                              ])
+                              setOptions([{ name: "Volume", values: ["55ml", "30ml"] }])
                             } else if (catName.includes('apparel') || catName.includes('clothing')) {
-                              setVariantType('color_size')
-                              setVariantsState([
-                                { id: "1", value: "Black", secondaryValue: "S", price: "", stock: "0", image: null, preview: null },
-                                { id: "2", value: "Black", secondaryValue: "M", price: "", stock: "0", image: null, preview: null },
-                                { id: "3", value: "Black", secondaryValue: "L", price: "", stock: "0", image: null, preview: null },
-                                { id: "4", value: "Black", secondaryValue: "XL", price: "", stock: "0", image: null, preview: null },
-                                { id: "5", value: "White", secondaryValue: "S", price: "", stock: "0", image: null, preview: null },
-                                { id: "6", value: "White", secondaryValue: "M", price: "", stock: "0", image: null, preview: null },
-                                { id: "7", value: "White", secondaryValue: "L", price: "", stock: "0", image: null, preview: null },
-                                { id: "8", value: "White", secondaryValue: "XL", price: "", stock: "0", image: null, preview: null }
+                              setOptions([
+                                { name: "Color", values: ["Black", "White"] },
+                                { name: "Size", values: ["S", "M", "L", "XL"] }
                               ])
                             }
                           }
+}
                         }
                       }}
                       className="w-full px-5 py-3 bg-white border border-[var(--border-light)] rounded-xl focus:ring-2 focus:ring-[var(--brand-primary)] focus:outline-none font-bold text-sm"
@@ -457,78 +448,144 @@ export default function AdminProducts() {
                 </div>
               </div>
 
-              {/* VARIANTS SECTION */}
+              {/* PRODUCT OPTIONS SECTION */}
               <div className="bg-white rounded-3xl border border-[var(--border-light)] p-8 shadow-sm">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="text-sm font-black text-[var(--text-heading)] tracking-tight">Variants</h3>
-                    <p className="text-[11px] text-gray-400 font-medium">Add variants (e.g., size, color) with their own price, stock and images.</p>
+                    <h3 className="text-sm font-black text-[var(--text-heading)] tracking-tight">Product Options</h3>
+                    <p className="text-[11px] text-gray-400 font-medium">Define attributes like Color, Size or Volume. Combinations will be generated below.</p>
                   </div>
                   <button 
                     type="button"
-                    onClick={() => {
-                      setVariantsState(prev => [...prev, { id: Date.now().toString(), value: "", secondaryValue: "", price: "", stock: "0", image: null, preview: null }])
-                    }}
+                    onClick={() => setOptions([...options, { name: "", values: [""] }])}
                     className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[var(--border-light)] text-[11px] font-black uppercase tracking-widest hover:bg-gray-50 transition"
                   >
-                    <Plus size={14} /> Add Variant
+                    <Plus size={14} /> Add Option
                   </button>
+                </div>
+
+                <div className="space-y-6">
+                  {options.map((opt, optIdx) => (
+                    <div key={optIdx} className="p-6 bg-gray-50/50 rounded-2xl border border-gray-100 relative group">
+                      <button 
+                        onClick={() => {
+                          const newOpts = options.filter((_, i) => i !== optIdx)
+                          setOptions(newOpts)
+                        }}
+                        className="absolute top-4 right-4 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"
+                      >
+                        <X size={14} />
+                      </button>
+                      <div className="grid grid-cols-4 gap-6">
+                        <div className="col-span-1">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Option Name</label>
+                          <input 
+                            placeholder="e.g. Color"
+                            value={opt.name}
+                            onChange={(e) => {
+                              const newOpts = [...options]
+                              newOpts[optIdx].name = e.target.value
+                              setOptions(newOpts)
+                            }}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-[var(--brand-primary)] focus:outline-none"
+                          />
+                        </div>
+                        <div className="col-span-3">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Values (comma separated)</label>
+                          <input 
+                            placeholder="e.g. Black, White, Red"
+                            value={opt.values.join(", ")}
+                            onChange={(e) => {
+                              const vals = e.target.value.split(",").map(v => v.trim()).filter(v => v !== "")
+                              const newOpts = [...options]
+                              newOpts[optIdx].values = vals
+                              setOptions(newOpts)
+                            }}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-[var(--brand-primary)] focus:outline-none"
+                          />
+                          <div className="flex flex-wrap gap-1.5 mt-3">
+                            {opt.values.map((v, vIdx) => (
+                              <span key={vIdx} className="px-2.5 py-1 bg-[var(--brand-soft)]/10 text-[var(--brand-primary)] text-[10px] font-black rounded-lg border border-[var(--brand-soft)]/20 uppercase tracking-tighter">
+                                {v}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      // GENERATE COMBINATIONS
+                      if (options.length === 0) return;
+                      
+                      const generate = (index: number, current: Record<string, string>): any[] => {
+                        if (index === options.length) return [current];
+                        const opt = options[index];
+                        const results: any[] = [];
+                        opt.values.forEach(val => {
+                          results.push(...generate(index + 1, { ...current, [opt.name]: val }));
+                        });
+                        return results;
+                      };
+
+                      const combos = generate(0, {});
+                      const newVariants: VariantRow[] = combos.map(combo => {
+                        // Try to find existing variant with same attributes
+                        const existing = variantsState.find(v => 
+                          Object.entries(combo).every(([name, value]) => v.optionValues[name] === value)
+                        );
+                        return existing || {
+                          id: Math.random().toString(36).substr(2, 9),
+                          optionValues: combo,
+                          price: form.price,
+                          stock: form.stock || "0",
+                          image: null,
+                          preview: null
+                        };
+                      });
+                      setVariantsState(newVariants);
+                      toast.success(`${newVariants.length} Combinations Generated`);
+                    }}
+                    className="w-full py-4 bg-[var(--brand-primary)]/5 border-2 border-dashed border-[var(--brand-primary)]/20 rounded-2xl text-[var(--brand-primary)] text-[11px] font-black uppercase tracking-widest hover:bg-[var(--brand-primary)]/10 transition flex items-center justify-center gap-3"
+                  >
+                    <Layers size={18} /> Update & Generate Variants
+                  </button>
+                </div>
+              </div>
+
+              {/* VARIANTS DETAILS SECTION */}
+              <div className="bg-white rounded-3xl border border-[var(--border-light)] p-8 shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <h3 className="text-sm font-black text-[var(--text-heading)] tracking-tight">Variant Matrix</h3>
+                    <p className="text-[11px] text-gray-400 font-medium">Set specific prices, stock and images for each combination.</p>
+                  </div>
                 </div>
 
                 <div className="overflow-x-auto mt-6">
                   <table className="w-full text-left">
                     <thead>
                       <tr className="text-[11px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">
-                        <th className="pb-4 pl-12">{variantType === 'color_size' ? "Color" : "Variant Value"}</th>
-                        {variantType === 'color_size' && <th className="pb-4">Size</th>}
-                        <th className="pb-4">Cost</th>
+                        {options.map(opt => <th key={opt.name} className="pb-4 pl-4">{opt.name}</th>)}
+                        <th className="pb-4">Price</th>
                         <th className="pb-4">Stock</th>
-                        <th className="pb-4">Images</th>
+                        <th className="pb-4">Image</th>
                         <th className="pb-4"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                       {variantsState.map((row, idx) => (
                         <tr key={row.id} className="group hover:bg-gray-50/50 transition">
-                          <td className="py-4 relative">
-                            <div className={`flex ${variantType === 'color_size' ? 'gap-1' : 'gap-2'} pl-4 pr-4`}>
-                              <select 
-                                value={variantType}
-                                onChange={(e: any) => setVariantType(e.target.value)}
-                                className={`bg-white border border-[var(--border-light)] rounded-lg px-2 py-2 text-[11px] font-bold ${variantType === 'color_size' ? 'w-[70px]' : 'w-1/3'} focus:outline-none focus:ring-1 focus:ring-[var(--brand-primary)]`}
-                              >
-                                <option value="size">Size</option>
-                                <option value="volume">Vol</option>
-                                <option value="color_size">C/S</option>
-                              </select>
-                              <input 
-                                type="text"
-                                placeholder={variantType === 'size' ? "M, L" : variantType === 'volume' ? "30ml" : "Color"}
-                                value={row.value}
-                                onChange={(e) => {
-                                  const newRows = [...variantsState]
-                                  newRows[idx].value = e.target.value
-                                  setVariantsState(newRows)
-                                }}
-                                className="bg-white border border-[var(--border-light)] rounded-lg px-3 py-2 text-sm font-bold w-full focus:outline-none focus:ring-1 focus:ring-[var(--brand-primary)]"
-                              />
-                            </div>
-                          </td>
-                          {variantType === 'color_size' && (
-                            <td className="py-4">
-                              <input 
-                                type="text"
-                                placeholder="Size"
-                                value={row.secondaryValue}
-                                onChange={(e) => {
-                                  const newRows = [...variantsState]
-                                  newRows[idx].secondaryValue = e.target.value
-                                  setVariantsState(newRows)
-                                }}
-                                className="w-20 bg-white border border-[var(--border-light)] rounded-lg px-3 py-2 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-[var(--brand-primary)]"
-                              />
+                          {options.map(opt => (
+                            <td key={opt.name} className="py-4 pl-4">
+                              <span className="px-3 py-1.5 bg-gray-100 rounded-lg text-[11px] font-bold text-gray-600 uppercase tracking-tighter">
+                                {row.optionValues[opt.name]}
+                              </span>
                             </td>
-                          )}
+                          ))}
                           <td className="py-4">
                             <input 
                               type="number"
@@ -539,7 +596,7 @@ export default function AdminProducts() {
                                 newRows[idx].price = e.target.value
                                 setVariantsState(newRows)
                               }}
-                              className="w-32 bg-white border border-[var(--border-light)] rounded-lg px-3 py-2 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-[var(--brand-primary)]"
+                              className="w-28 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-[var(--brand-primary)]"
                             />
                           </td>
                           <td className="py-4">
@@ -552,7 +609,7 @@ export default function AdminProducts() {
                                 newRows[idx].stock = e.target.value
                                 setVariantsState(newRows)
                               }}
-                              className="w-24 bg-white border border-[var(--border-light)] rounded-lg px-3 py-2 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-[var(--brand-primary)]"
+                              className="w-20 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-[var(--brand-primary)]"
                             />
                           </td>
                           <td className="py-4">
@@ -579,12 +636,12 @@ export default function AdminProducts() {
                               </button>
                             </div>
                           </td>
-                          <td className="py-4 pr-4">
+                          <td className="py-4 pr-4 text-right">
                             <button 
                               onClick={() => {
                                 setVariantsState(prev => prev.filter(r => r.id !== row.id))
                               }}
-                              className="p-2 text-gray-300 hover:text-red-400 transition opacity-0 group-hover:opacity-100"
+                              className="p-2 text-gray-300 hover:text-red-400 transition"
                             >
                               <Trash2 size={16} />
                             </button>
@@ -594,16 +651,6 @@ export default function AdminProducts() {
                     </tbody>
                   </table>
                 </div>
-
-                <button 
-                  type="button"
-                  onClick={() => {
-                    setVariantsState(prev => [...prev, { id: Date.now().toString(), value: "", secondaryValue: "", price: "", stock: "0", image: null, preview: null }])
-                  }}
-                  className="mt-6 flex items-center gap-2 text-xs font-black text-[var(--brand-primary)] uppercase tracking-widest hover:opacity-70 transition"
-                >
-                  <Plus size={14} className="bg-[var(--brand-soft)] text-white rounded-full p-0.5" /> Add Another Variant
-                </button>
               </div>
             </div>
 
