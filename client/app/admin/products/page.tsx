@@ -416,9 +416,8 @@ export default function AdminProducts() {
                         setForm({ ...form, categoryId: selectedId })
                         
                         const selectedCat = categories.find(c => c.id === selectedId)
-                        if (selectedCat && !editing) {
-                          const catName = selectedCat.name.toLowerCase()
-                          const isPristine = variantsState.length === 1 && !variantsState[0].value && !variantsState[0].price && !variantsState[0].preview
+                          if (selectedCat && !editing) {
+                            const catName = selectedCat.name.toLowerCase()
                                                    if (options.length === 0) {
                             if (catName.includes('perfume')) {
                               setOptions([{ name: "Volume", values: ["55ml", "30ml"] }])
