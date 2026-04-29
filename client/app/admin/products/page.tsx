@@ -258,8 +258,8 @@ export default function AdminProducts() {
   function closeModal() {
     setEditing(null)
     setShowModal(false)
-    setColorVariants([])
-    setSizeVariants([])
+    setColorInput([])
+    setSizeInput([])
     setForm({ name: "", description: "", categoryId: "", price: "", stock: "", isBestseller: false, isPopular: false, image: null })
   }
 
