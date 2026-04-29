@@ -176,7 +176,7 @@ export default function AdminProducts() {
       if (form.image) formData.append("image", form.image)
 
       // ✅ ADD VARIANT IMAGES
-      variantsState.forEach((row, idx) => {
+      allVariants.forEach((row, idx) => {
         if (row.image) {
           formData.append(`variant_image_${idx}`, row.image)
         }
