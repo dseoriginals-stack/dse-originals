@@ -365,16 +365,30 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                 selections[a.name] = a.value
               })
 
+              const selections: Record<string, string> = {}
+              variant?.attributes.forEach(a => {
+                selections[a.name] = a.value
+              })
+
               const handleAttrClick = (name: string, value: string) => {
-                const match = product.variants.find(v => 
-                  v.attributes.some(a => a.name === name && a.value === value)
+                const next = { ...selections, [name]: value }
+                
+                // 1. Try to find an exact match for the new combination
+                const match = product.variants.find(v =>
+                  v.attributes.every(a => next[a.name] === a.value)
                 )
 
                 if (match) {
                   setVariant(match)
-                  // ✅ UPDATE IMAGE ON COLOR CLICK
-                  if (match.image) {
-                    setActiveImage(match.image)
+                  if (match.image) setActiveImage(match.image)
+                } else {
+                  // 2. If no exact match, find any variant with the clicked attribute
+                  const fallback = product.variants.find(v =>
+                    v.attributes.some(a => a.name === name && a.value === value)
+                  )
+                  if (fallback) {
+                    setVariant(fallback)
+                    if (fallback.image) setActiveImage(fallback.image)
                   }
                 }
               }
@@ -409,8 +423,8 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                     <h3 className="text-[10px] font-bold text-[var(--text-heading)] uppercase tracking-[0.2em]">Select {name}</h3>
                     <div className="flex gap-3 flex-wrap">
                       {displayValues.map((val) => {
-                        const isSelected = variant?.attributes.some(a => a.name === name && a.value === val)
-                        const isOut = !product.variants.find(v => 
+                        const isSelected = selections[name] === val
+                        const isOut = !product.variants.some(v => 
                           v.attributes.some(a => a.name === name && a.value === val) && v.stock > 0
                         )
 

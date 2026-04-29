@@ -56,15 +56,17 @@ export default function AdminProducts() {
   
   type VariantRow = { 
     id: string; 
-    name: string; // The value (e.g. "Black" or "XL")
-    type: "Color" | "Size" | "Volume";
+    optionValues: Record<string, string>; // Map option name to value
     price: string; 
     stock: string; 
     image?: File | null; 
     preview?: string | null 
   }
-  const [colorVariants, setColorVariants] = useState<VariantRow[]>([])
-  const [sizeVariants, setSizeVariants] = useState<VariantRow[]>([])
+  const [variantsState, setVariantsState] = useState<VariantRow[]>([])
+  
+  // Input helpers for the two tables
+  const [colorInput, setColorInput] = useState<any[]>([])
+  const [sizeInput, setSizeInput] = useState<any[]>([])
   
   const [form, setForm] = useState({
     name: "",
@@ -161,13 +163,12 @@ export default function AdminProducts() {
       formData.append("name", form.name)
       formData.append("description", form.description)
       formData.append("categoryId", form.categoryId)
-      const allVariants = [...colorVariants, ...sizeVariants]
-      const variants = allVariants.map((row) => ({
+      const variants = variantsState.map((row) => ({
         id: row.id.length > 15 ? row.id : undefined,
         price: Number(row.price || form.price),
         stock: Number(row.stock || form.stock),
         preview: row.preview || null,
-        attributes: [{ name: row.type, value: row.name }]
+        attributes: Object.entries(row.optionValues).map(([name, value]) => ({ name, value }))
       }))
 
       formData.append("variants", JSON.stringify(variants))
@@ -176,7 +177,7 @@ export default function AdminProducts() {
       if (form.image) formData.append("image", form.image)
 
       // ✅ ADD VARIANT IMAGES
-      allVariants.forEach((row, idx) => {
+      variantsState.forEach((row, idx) => {
         if (row.image) {
           formData.append(`variant_image_${idx}`, row.image)
         }
@@ -214,29 +215,40 @@ export default function AdminProducts() {
     })
 
     if (product.variants?.length) {
-      const colors: VariantRow[] = []
-      const sizes: VariantRow[] = []
-
+      // Extract unique colors and sizes for the input tables
+      const colors = new Set<string>()
+      const sizes = new Set<string>()
+      
       product.variants.forEach((v: any) => {
-        const attr = v.attributes?.[0]
-        const row = {
+        v.attributes?.forEach((a: any) => {
+          if (a.name === "Color") colors.add(a.value)
+          if (a.name === "Size" || a.name === "Volume") sizes.add(a.value)
+        })
+      })
+
+      setColorInput(Array.from(colors).map(c => ({ id: Math.random().toString(), value: c })))
+      setSizeInput(Array.from(sizes).map(s => ({ id: Math.random().toString(), value: s })))
+
+      const mapped: VariantRow[] = product.variants.map((v: any) => {
+        const optionValues: Record<string, string> = {}
+        v.attributes?.forEach((a: any) => {
+          optionValues[a.name] = a.value
+        })
+
+        return {
           id: v.id,
-          name: attr?.value || "",
-          type: (attr?.name || "Size") as any,
+          optionValues,
           price: String(v.price ?? ""),
           stock: String(v.stock ?? ""),
           preview: v.image || null,
           image: null
         }
-        if (row.type === "Color") colors.push(row)
-        else sizes.push(row)
       })
-      
-      setColorVariants(colors)
-      setSizeVariants(sizes)
+      setVariantsState(mapped)
     } else {
-      setColorVariants([])
-      setSizeVariants([])
+      setColorInput([])
+      setSizeInput([])
+      setVariantsState([])
     }
 
     setPreview(product.image || null)
@@ -407,22 +419,24 @@ export default function AdminProducts() {
                         const selectedCat = categories.find(c => c.id === selectedId)
                           if (selectedCat && !editing) {
                             const catName = selectedCat.name.toLowerCase()
-                          if (colorVariants.length === 0 && sizeVariants.length === 0) {
+                          if (colorInput.length === 0 && sizeInput.length === 0) {
                             if (catName.includes('perfume')) {
-                              setSizeVariants([
-                                { id: "1", name: "55ml", type: "Volume", price: "", stock: "0", image: null, preview: null },
-                                { id: "2", name: "30ml", type: "Volume", price: "", stock: "0", image: null, preview: null }
+                              setSizeInput([
+                                { id: "v1", value: "55ml" },
+                                { id: "v2", value: "30ml" }
                               ])
                             } else if (catName.includes('apparel') || catName.includes('clothing')) {
-                              setColorVariants([
-                                { id: "c1", name: "Black", type: "Color", price: "", stock: "0", image: null, preview: null },
-                                { id: "c2", name: "White", type: "Color", price: "", stock: "0", image: null, preview: null }
+                              setColorInput([
+                                { id: "c1", value: "Black" },
+                                { id: "c2", value: "White" }
                               ])
-                              setSizeVariants([
-                                { id: "s1", name: "S", type: "Size", price: "", stock: "0", image: null, preview: null },
-                                { id: "s2", name: "M", type: "Size", price: "", stock: "0", image: null, preview: null },
-                                { id: "s3", name: "L", type: "Size", price: "", stock: "0", image: null, preview: null },
-                                { id: "s4", name: "XL", type: "Size", price: "", stock: "0", image: null, preview: null }
+                              setSizeInput([
+                                { id: "s1", value: "XS" },
+                                { id: "s2", value: "S" },
+                                { id: "s3", value: "M" },
+                                { id: "s4", value: "L" },
+                                { id: "s5", value: "XL" },
+                                { id: "s6", value: "2XL" }
                               ])
                             }
                           }
@@ -444,27 +458,97 @@ export default function AdminProducts() {
                 </div>
               </div>
 
-              {/* COLOR VARIANTS SECTION */}
-              <div className="bg-white rounded-3xl border border-[var(--border-light)] p-8 shadow-sm">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-sm font-black text-[var(--text-heading)] tracking-tight">Color Variants</h3>
-                    <p className="text-[11px] text-gray-400 font-medium">Add available colors with their own prices and images.</p>
+              {/* STEP 1: DEFINE ATTRIBUTES */}
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-3xl border border-[var(--border-light)] p-8 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-black text-[var(--text-heading)]">1. Available Colors</h3>
+                    <button type="button" onClick={() => setColorInput([...colorInput, { id: Date.now().toString(), value: "" }])} className="text-[10px] font-black uppercase text-[var(--brand-primary)]">+ Add</button>
                   </div>
-                  <button 
-                    type="button"
-                    onClick={() => setColorVariants([...colorVariants, { id: Date.now().toString(), name: "", type: "Color", price: "", stock: "0", image: null, preview: null }])}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[var(--border-light)] text-[11px] font-black uppercase tracking-widest hover:bg-gray-50 transition"
-                  >
-                    <Plus size={14} /> Add Color
-                  </button>
+                  <div className="space-y-2">
+                    {colorInput.map((c, idx) => (
+                      <div key={c.id} className="flex gap-2">
+                        <input value={c.value} onChange={(e) => {
+                          const next = [...colorInput]; next[idx].value = e.target.value; setColorInput(next)
+                        }} className="flex-1 px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm font-bold" placeholder="e.g. Black" />
+                        <button onClick={() => setColorInput(colorInput.filter(i => i.id !== c.id))} className="text-gray-300 hover:text-red-500"><Trash2 size={14}/></button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
+                <div className="bg-white rounded-3xl border border-[var(--border-light)] p-8 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-black text-[var(--text-heading)]">2. Available Sizes/Volumes</h3>
+                    <button type="button" onClick={() => setSizeInput([...sizeInput, { id: Date.now().toString(), value: "" }])} className="text-[10px] font-black uppercase text-[var(--brand-primary)]">+ Add</button>
+                  </div>
+                  <div className="space-y-2">
+                    {sizeInput.map((s, idx) => (
+                      <div key={s.id} className="flex gap-2">
+                        <input value={s.value} onChange={(e) => {
+                          const next = [...sizeInput]; next[idx].value = e.target.value; setSizeInput(next)
+                        }} className="flex-1 px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm font-bold" placeholder="e.g. XL" />
+                        <button onClick={() => setSizeInput(sizeInput.filter(i => i.id !== s.id))} className="text-gray-300 hover:text-red-500"><Trash2 size={14}/></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* STEP 2: GENERATE MATRIX */}
+              <button 
+                type="button"
+                onClick={() => {
+                  const colors = colorInput.map(c => c.value).filter(v => v)
+                  const sizes = sizeInput.map(s => s.value).filter(v => v)
+                  
+                  if (colors.length === 0 && sizes.length === 0) return
+                  
+                  // Decide attribute names based on category
+                  const sizeAttrName = categories.find(c => c.id === form.categoryId)?.name.toLowerCase().includes('perfume') ? "Volume" : "Size"
+                  
+                  const combos = []
+                  if (colors.length > 0 && sizes.length > 0) {
+                    for (const c of colors) {
+                      for (const s of sizes) {
+                        combos.push({ Color: c, [sizeAttrName]: s })
+                      }
+                    }
+                  } else if (colors.length > 0) {
+                    for (const c of colors) combos.push({ Color: c })
+                  } else {
+                    for (const s of sizes) combos.push({ [sizeAttrName]: s })
+                  }
+
+                  const newMatrix = combos.map(combo => {
+                    const existing = variantsState.find(v => 
+                      Object.entries(combo).every(([n, val]) => v.optionValues[n] === val)
+                    )
+                    return existing || {
+                      id: Math.random().toString(36).substr(2, 9),
+                      optionValues: combo,
+                      price: form.price,
+                      stock: form.stock || "0",
+                      image: null,
+                      preview: null
+                    }
+                  })
+                  setVariantsState(newMatrix)
+                  toast.success(`${newMatrix.length} Combinations Ready`)
+                }}
+                className="w-full py-4 bg-[var(--brand-primary)]/5 border-2 border-dashed border-[var(--brand-primary)]/20 rounded-2xl text-[var(--brand-primary)] text-[11px] font-black uppercase tracking-widest hover:bg-[var(--brand-primary)]/10 transition flex items-center justify-center gap-3"
+              >
+                <Layers size={18} /> Sync & Generate Variant Matrix
+              </button>
+
+              {/* STEP 3: MANAGE MATRIX */}
+              <div className="bg-white rounded-3xl border border-[var(--border-light)] p-8 shadow-sm">
+                <h3 className="text-sm font-black text-[var(--text-heading)] mb-6">3. Variant Matrix (Prices & Images)</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
                       <tr className="text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">
-                        <th className="pb-4 pl-4">Color Name</th>
+                        <th className="pb-4 pl-4">Combo</th>
                         <th className="pb-4">Price</th>
                         <th className="pb-4">Stock</th>
                         <th className="pb-4">Image</th>
@@ -472,153 +556,43 @@ export default function AdminProducts() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                      {colorVariants.map((row, idx) => (
+                      {variantsState.map((row, idx) => (
                         <tr key={row.id} className="group hover:bg-gray-50/50 transition">
                           <td className="py-4 pl-4">
-                            <input 
-                              placeholder="e.g. Black"
-                              value={row.name}
-                              onChange={(e) => {
-                                const newRows = [...colorVariants]
-                                newRows[idx].name = e.target.value
-                                setColorVariants(newRows)
-                              }}
-                              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold focus:ring-1 focus:ring-[var(--brand-primary)] focus:outline-none"
-                            />
+                            <div className="flex gap-1">
+                              {Object.values(row.optionValues).map((v, i) => (
+                                <span key={i} className="px-2 py-1 bg-gray-100 rounded text-[9px] font-bold uppercase">{v}</span>
+                              ))}
+                            </div>
                           </td>
                           <td className="py-4">
-                            <input 
-                              type="number"
-                              placeholder="₱ 0.00"
-                              value={row.price}
-                              onChange={(e) => {
-                                const newRows = [...colorVariants]
-                                newRows[idx].price = e.target.value
-                                setColorVariants(newRows)
-                              }}
-                              className="w-28 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold focus:outline-none"
-                            />
+                            <input type="number" value={row.price} onChange={(e) => {
+                              const next = [...variantsState]; next[idx].price = e.target.value; setVariantsState(next)
+                            }} className="w-24 bg-white border border-gray-200 rounded-lg px-2 py-1 text-sm font-bold" />
                           </td>
                           <td className="py-4">
-                            <input 
-                              type="number"
-                              placeholder="0"
-                              value={row.stock}
-                              onChange={(e) => {
-                                const newRows = [...colorVariants]
-                                newRows[idx].stock = e.target.value
-                                setColorVariants(newRows)
-                              }}
-                              className="w-20 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold focus:outline-none"
-                            />
+                            <input type="number" value={row.stock} onChange={(e) => {
+                              const next = [...variantsState]; next[idx].stock = e.target.value; setVariantsState(next)
+                            }} className="w-20 bg-white border border-gray-200 rounded-lg px-2 py-1 text-sm font-bold" />
                           </td>
                           <td className="py-4">
                             <div className="flex items-center gap-2">
-                              {row.preview ? (
-                                <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-gray-100 shadow-sm">
-                                  <img src={row.preview} className="w-full h-full object-cover" />
-                                </div>
-                              ) : null}
-                              <button className="w-10 h-10 rounded-lg border-2 border-dashed border-gray-100 flex items-center justify-center text-gray-300 hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] transition relative overflow-hidden group/vup">
-                                <Plus size={16} />
-                                <input 
-                                  type="file" 
-                                  className="absolute inset-0 opacity-0 cursor-pointer"
-                                  onChange={async (e: any) => {
-                                    const f = e.target.files?.[0]; if (!f) return;
-                                    const comp = await imageCompression(f, { maxSizeMB: 1, maxWidthOrHeight: 1200 });
-                                    const newRows = [...colorVariants]
-                                    newRows[idx].image = new File([comp], f.name, { type: comp.type })
-                                    newRows[idx].preview = URL.createObjectURL(comp)
-                                    setColorVariants(newRows)
-                                  }}
-                                />
+                              {row.preview && <img src={row.preview} className="w-8 h-8 rounded object-cover" />}
+                              <button className="relative w-8 h-8 rounded border-2 border-dashed border-gray-100 flex items-center justify-center text-gray-300">
+                                <Plus size={12} />
+                                <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={async (e: any) => {
+                                  const f = e.target.files?.[0]; if (!f) return;
+                                  const comp = await imageCompression(f, { maxSizeMB: 1 });
+                                  const next = [...variantsState]
+                                  next[idx].image = new File([comp], f.name, { type: comp.type })
+                                  next[idx].preview = URL.createObjectURL(comp)
+                                  setVariantsState(next)
+                                }} />
                               </button>
                             </div>
                           </td>
                           <td className="py-4 pr-4 text-right">
-                            <button onClick={() => setColorVariants(prev => prev.filter(r => r.id !== row.id))} className="p-2 text-gray-300 hover:text-red-400 transition">
-                              <Trash2 size={16} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* SIZE VARIANTS SECTION */}
-              <div className="bg-white rounded-3xl border border-[var(--border-light)] p-8 shadow-sm">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-sm font-black text-[var(--text-heading)] tracking-tight">Size Variants</h3>
-                    <p className="text-[11px] text-gray-400 font-medium">Add available sizes with their own prices and stock.</p>
-                  </div>
-                  <button 
-                    type="button"
-                    onClick={() => setSizeVariants([...sizeVariants, { id: Date.now().toString(), name: "", type: "Size", price: "", stock: "0", image: null, preview: null }])}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[var(--border-light)] text-[11px] font-black uppercase tracking-widest hover:bg-gray-50 transition"
-                  >
-                    <Plus size={14} /> Add Size
-                  </button>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">
-                        <th className="pb-4 pl-4">Size Name</th>
-                        <th className="pb-4">Price</th>
-                        <th className="pb-4">Stock</th>
-                        <th className="pb-4"></th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {sizeVariants.map((row, idx) => (
-                        <tr key={row.id} className="group hover:bg-gray-50/50 transition">
-                          <td className="py-4 pl-4">
-                            <input 
-                              placeholder="e.g. XL"
-                              value={row.name}
-                              onChange={(e) => {
-                                const newRows = [...sizeVariants]
-                                newRows[idx].name = e.target.value
-                                setSizeVariants(newRows)
-                              }}
-                              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold focus:ring-1 focus:ring-[var(--brand-primary)] focus:outline-none"
-                            />
-                          </td>
-                          <td className="py-4">
-                            <input 
-                              type="number"
-                              placeholder="₱ 0.00"
-                              value={row.price}
-                              onChange={(e) => {
-                                const newRows = [...sizeVariants]
-                                newRows[idx].price = e.target.value
-                                setSizeVariants(newRows)
-                              }}
-                              className="w-28 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold focus:outline-none"
-                            />
-                          </td>
-                          <td className="py-4">
-                            <input 
-                              type="number"
-                              placeholder="0"
-                              value={row.stock}
-                              onChange={(e) => {
-                                const newRows = [...sizeVariants]
-                                newRows[idx].stock = e.target.value
-                                setSizeVariants(newRows)
-                              }}
-                              className="w-20 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold focus:outline-none"
-                            />
-                          </td>
-                          <td className="py-4 pr-4 text-right">
-                            <button onClick={() => setSizeVariants(prev => prev.filter(r => r.id !== row.id))} className="p-2 text-gray-300 hover:text-red-400 transition">
-                              <Trash2 size={16} />
-                            </button>
+                            <button onClick={() => setVariantsState(variantsState.filter(v => v.id !== row.id))} className="text-gray-300 hover:text-red-500"><Trash2 size={14}/></button>
                           </td>
                         </tr>
                       ))}
