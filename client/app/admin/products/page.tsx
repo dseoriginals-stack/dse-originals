@@ -429,7 +429,6 @@ export default function AdminProducts() {
                               ])
                             }
                           }
-}
                         }
                       }}
                       className="w-full px-5 py-3 bg-white border border-[var(--border-light)] rounded-xl focus:ring-2 focus:ring-[var(--brand-primary)] focus:outline-none font-bold text-sm"
