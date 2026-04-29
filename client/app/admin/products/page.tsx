@@ -228,15 +228,21 @@ export default function AdminProducts() {
         setVariantType(name0 === "volume" ? "volume" : "size")
       }
 
-      const mapped: VariantRow[] = product.variants.map((v: any) => ({
-        id: v.id,
-        value: v.attributes?.[0]?.value || "",
-        secondaryValue: v.attributes?.[1]?.value || "",
-        price: String(v.price ?? ""),
-        stock: String(v.stock ?? ""),
-        preview: v.image || null,
-        image: null
-      }))
+      const mapped: VariantRow[] = product.variants.map((v: any) => {
+        const colorAttr = v.attributes?.find((a: any) => a.name === "Color")?.value
+        const sizeAttr = v.attributes?.find((a: any) => a.name === "Size")?.value
+        const singleAttr = v.attributes?.[0]?.value || ""
+
+        return {
+          id: v.id,
+          value: colorAttr || (hasMultiple ? "" : singleAttr),
+          secondaryValue: sizeAttr || "",
+          price: String(v.price ?? ""),
+          stock: String(v.stock ?? ""),
+          preview: v.image || null,
+          image: null
+        }
+      })
       setVariantsState(mapped)
     } else {
       setVariantsState([])

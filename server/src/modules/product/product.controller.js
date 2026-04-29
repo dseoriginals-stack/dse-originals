@@ -59,7 +59,8 @@ const updateProductSchema = z.object({
 export const createProduct = async (req, res, next) => {
   try {
     console.log("HIT CREATE PRODUCT")
-    console.log("FILE:", req.file)
+    console.log("BODY:", req.body)
+    console.log("FILES:", req.files?.map(f => ({ field: f.fieldname, name: f.originalname })))
 
     // ================================
     // VALIDATE INPUT FIRST
@@ -528,6 +529,9 @@ export const searchProducts = async (req, res) => {
 export const updateProduct = async (req, res, next) => {
   try {
     const { id } = req.params
+    console.log(`HIT UPDATE PRODUCT: ${id}`)
+    console.log("BODY:", req.body)
+    console.log("FILES:", req.files?.map(f => ({ field: f.fieldname, name: f.originalname })))
 
     // Validate input
     const validation = updateProductSchema.safeParse(req.body)
