@@ -219,7 +219,7 @@ export default function CartPage() {
                           <div className="flex flex-wrap gap-2 mt-1">
                             {item.attributes.map((attr, idx) => (
                               <span key={idx} className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-[var(--brand-primary)] bg-[var(--brand-soft)]/10 px-2 py-0.5 rounded-md">
-                                {attr.value}
+                                {attr.name}: {attr.value}
                               </span>
                             ))}
                           </div>

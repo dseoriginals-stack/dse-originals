@@ -172,7 +172,7 @@ export default function CartDrawer() {
                         {item.attributes && item.attributes.length > 0 ? (
                           item.attributes.map((attr, idx) => (
                             <span key={idx} className="text-[9px] font-black uppercase tracking-tighter text-[var(--brand-primary)] bg-[var(--brand-soft)]/10 px-1.5 py-0.5 rounded">
-                              {attr.value}
+                              {attr.name}: {attr.value}
                             </span>
                           ))
                         ) : (

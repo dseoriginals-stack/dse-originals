@@ -172,42 +172,57 @@ export default function ProductModal({
           {/* SEPARATED VARIANTS */}
           {Object.entries(groupedAttributes).length > 0 && (
             <div className="space-y-6">
-              {Object.entries(groupedAttributes).map(([name, values]) => (
-                <div key={name} className="space-y-3">
-                  <p className="text-[10px] font-black font-brand uppercase tracking-[0.2em] text-gray-400">
-                    Select {name}
-                  </p>
-                  <div className="flex gap-2.5 flex-wrap">
-                    {values.map((val) => {
-                      const isActive = selections[name] === val
-                      
-                      // Check if this specific attribute value is available in ANY variant
-                      const isUnavailable = !product.variants?.some(v => 
-                        v.attributes.some(a => a.name === name && a.value === val) && v.stock > 0
-                      )
+              {Object.entries(groupedAttributes).map(([name, values]) => {
+                // Sort sizes logically if the attribute name is "size"
+                const sizeOrder = ["XS", "S", "M", "L", "XL", "2XL", "3XL"];
+                const displayValues = name.toLowerCase() === "size"
+                  ? [...values].sort((a, b) => {
+                      const indexA = sizeOrder.indexOf(a.toUpperCase());
+                      const indexB = sizeOrder.indexOf(b.toUpperCase());
+                      if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+                      if (indexA === -1) return 1;
+                      if (indexB === -1) return -1;
+                      return indexA - indexB;
+                    })
+                  : values;
 
-                      return (
-                        <button
-                          key={val}
-                          disabled={isUnavailable}
-                          onClick={() => handleAttributeClick(name, val)}
-                          className={`
-                            px-7 py-4 md:px-6 md:py-3 rounded-2xl text-[12px] md:text-[11px] font-bold transition-all duration-300 border-2
-                            ${isUnavailable 
-                              ? "opacity-20 cursor-not-allowed line-through bg-gray-50 border-gray-100" 
-                              : isActive
-                                ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-[0_8px_20px_rgba(39,76,119,0.25)] scale-[1.05]"
-                                : "bg-white border-[var(--border-light)] text-gray-600 hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] hover:shadow-md"
-                            }
-                          `}
-                        >
-                          {val}
-                        </button>
-                      )
-                    })}
+                return (
+                  <div key={name} className="space-y-3">
+                    <p className="text-[10px] font-black font-brand uppercase tracking-[0.2em] text-gray-400">
+                      Select {name}
+                    </p>
+                    <div className="flex gap-2.5 flex-wrap">
+                      {displayValues.map((val) => {
+                        const isActive = selections[name] === val
+                        
+                        // Check if this specific attribute value is available in ANY variant
+                        const isUnavailable = !product.variants?.some(v => 
+                          v.attributes.some(a => a.name === name && a.value === val) && v.stock > 0
+                        )
+
+                        return (
+                          <button
+                            key={val}
+                            disabled={isUnavailable}
+                            onClick={() => handleAttributeClick(name, val)}
+                            className={`
+                              px-7 py-4 md:px-6 md:py-3 rounded-2xl text-[12px] md:text-[11px] font-bold transition-all duration-300 border-2
+                              ${isUnavailable 
+                                ? "opacity-20 cursor-not-allowed line-through bg-gray-50 border-gray-100" 
+                                : isActive
+                                  ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-[0_8px_20px_rgba(39,76,119,0.25)] scale-[1.05]"
+                                  : "bg-white border-[var(--border-light)] text-gray-600 hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] hover:shadow-md"
+                              }
+                            `}
+                          >
+                            {val}
+                          </button>
+                        )
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
 
