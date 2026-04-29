@@ -7,6 +7,7 @@ import { ProductCardType } from "@/types/product"
 import { Heart, Check, ShoppingBag } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { getImageUrl } from "@/lib/image"
 import { getCloudinaryBlurUrl } from "@/lib/imageUtils"
@@ -79,7 +80,9 @@ export default function ProductCard({
     selections[a.name] = a.value
   })
 
-  const handleAttrClick = (name: string, value: string) => {
+  const handleAttrClick = (e: any, name: string, value: string) => {
+    e.preventDefault()
+    e.stopPropagation()
     const next = { ...selections, [name]: value }
     const match = product.variants?.find(v =>
       Object.entries(next).every(([n, val]) => 
@@ -90,9 +93,9 @@ export default function ProductCard({
   }
 
   return (
-    <div
-      onClick={() => router.push(`/products/${product.slug}`)}
-      className="group block cursor-pointer h-full"
+    <Link
+      href={`/products/${product.slug}`}
+      className="group block h-full"
     >
       <div className="h-full flex flex-col relative overflow-hidden rounded-2xl md:rounded-3xl bg-white/60 backdrop-blur-md transition-all duration-300 group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
 
@@ -193,11 +196,7 @@ export default function ProductCard({
                           return (
                             <button
                               key={val}
-                              onClick={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                handleAttrClick(name, val)
-                              }}
+                              onClick={(e) => handleAttrClick(e, name, val)}
                               className={`text-[9px] md:text-[8px] font-black px-2.5 py-1.5 md:px-1.5 md:py-0.5 rounded-md border transition-all ${isActive
                                 ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white shadow-sm'
                                 : 'bg-white/50 border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)]'
@@ -237,6 +236,6 @@ export default function ProductCard({
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }
