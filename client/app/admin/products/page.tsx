@@ -332,7 +332,9 @@ export default function AdminProducts() {
               <button onClick={closeModal} className="p-2 hover:bg-gray-100 rounded-xl transition">
                 <ArrowLeft size={20} className="text-gray-500" />
               </button>
-              <h1 className="text-xl font-[1000] text-[var(--text-heading)] tracking-tighter">Add Product</h1>
+              <h1 className="text-xl font-[1000] text-[var(--text-heading)] tracking-tighter">
+                {editing ? "Edit Product" : "Add Product"}
+              </h1>
             </div>
             <div className="flex items-center gap-3">
               <button onClick={closeModal} className="px-6 py-2.5 rounded-xl border border-[var(--border-light)] text-xs font-bold text-gray-500 hover:bg-gray-50 transition">Discard</button>

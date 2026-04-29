@@ -613,13 +613,13 @@ export const updateProduct = async (req, res, next) => {
     }
 
     const updateData = {
-      name,
-      description,
-      isBestseller: isBestseller === true || isBestseller === 'true',
-      isPopular: isPopular === true || isPopular === 'true',
-      videoUrl,
-      storyHtml,
-      ...(categoryId && { categoryId })
+      ...(name && { name }),
+      ...(description !== undefined && { description }),
+      ...(videoUrl !== undefined && { videoUrl }),
+      ...(storyHtml !== undefined && { storyHtml }),
+      ...(categoryId && { categoryId }),
+      ...(isBestseller !== undefined && { isBestseller: isBestseller === true || isBestseller === 'true' }),
+      ...(isPopular !== undefined && { isPopular: isPopular === true || isPopular === 'true' }),
     }
 
     // Replace image if uploaded
@@ -630,91 +630,94 @@ export const updateProduct = async (req, res, next) => {
       }
     }
 
-    // Handle Variants carefully
-    if (variantsFromClient.length > 0) {
-      const currentVariants = product.variants
-      const currentVariantIds = currentVariants.map(v => v.id)
-      const clientVariantIds = []
+    const result = await prisma.$transaction(async (tx) => {
+      // Handle Variants carefully
+      if (variantsFromClient.length > 0) {
+        const currentVariants = product.variants
+        const currentVariantIds = currentVariants.map(v => v.id)
+        const clientVariantIds = []
 
-      for (let i = 0; i < variantsFromClient.length; i++) {
-        const v = variantsFromClient[i]
-        const vAttrs = v.attributes || []
-        const vImage = variantImages[i] || v.image
+        for (let i = 0; i < variantsFromClient.length; i++) {
+          const v = variantsFromClient[i]
+          const vAttrs = v.attributes || []
+          const vImage = variantImages[i] || v.preview
 
-        if (v.id && currentVariantIds.includes(v.id)) {
-          clientVariantIds.push(v.id)
-          // Update existing
-          let imageUpdate = {}
-          if (vImage) {
-            imageUpdate = { image: vImage }
-          } else if (v.preview === null) {
-            imageUpdate = { image: null }
-          }
+          if (v.id && currentVariantIds.includes(v.id)) {
+            clientVariantIds.push(v.id)
+            // Update existing
+            let imageUpdate = {}
+            if (vImage) {
+              imageUpdate = { image: vImage }
+            } else if (v.preview === null) {
+              imageUpdate = { image: null }
+            }
 
-          await prisma.productVariant.update({
-            where: { id: v.id },
-            data: {
-              price: new Prisma.Decimal(v.price),
-              stock: parseInt(String(v.stock)) || 0,
-              ...imageUpdate,
-              attributes: {
-                deleteMany: {},
-                create: vAttrs.map(a => ({ name: a.name, value: a.value }))
+            await tx.productVariant.update({
+              where: { id: v.id },
+              data: {
+                price: new Prisma.Decimal(v.price),
+                stock: parseInt(String(v.stock)) || 0,
+                ...imageUpdate,
+                attributes: {
+                  deleteMany: {},
+                  create: vAttrs.map(a => ({ name: a.name, value: a.value }))
+                }
               }
+            })
+          } else {
+            // Create new
+            await tx.productVariant.create({
+              data: {
+                productId: id,
+                sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                price: new Prisma.Decimal(v.price),
+                stock: parseInt(String(v.stock)) || 0,
+                image: vImage,
+                attributes: {
+                  create: vAttrs.map(a => ({ name: a.name, value: a.value }))
+                }
+              }
+            })
+          }
+        }
+
+        // Delete removed variants
+        const variantsToDelete = currentVariants.filter(curr => !clientVariantIds.includes(curr.id))
+        for (const vDel of variantsToDelete) {
+          await tx.productVariant.delete({ where: { id: vDel.id } })
+        }
+      } else if (price !== undefined || stock !== undefined) {
+        // Single variant update logic
+        if (product.variants.length > 0) {
+          await tx.productVariant.update({
+            where: { id: product.variants[0].id },
+            data: {
+              price: new Prisma.Decimal(price || 0),
+              stock: parseInt(String(stock)) || 0
             }
           })
         } else {
-          // Create new
-          await prisma.productVariant.create({
+          await tx.productVariant.create({
             data: {
               productId: id,
               sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-              price: new Prisma.Decimal(v.price),
-              stock: parseInt(String(v.stock)) || 0,
-              image: vImage,
-              attributes: {
-                create: vAttrs.map(a => ({ name: a.name, value: a.value }))
-              }
+              price: new Prisma.Decimal(price || 0),
+              stock: parseInt(String(stock)) || 0
             }
           })
         }
       }
 
-      // Delete removed variants
-      const variantsToDelete = currentVariants.filter(curr => !clientVariantIds.includes(curr.id))
-      for (const vDel of variantsToDelete) {
-        await prisma.productVariant.delete({ where: { id: vDel.id } })
-      }
-    } else if (price !== undefined || stock !== undefined) {
-      // Single variant update logic
-      if (product.variants.length > 0) {
-        await prisma.productVariant.update({
-          where: { id: product.variants[0].id },
-          data: {
-            price: new Prisma.Decimal(price || 0),
-            stock: parseInt(String(stock)) || 0
-          }
-        })
-      } else {
-        await prisma.productVariant.create({
-          data: {
-            productId: id,
-            sku: `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-            price: new Prisma.Decimal(price || 0),
-            stock: parseInt(String(stock)) || 0
-          }
-        })
-      }
-    }
-
-    const updated = await prisma.product.update({
-      where: { id },
-      data: updateData
+      return await tx.product.update({
+        where: { id },
+        data: updateData
+      })
     })
 
     console.log(`✅ Product ${id} updated:`, {
-      isBestseller: updated.isBestseller,
-      isPopular: updated.isPopular
+      name: result.name,
+      isBestseller: result.isBestseller,
+      isPopular: result.isPopular
     })
 
     // Invalidate ALL caches to be absolutely sure
@@ -726,7 +729,7 @@ export const updateProduct = async (req, res, next) => {
       console.warn("⚠️ Cache invalidation warning:", cacheErr.message)
     }
 
-    res.json(updated)
+    res.json(result)
   } catch (err) {
     console.error("❌ UPDATE PRODUCT ERROR:", err)
 
