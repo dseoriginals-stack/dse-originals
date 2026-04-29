@@ -368,9 +368,11 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
               const handleAttrClick = (name: string, value: string) => {
                 const next = { ...selections, [name]: value }
                 
-                // 1. Try to find an exact match for the new combination
+                // 1. Try to find a variant that matches ALL current selections
                 const match = product.variants.find(v =>
-                  v.attributes.every(a => next[a.name] === a.value)
+                  Object.entries(next).every(([n, val]) => 
+                    v.attributes.some(a => a.name === n && a.value === val)
+                  )
                 )
 
                 if (match) {

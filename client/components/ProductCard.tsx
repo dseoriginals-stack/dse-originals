@@ -7,7 +7,6 @@ import { ProductCardType } from "@/types/product"
 import { Heart, Check, ShoppingBag } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { getImageUrl } from "@/lib/image"
 import { getCloudinaryBlurUrl } from "@/lib/imageUtils"
@@ -52,11 +51,8 @@ export default function ProductCard({
   const handleAdd = async (e: any) => {
     e.preventDefault()
     e.stopPropagation()
-
     if (loading) return
-
     setLoading(true)
-
     try {
       await addToCart({
         productId: product.id,
@@ -68,16 +64,29 @@ export default function ProductCard({
         image: imageUrl,
         attributes: activeVariant?.attributes?.map(a => ({ name: a.name, value: a.value })) || []
       })
-
       setAdded(true)
       setTimeout(() => {
         setAdded(false)
         router.push("/cart")
       }, 600)
-
     } finally {
       setLoading(false)
     }
+  }
+
+  const selections: Record<string, string> = {}
+  activeVariant?.attributes?.forEach(a => {
+    selections[a.name] = a.value
+  })
+
+  const handleAttrClick = (name: string, value: string) => {
+    const next = { ...selections, [name]: value }
+    const match = product.variants?.find(v =>
+      Object.entries(next).every(([n, val]) => 
+        v.attributes.some(a => a.name === n && a.value === val)
+      )
+    )
+    if (match) setActiveVariant(match)
   }
 
   return (
@@ -87,18 +96,16 @@ export default function ProductCard({
     >
       <div className="h-full flex flex-col relative overflow-hidden rounded-2xl md:rounded-3xl bg-white/60 backdrop-blur-md transition-all duration-300 group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
 
-        {/* SHINE EFFECT (Removed for flatter design) */}
-
-        {/* BADGE: BEST SELLER (Priority) */}
+        {/* BADGE: BEST SELLER */}
         {product.isBestseller && (
-          <div className="absolute top-4 left-4 z-10 text-[10px] tracking-[0.2em] font-black bg-[var(--brand-primary)] text-white px-3 py-1.5 rounded-full shadow-md uppercase animate-pulse-subtle">
+          <div className="absolute top-4 left-4 z-10 text-[10px] tracking-[0.2em] font-black bg-[var(--brand-primary)] text-white px-3 py-1.5 rounded-full shadow-md uppercase">
             BEST SELLER
           </div>
         )}
 
-        {/* BADGE: POPULAR (Secondary) */}
+        {/* BADGE: POPULAR */}
         {(product.isPopular || ["Heaven's Embrace", "Incensum", "Sacred Serenity", "Eterna Lume"].includes(product.name)) && !product.isBestseller && (
-          <div className="absolute top-4 left-4 z-10 text-[10px] tracking-[0.2em] font-black bg-[var(--brand-accent)] text-white px-3 py-1.5 rounded-full shadow-md uppercase animate-pulse-subtle">
+          <div className="absolute top-4 left-4 z-10 text-[10px] tracking-[0.2em] font-black bg-[var(--brand-accent)] text-white px-3 py-1.5 rounded-full shadow-md uppercase">
             POPULAR
           </div>
         )}
@@ -115,15 +122,8 @@ export default function ProductCard({
             : 'bg-white/60 border-[var(--border-light)] text-[var(--brand-primary)] hover:bg-[var(--brand-accent)] hover:text-white'
             }`}
         >
-          <motion.div
-            whileTap={{ scale: 1.5 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
-          >
-            <Heart
-              size={16}
-              fill={isWishlisted ? "currentColor" : "none"}
-              className={`${isWishlisted ? 'animate-heart-beat' : 'group-hover/heart:scale-110'} transition-all`}
-            />
+          <motion.div whileTap={{ scale: 1.5 }}>
+            <Heart size={16} fill={isWishlisted ? "currentColor" : "none"} />
           </motion.div>
         </button>
 
@@ -141,23 +141,9 @@ export default function ProductCard({
           />
 
           {/* DESKTOP CTA */}
-          <div className="absolute bottom-6 w-full px-6 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 hidden md:block z-20 object-center text-center">
-            <button
-              onClick={handleAdd}
-              disabled={loading}
-              className="btn-premium w-full !text-sm !py-3 shadow-[0_8px_25px_rgba(39,76,119,0.3)]"
-            >
-              {added ? (
-                <>
-                  <Check size={16} /> Added to Cart
-                </>
-              ) : loading ? (
-                "Adding..."
-              ) : (
-                <>
-                  <ShoppingBag size={16} /> Add to Cart
-                </>
-              )}
+          <div className="absolute bottom-6 w-full px-6 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 hidden md:block z-20 text-center">
+            <button onClick={handleAdd} disabled={loading} className="btn-premium w-full !text-sm !py-3">
+              {added ? "Added to Cart" : loading ? "Adding..." : "Add to Cart"}
             </button>
           </div>
         </div>
@@ -176,61 +162,48 @@ export default function ProductCard({
             {product.variants && product.variants.length > 1 && (
               <div className="flex flex-col gap-2 mb-1">
                 {(() => {
-                  const grouped: Record<string, any[]> = {}
+                  const grouped: Record<string, string[]> = {}
                   product.variants.forEach(v => {
-                    const attr = v.attributes?.[0]
-                    if (!attr) return
-                    if (!grouped[attr.name]) grouped[attr.name] = []
-                    // Avoid duplicates
-                    if (!grouped[attr.name].some(item => item.value === attr.value)) {
-                      grouped[attr.name].push({ ...v, attrValue: attr.value })
-                    }
+                    v.attributes.forEach(a => {
+                      if (!grouped[a.name]) grouped[a.name] = []
+                      if (!grouped[a.name].includes(a.value)) grouped[a.name].push(a.value)
+                    })
                   })
 
-                  // Sort attributes: Volume/Size first, then Color, then others
                   const sortedGroups = Object.entries(grouped).sort(([nameA], [nameB]) => {
-                    const lowA = nameA.toLowerCase()
-                    const lowB = nameB.toLowerCase()
                     const order = ["size", "volume", "color"]
-                    const indexA = order.indexOf(lowA)
-                    const indexB = order.indexOf(lowB)
+                    const indexA = order.indexOf(nameA.toLowerCase())
+                    const indexB = order.indexOf(nameB.toLowerCase())
                     if (indexA !== -1 && indexB !== -1) return indexA - indexB
                     if (indexA !== -1) return -1
                     if (indexB !== -1) return 1
-                    return lowA.localeCompare(lowB)
+                    return nameA.localeCompare(nameB)
                   })
 
-                  return sortedGroups.map(([name, variants]) => {
-                    // Internal sort for values (e.g. S before M)
+                  return sortedGroups.map(([name, values]) => {
                     const sizeOrder = ["xs", "s", "m", "l", "xl", "2xl", "3xl"]
-                    const volOrder = ["55ml", "30ml"]
-                    
-                    const sortedVariants = [...variants].sort((a, b) => {
-                      const valA = a.attrValue.toLowerCase()
-                      const valB = b.attrValue.toLowerCase()
-                      if (sizeOrder.includes(valA) && sizeOrder.includes(valB)) return sizeOrder.indexOf(valA) - sizeOrder.indexOf(valB)
-                      if (volOrder.includes(valA) && volOrder.includes(valB)) return volOrder.indexOf(valA) - volOrder.indexOf(valB)
-                      return valA.localeCompare(valB)
-                    })
+                    const sortedValues = name.toLowerCase() === "size" 
+                      ? [...values].sort((a, b) => sizeOrder.indexOf(a.toLowerCase()) - sizeOrder.indexOf(b.toLowerCase()))
+                      : values
 
                     return (
                       <div key={name} className="flex flex-wrap gap-1">
-                        {sortedVariants.map((v) => {
-                          const isActive = activeVariant?.id === v.id
+                        {sortedValues.map((val) => {
+                          const isActive = selections[name] === val
                           return (
                             <button
-                              key={v.id}
+                              key={val}
                               onClick={(e) => {
                                 e.preventDefault()
                                 e.stopPropagation()
-                                setActiveVariant(v)
+                                handleAttrClick(name, val)
                               }}
                               className={`text-[9px] md:text-[8px] font-black px-2.5 py-1.5 md:px-1.5 md:py-0.5 rounded-md border transition-all ${isActive
                                 ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white shadow-sm'
-                                : 'bg-white/50 border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)]'
+                                : 'bg-white/50 border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)]'
                                 }`}
                             >
-                              {v.attrValue}
+                              {val}
                             </button>
                           )
                         })}
@@ -244,20 +217,19 @@ export default function ProductCard({
             <div className="flex items-end justify-between">
               <div className="flex flex-col">
                 <span className="text-base md:text-lg font-bold text-[var(--text-heading)]">
-                  {currentPrice > 0 ? `₱${currentPrice.toLocaleString()}` : "Price on Request"}
+                  ₱{currentPrice.toLocaleString()}
                 </span>
                 {(activeVariant?.stock || product.stock) > 0 ? (
                   <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest mt-1">In Stock</span>
                 ) : (
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic">Exclusive Series</span>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic">Exclusive</span>
                 )}
               </div>
 
-              {/* MOBILE CTA */}
               <button
                 onClick={handleAdd}
                 disabled={loading || (activeVariant?.stock || product.stock) === 0}
-                className="md:hidden flex items-center justify-center w-8 h-8 rounded-full bg-[var(--brand-primary)] text-white shadow-sm disabled:opacity-30 active:scale-95 transition-all"
+                className="md:hidden flex items-center justify-center w-8 h-8 rounded-full bg-[var(--brand-primary)] text-white shadow-sm"
               >
                 {added ? <Check size={14} /> : <ShoppingBag size={14} />}
               </button>
