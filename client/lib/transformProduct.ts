@@ -5,11 +5,30 @@ export function transformProductToCard(
 ): ProductCardType {
 
   const p = product as any
-  const variants = product.variants || []
-  const variant = variants?.[0]
+  
+  // Sort variants (55ml -> 30ml -> Others)
+  const variants = [...(product.variants || [])].sort((a, b) => {
+    const getVal = (v: any) => 
+      (v.attributes || []).find((at: any) => {
+        const name = String(at.name || "").toLowerCase()
+        return name === "volume" || name === "size" || name === "variant"
+      })?.value?.toLowerCase() || ""
+    
+    const aVal = getVal(a)
+    const bVal = getVal(b)
+    
+    if (aVal.includes("55ml") && !bVal.includes("55ml")) return -1
+    if (!aVal.includes("55ml") && bVal.includes("55ml")) return 1
+    if (aVal.includes("30ml") && !bVal.includes("30ml")) return -1
+    if (!aVal.includes("30ml") && bVal.includes("30ml")) return 1
+    return 0
+  })
 
-  // Improve image finding
+  const firstVariant = variants?.[0]
+
+  // Improve image finding: Prioritize first variant image if it exists (usually 55ml)
   const image =
+    firstVariant?.image ||
     p.image || 
     product.images?.find(i => i.isPrimary)?.url ||
     product.images?.[0]?.url ||
@@ -26,7 +45,7 @@ export function transformProductToCard(
       return Number(v.price)
     }).filter(p => p > 0)
     
-    price = prices.length > 0 ? Math.min(...prices) : Number(variant?.price || 0)
+    price = prices.length > 0 ? Math.min(...prices) : Number(firstVariant?.price || 0)
   }
 
   // Calculate total stock
@@ -39,7 +58,7 @@ export function transformProductToCard(
     image,
     price,
     stock,
-    variantId: p.variantId || variant?.id || "",
+    variantId: p.variantId || firstVariant?.id || "",
     isBestseller: !!p.isBestseller,
     isPopular: !!p.isPopular,
     description: product.description,

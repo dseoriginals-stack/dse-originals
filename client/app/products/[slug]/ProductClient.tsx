@@ -30,13 +30,51 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
 
   const { addToCart } = useCart()
 
+  // HELPER FOR VARIANT SORTING (55ml -> 30ml -> Others)
+  const sortVariants = (vars: ProductVariant[]) => {
+    return [...vars].sort((a, b) => {
+      const getVal = (v: ProductVariant) => 
+        v.attributes?.find(at => {
+          const name = String(at.name || "").toLowerCase()
+          return name === "volume" || name === "size" || name === "variant"
+        })?.value?.toLowerCase() || ""
+      
+      const aVal = getVal(a)
+      const bVal = getVal(b)
+      
+      if (aVal.includes("55ml") && !bVal.includes("55ml")) return -1
+      if (!aVal.includes("55ml") && bVal.includes("55ml")) return 1
+      if (aVal.includes("30ml") && !bVal.includes("30ml")) return -1
+      if (!aVal.includes("30ml") && bVal.includes("30ml")) return 1
+      return 0
+    })
+  }
+
+  // Pre-sort initial variants if they exist
+  if (initialProduct?.variants) {
+    initialProduct.variants = sortVariants(initialProduct.variants)
+  }
+
   const [product, setProduct] = useState<ProductFull | null>(initialProduct)
   const [related, setRelated] = useState<ProductFull[]>([])
-  const initialVariant = initialProduct?.variants.find(v => v.stock > 0) || initialProduct?.variants[0] || null
+  
+  // Define initial variant (Prioritize 55ml which is now first after sort)
+  const initialVariant = product?.variants?.find(v => v.stock > 0) || product?.variants?.[0] || null
   const [variant, setVariant] = useState<ProductVariant | null>(initialVariant)
 
   const [qty, setQty] = useState(1)
-  const [activeImage, setActiveImage] = useState(initialVariant?.image || initialProduct?.images?.[0]?.url || "/placeholder.png")
+  
+  // Determine initial image with multiple fallbacks
+  const getInitialImage = () => {
+    if (initialVariant?.image) return initialVariant.image
+    if (product?.images?.[0]?.url) return product.images[0].url
+    // Fallback to ANY variant image if primary is missing
+    const anyVarImg = product?.variants?.find(v => v.image)?.image
+    if (anyVarImg) return anyVarImg
+    return "/placeholder.png"
+  }
+  
+  const [activeImage, setActiveImage] = useState(getInitialImage())
   const [loading, setLoading] = useState(!initialProduct)
 
   const [adding, setAdding] = useState(false)
@@ -70,14 +108,7 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
 
         // Sort variants so 55ml comes before 30ml
         if (res.variants) {
-          res.variants.sort((a, b) => {
-            const aVol = a.attributes?.find(at => String(at.name || "").toLowerCase() === "volume" || String(at.name || "").toLowerCase() === "size")?.value?.toLowerCase() || ""
-            const bVol = b.attributes?.find(at => String(at.name || "").toLowerCase() === "volume" || String(at.name || "").toLowerCase() === "size")?.value?.toLowerCase() || ""
-            
-            if (aVol.includes("55ml") && bVol.includes("30ml")) return -1
-            if (aVol.includes("30ml") && bVol.includes("55ml")) return 1
-            return 0
-          })
+          res.variants = sortVariants(res.variants)
         }
 
         setProduct(res)
@@ -87,8 +118,8 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
 
         setVariant(firstAvailable)
 
-        const fallbackImage = res.images?.[0]?.url || res.variants.find(v => v.image)?.image || "/placeholder.png"
-        setActiveImage(firstAvailable?.image || fallbackImage)
+        const fallbackImg = res.images?.[0]?.url || res.variants.find(v => v.image)?.image || "/placeholder.png"
+        setActiveImage(firstAvailable?.image || fallbackImg)
 
         // OPTIONAL: related (only if you have this route)
         try {
@@ -342,19 +373,15 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
 
                 if (match) {
                   setVariant(match)
-                  // ✅ ALWAYS PRIORITIZE VARIANT IMAGE IF IT EXISTS
-                  if (match.image) {
-                    setActiveImage(match.image)
-                  }
+                  // ✅ ALWAYS PRIORITIZE VARIANT IMAGE IF IT EXISTS, ELSE FALLBACK TO PRODUCT PRIMARY
+                  setActiveImage(match.image || product.images?.[0]?.url || "/placeholder.png")
                 } else {
                   const fallback = product.variants.find(v =>
                     v.attributes.some(a => a.name === name && a.value === value)
                   )
                   if (fallback) {
                     setVariant(fallback)
-                    if (fallback.image) {
-                      setActiveImage(fallback.image)
-                    }
+                    setActiveImage(fallback.image || product.images?.[0]?.url || "/placeholder.png")
                   }
                 }
               }
