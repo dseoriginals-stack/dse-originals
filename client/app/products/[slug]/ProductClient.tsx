@@ -366,28 +366,32 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
               })
 
               const handleAttrClick = (name: string, value: string) => {
-                const next = { ...selections, [name]: value }
-                const match = product.variants.find(v =>
-                  v.attributes.every(a => next[a.name] === a.value)
+                const match = product.variants.find(v => 
+                  v.attributes.some(a => a.name === name && a.value === value)
                 )
 
                 if (match) {
                   setVariant(match)
-                  // ✅ ALWAYS PRIORITIZE VARIANT IMAGE IF IT EXISTS, ELSE FALLBACK TO PRODUCT PRIMARY
-                  setActiveImage(match.image || product.images?.[0]?.url || "/placeholder.png")
-                } else {
-                  const fallback = product.variants.find(v =>
-                    v.attributes.some(a => a.name === name && a.value === value)
-                  )
-                  if (fallback) {
-                    setVariant(fallback)
-                    setActiveImage(fallback.image || product.images?.[0]?.url || "/placeholder.png")
+                  // ✅ UPDATE IMAGE ON COLOR CLICK
+                  if (match.image) {
+                    setActiveImage(match.image)
                   }
                 }
               }
 
-              return Object.entries(grouped).map(([name, values]) => {
-                // Sort sizes logically if the attribute name is "size"
+              // Sort attributes to show Size first, then Color
+              const sortedGroups = Object.entries(grouped).sort(([nameA], [nameB]) => {
+                const order = ["size", "volume", "color"]
+                const indexA = order.indexOf(nameA.toLowerCase())
+                const indexB = order.indexOf(nameB.toLowerCase())
+                if (indexA !== -1 && indexB !== -1) return indexA - indexB
+                if (indexA !== -1) return -1
+                if (indexB !== -1) return 1
+                return nameA.localeCompare(nameB)
+              })
+
+              return sortedGroups.map(([name, values]) => {
+                // Sort sizes logically
                 const sizeOrder = ["XS", "S", "M", "L", "XL", "2XL", "3XL"];
                 const displayValues = name.toLowerCase() === "size"
                   ? [...values].sort((a, b) => {
@@ -405,8 +409,8 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                     <h3 className="text-[10px] font-bold text-[var(--text-heading)] uppercase tracking-[0.2em]">Select {name}</h3>
                     <div className="flex gap-3 flex-wrap">
                       {displayValues.map((val) => {
-                        const isActive = selections[name] === val
-                        const isOut = !product.variants.some(v => 
+                        const isSelected = variant?.attributes.some(a => a.name === name && a.value === val)
+                        const isOut = !product.variants.find(v => 
                           v.attributes.some(a => a.name === name && a.value === val) && v.stock > 0
                         )
 
@@ -417,7 +421,7 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                             onClick={() => handleAttrClick(name, val)}
                             className={`px-6 py-3.5 md:px-5 md:py-2 rounded-2xl text-[11px] md:text-[10px] font-black tracking-widest uppercase transition-all duration-300 border-2 ${isOut
                               ? "opacity-30 bg-gray-50 border-gray-100 line-through cursor-not-allowed"
-                              : isActive
+                              : isSelected
                                 ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-[0_8px_20px_rgba(39,76,119,0.25)] scale-[1.05]"
                                 : "bg-white border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)]"
                               }`}
