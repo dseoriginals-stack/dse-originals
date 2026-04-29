@@ -54,9 +54,9 @@ export default function AdminProducts() {
   const [showScanner, setShowScanner] = useState(false)
   const [variantType, setVariantType] = useState<"size" | "volume" | "color_size">("size")
   
-  type VariantRow = { id: string; value: string; price: string; stock: string; image?: File | null; preview?: string | null }
+  type VariantRow = { id: string; value: string; secondaryValue?: string; price: string; stock: string; image?: File | null; preview?: string | null }
   const [variantsState, setVariantsState] = useState<VariantRow[]>([
-    { id: "1", value: "M", price: "", stock: "", image: null, preview: null }
+    { id: "1", value: "M", secondaryValue: "", price: "", stock: "", image: null, preview: null }
   ])
   const [form, setForm] = useState({
     name: "",
@@ -153,18 +153,26 @@ export default function AdminProducts() {
       formData.append("name", form.name)
       formData.append("description", form.description)
       formData.append("categoryId", form.categoryId)
-      const variants = variantsState.map((row) => ({
-        id: row.id.length > 15 ? row.id : undefined,
-        price: Number(row.price || form.price),
-        stock: Number(row.stock || form.stock),
-        preview: row.preview || null,
-        attributes: [
-          {
-            name: variantType === "size" ? "Size" : variantType === "volume" ? "Volume" : "Color / Size",
+      const variants = variantsState.map((row) => {
+        const attributes = []
+        if (variantType === "color_size") {
+          attributes.push({ name: "Color", value: row.value })
+          attributes.push({ name: "Size", value: row.secondaryValue || "" })
+        } else {
+          attributes.push({
+            name: variantType === "size" ? "Size" : "Volume",
             value: row.value,
-          },
-        ],
-      }))
+          })
+        }
+
+        return {
+          id: row.id.length > 15 ? row.id : undefined,
+          price: Number(row.price || form.price),
+          stock: Number(row.stock || form.stock),
+          preview: row.preview || null,
+          attributes
+        }
+      })
 
       formData.append("variants", JSON.stringify(variants))
       formData.append("isBestseller", String(form.isBestseller))
@@ -210,14 +218,20 @@ export default function AdminProducts() {
     })
 
     if (product.variants?.length) {
-      const firstAttr = product.variants[0]?.attributes?.[0]?.value || "M"
-      const firstAttrName = product.variants[0]?.attributes?.[0]?.name || "Size"
-
-      setVariantType(firstAttrName.toLowerCase() === "volume" ? "volume" : "size")
+      const v0 = product.variants[0]
+      const hasMultiple = (v0.attributes?.length || 0) > 1
+      
+      if (hasMultiple) {
+        setVariantType("color_size")
+      } else {
+        const name0 = v0.attributes?.[0]?.name?.toLowerCase() || ""
+        setVariantType(name0 === "volume" ? "volume" : "size")
+      }
 
       const mapped: VariantRow[] = product.variants.map((v: any) => ({
         id: v.id,
         value: v.attributes?.[0]?.value || "",
+        secondaryValue: v.attributes?.[1]?.value || "",
         price: String(v.price ?? ""),
         stock: String(v.stock ?? ""),
         preview: v.image || null,
@@ -236,7 +250,7 @@ export default function AdminProducts() {
     setEditing(null)
     setShowModal(false)
     setPreview(null)
-    setVariantsState([{ id: "1", value: "M", price: "", stock: "", image: null, preview: null }])
+    setVariantsState([{ id: "1", value: "M", secondaryValue: "", price: "", stock: "", image: null, preview: null }])
     setForm({ name: "", description: "", categoryId: "", price: "", stock: "", isBestseller: false, isPopular: false, image: null })
   }
 
@@ -402,20 +416,20 @@ export default function AdminProducts() {
                             if (catName.includes('perfume')) {
                               setVariantType('volume')
                               setVariantsState([
-                                { id: "1", value: "55ml", price: "", stock: "0", image: null, preview: null },
-                                { id: "2", value: "30ml", price: "", stock: "0", image: null, preview: null }
+                                { id: "1", value: "55ml", secondaryValue: "", price: "", stock: "0", image: null, preview: null },
+                                { id: "2", value: "30ml", secondaryValue: "", price: "", stock: "0", image: null, preview: null }
                               ])
                             } else if (catName.includes('apparel') || catName.includes('clothing')) {
                               setVariantType('color_size')
                               setVariantsState([
-                                { id: "1", value: "Black - S", price: "", stock: "0", image: null, preview: null },
-                                { id: "2", value: "Black - M", price: "", stock: "0", image: null, preview: null },
-                                { id: "3", value: "Black - L", price: "", stock: "0", image: null, preview: null },
-                                { id: "4", value: "Black - XL", price: "", stock: "0", image: null, preview: null },
-                                { id: "5", value: "White - S", price: "", stock: "0", image: null, preview: null },
-                                { id: "6", value: "White - M", price: "", stock: "0", image: null, preview: null },
-                                { id: "7", value: "White - L", price: "", stock: "0", image: null, preview: null },
-                                { id: "8", value: "White - XL", price: "", stock: "0", image: null, preview: null }
+                                { id: "1", value: "Black", secondaryValue: "S", price: "", stock: "0", image: null, preview: null },
+                                { id: "2", value: "Black", secondaryValue: "M", price: "", stock: "0", image: null, preview: null },
+                                { id: "3", value: "Black", secondaryValue: "L", price: "", stock: "0", image: null, preview: null },
+                                { id: "4", value: "Black", secondaryValue: "XL", price: "", stock: "0", image: null, preview: null },
+                                { id: "5", value: "White", secondaryValue: "S", price: "", stock: "0", image: null, preview: null },
+                                { id: "6", value: "White", secondaryValue: "M", price: "", stock: "0", image: null, preview: null },
+                                { id: "7", value: "White", secondaryValue: "L", price: "", stock: "0", image: null, preview: null },
+                                { id: "8", value: "White", secondaryValue: "XL", price: "", stock: "0", image: null, preview: null }
                               ])
                             }
                           }
@@ -447,7 +461,7 @@ export default function AdminProducts() {
                   <button 
                     type="button"
                     onClick={() => {
-                      setVariantsState(prev => [...prev, { id: Date.now().toString(), value: "", price: "", stock: "0", image: null, preview: null }])
+                      setVariantsState(prev => [...prev, { id: Date.now().toString(), value: "", secondaryValue: "", price: "", stock: "0", image: null, preview: null }])
                     }}
                     className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[var(--border-light)] text-[11px] font-black uppercase tracking-widest hover:bg-gray-50 transition"
                   >
@@ -459,7 +473,8 @@ export default function AdminProducts() {
                   <table className="w-full text-left">
                     <thead>
                       <tr className="text-[11px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">
-                        <th className="pb-4 pl-12">Variant (Size / Color)</th>
+                        <th className="pb-4 pl-12">{variantType === 'color_size' ? "Color" : "Variant Value"}</th>
+                        {variantType === 'color_size' && <th className="pb-4">Size</th>}
                         <th className="pb-4">Cost</th>
                         <th className="pb-4">Stock</th>
                         <th className="pb-4">Images</th>
@@ -470,19 +485,19 @@ export default function AdminProducts() {
                       {variantsState.map((row, idx) => (
                         <tr key={row.id} className="group hover:bg-gray-50/50 transition">
                           <td className="py-4 relative">
-                            <div className="flex gap-2 pl-4 pr-4">
+                            <div className={`flex ${variantType === 'color_size' ? 'gap-1' : 'gap-2'} pl-4 pr-4`}>
                               <select 
                                 value={variantType}
                                 onChange={(e: any) => setVariantType(e.target.value)}
-                                className="bg-white border border-[var(--border-light)] rounded-lg px-3 py-2 text-sm font-bold w-1/3 focus:outline-none focus:ring-1 focus:ring-[var(--brand-primary)]"
+                                className={`bg-white border border-[var(--border-light)] rounded-lg px-2 py-2 text-[11px] font-bold ${variantType === 'color_size' ? 'w-[70px]' : 'w-1/3'} focus:outline-none focus:ring-1 focus:ring-[var(--brand-primary)]`}
                               >
                                 <option value="size">Size</option>
-                                <option value="volume">Volume</option>
-                                <option value="color_size">Color/Size</option>
+                                <option value="volume">Vol</option>
+                                <option value="color_size">C/S</option>
                               </select>
                               <input 
                                 type="text"
-                                placeholder={variantType === 'size' ? "e.g. M, L" : variantType === 'volume' ? "e.g. 30ml" : "e.g. Black - M"}
+                                placeholder={variantType === 'size' ? "M, L" : variantType === 'volume' ? "30ml" : "Color"}
                                 value={row.value}
                                 onChange={(e) => {
                                   const newRows = [...variantsState]
@@ -493,6 +508,21 @@ export default function AdminProducts() {
                               />
                             </div>
                           </td>
+                          {variantType === 'color_size' && (
+                            <td className="py-4">
+                              <input 
+                                type="text"
+                                placeholder="Size"
+                                value={row.secondaryValue}
+                                onChange={(e) => {
+                                  const newRows = [...variantsState]
+                                  newRows[idx].secondaryValue = e.target.value
+                                  setVariantsState(newRows)
+                                }}
+                                className="w-20 bg-white border border-[var(--border-light)] rounded-lg px-3 py-2 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-[var(--brand-primary)]"
+                              />
+                            </td>
+                          )}
                           <td className="py-4">
                             <input 
                               type="number"
@@ -562,7 +592,7 @@ export default function AdminProducts() {
                 <button 
                   type="button"
                   onClick={() => {
-                    setVariantsState(prev => [...prev, { id: Date.now().toString(), value: "", price: "", stock: "0", image: null, preview: null }])
+                    setVariantsState(prev => [...prev, { id: Date.now().toString(), value: "", secondaryValue: "", price: "", stock: "0", image: null, preview: null }])
                   }}
                   className="mt-6 flex items-center gap-2 text-xs font-black text-[var(--brand-primary)] uppercase tracking-widest hover:opacity-70 transition"
                 >
