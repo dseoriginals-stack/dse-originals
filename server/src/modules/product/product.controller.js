@@ -716,6 +716,9 @@ export const updateProduct = async (req, res, next) => {
         where: { id },
         data: updateData
       })
+    }, {
+      maxWait: 5000,
+      timeout: 20000
     })
 
     console.log(`✅ Product ${id} updated:`, {
