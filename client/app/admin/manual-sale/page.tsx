@@ -94,7 +94,7 @@ export default function ManualSalePage() {
         variantName: variant.attributes?.map((a: any) => a.value).join(" / ") || "Standard",
         srp: prices.srp,
         reseller: prices.reseller,
-        image: product.images?.[0]?.url,
+        image: variant.image || product.images?.[0]?.url || "/placeholder.png",
         quantity: 1,
         stock: variant.stock
       }])
@@ -196,6 +196,7 @@ export default function ManualSalePage() {
               .map((variant: any) => {
                 const prices = getPOSPrices(variant.parentProduct, variant)
                 const currentPrice = priceMode === "srp" ? prices.srp : prices.reseller
+                const displayImage = variant.image || variant.parentProduct.images?.[0]?.url || "/placeholder.png"
 
                 return (
                   <button
@@ -206,7 +207,7 @@ export default function ManualSalePage() {
                   >
                     <div className="aspect-square rounded-2xl overflow-hidden bg-[var(--bg-surface)] relative mb-3">
                       <Image 
-                        src={getImageUrl(variant.parentProduct.images?.[0]?.url)} 
+                        src={getImageUrl(displayImage)} 
                         alt={variant.parentProduct.name}
                         fill
                         className="object-cover group-hover:scale-110 transition-transform duration-700"

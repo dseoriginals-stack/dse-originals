@@ -68,7 +68,12 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
   const [selections, setSelections] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {}
     initialVariant?.attributes.forEach(a => {
-      initial[a.name] = a.value
+      if (a.name === "Sizes") {
+         const parsedSizes = a.value.split(",").map(s => s.trim()).filter(Boolean)
+         if (parsedSizes.length > 0) initial["Size"] = parsedSizes[0]
+      } else {
+         initial[a.name] = a.value
+      }
     })
     return initial
   })
@@ -77,9 +82,12 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
   useEffect(() => {
     if (!product) return
     const match = product.variants.find(v =>
-      Object.entries(selections).every(([name, value]) =>
-        v.attributes.some(a => a.name === name && a.value === value)
-      )
+      Object.entries(selections).every(([name, value]) => {
+        if (name === "Size" && v.attributes.some(a => a.name === "Sizes")) {
+          return v.attributes.find(a => a.name === "Sizes")?.value.split(",").map(s => s.trim()).includes(value)
+        }
+        return v.attributes.some(a => a.name === name && a.value === value)
+      })
     )
     if (match && match.id !== variant?.id) {
       setVariant(match)
@@ -146,7 +154,12 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
         
         const initialSel: Record<string, string> = {}
         firstAvailable?.attributes.forEach(a => {
-          initialSel[a.name] = a.value
+          if (a.name === "Sizes") {
+             const parsedSizes = a.value.split(",").map(s => s.trim()).filter(Boolean)
+             if (parsedSizes.length > 0) initialSel["Size"] = parsedSizes[0]
+          } else {
+             initialSel[a.name] = a.value
+          }
         })
         setSelections(initialSel)
 
@@ -213,7 +226,7 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
       quantity: qty,
       category: product.category,
       image: getImageUrl(activeImage),
-      attributes: variant.attributes?.map(a => ({ name: a.name, value: a.value })) || []
+      attributes: Object.entries(selections).map(([name, value]) => ({ name, value }))
     })
 
     setAdded(true)
@@ -387,9 +400,20 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
               const grouped: Record<string, string[]> = {}
               product.variants.forEach((v) => {
                 v.attributes?.forEach((attr) => {
-                  if (!grouped[attr.name]) grouped[attr.name] = []
-                  if (!grouped[attr.name].includes(attr.value)) {
-                    grouped[attr.name].push(attr.value)
+                  if (attr.name === "Sizes") {
+                    attr.value.split(",").forEach(val => {
+                      const trimmed = val.trim()
+                      if (!trimmed) return
+                      if (!grouped["Size"]) grouped["Size"] = []
+                      if (!grouped["Size"].includes(trimmed)) {
+                        grouped["Size"].push(trimmed)
+                      }
+                    })
+                  } else {
+                    if (!grouped[attr.name]) grouped[attr.name] = []
+                    if (!grouped[attr.name].includes(attr.value)) {
+                      grouped[attr.name].push(attr.value)
+                    }
                   }
                 })
               })
@@ -398,21 +422,31 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                 setSelections(prev => {
                   const next = { ...prev, [name]: value }
                   
-                  // If exact match doesn't exist, we might want to find the first variant that matches this new selection
                   const match = product.variants.find(v =>
-                    Object.entries(next).every(([n, val]) => 
-                      v.attributes?.some(a => a.name === n && a.value === val)
-                    )
+                    Object.entries(next).every(([n, val]) => {
+                      if (n === "Size" && v.attributes?.some(a => a.name === "Sizes")) {
+                         return v.attributes.find(a => a.name === "Sizes")?.value.split(",").map(s => s.trim()).includes(val)
+                      }
+                      return v.attributes?.some(a => a.name === n && a.value === val)
+                    })
                   )
 
                   if (!match) {
-                    // Find first variant that has this specific attribute and reset others if needed
-                    const fallback = product.variants.find(v =>
-                      v.attributes?.some(a => a.name === name && a.value === value)
-                    )
+                    const fallback = product.variants.find(v => {
+                      if (name === "Size" && v.attributes?.some(a => a.name === "Sizes")) {
+                        return v.attributes.find(a => a.name === "Sizes")?.value.split(",").map(s => s.trim()).includes(value)
+                      }
+                      return v.attributes?.some(a => a.name === name && a.value === value)
+                    })
                     if (fallback) {
                       const reset: Record<string, string> = {}
-                      fallback.attributes?.forEach(a => { reset[a.name] = a.value })
+                      fallback.attributes?.forEach(a => { 
+                         if (a.name === "Sizes") {
+                            reset["Size"] = value 
+                         } else {
+                            reset[a.name] = a.value 
+                         }
+                      })
                       return reset
                     }
                   }

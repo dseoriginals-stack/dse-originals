@@ -229,6 +229,11 @@ export default function AdminProducts() {
             }
           }
           if (a.name === "Size" || a.name === "Volume") sizes.add(a.value)
+          if (a.name === "Sizes") {
+            a.value.split(",").forEach((s: string) => {
+              if (s.trim()) sizes.add(s.trim())
+            })
+          }
         })
       })
       
@@ -578,20 +583,35 @@ export default function AdminProducts() {
                   
                   if (colors.length === 0 && sizes.length === 0) return
                   
-                  // Decide attribute names based on category
+                  const isApparel = categories.find(c => c.id === form.categoryId)?.name.toLowerCase().match(/apparel|clothing/i)
                   const sizeAttrName = categories.find(c => c.id === form.categoryId)?.name.toLowerCase().includes('perfume') ? "Volume" : "Size"
                   
                   const combos = []
-                  if (colors.length > 0 && sizes.length > 0) {
-                    for (const c of colors) {
-                      for (const s of sizes) {
-                        combos.push({ Color: c, [sizeAttrName]: s })
+                  
+                  if (isApparel) {
+                    // For Apparel, user wants Color to be the ONLY variant.
+                    // Sizes are merged into a single attribute string on that Color.
+                    if (colors.length > 0) {
+                      for (const c of colors) {
+                        const combo: any = { Color: c }
+                        if (sizes.length > 0) combo.Sizes = sizes.join(", ")
+                        combos.push(combo)
                       }
+                    } else if (sizes.length > 0) {
+                        combos.push({ Sizes: sizes.join(", ") })
                     }
-                  } else if (colors.length > 0) {
-                    for (const c of colors) combos.push({ Color: c })
                   } else {
-                    for (const s of sizes) combos.push({ [sizeAttrName]: s })
+                    if (colors.length > 0 && sizes.length > 0) {
+                      for (const c of colors) {
+                        for (const s of sizes) {
+                          combos.push({ Color: c, [sizeAttrName]: s })
+                        }
+                      }
+                    } else if (colors.length > 0) {
+                      for (const c of colors) combos.push({ Color: c })
+                    } else {
+                      for (const s of sizes) combos.push({ [sizeAttrName]: s })
+                    }
                   }
 
                   const newMatrix = combos.map(combo => {
