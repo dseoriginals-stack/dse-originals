@@ -149,76 +149,63 @@ export default function HomePage({ initialProducts }: Props) {
     <main className="w-full">
 
       {/* ================= HERO ================= */}
-      <section className="relative w-full h-[100svh] md:h-[75vh] overflow-hidden -mt-[56px]">
+      <section className="relative w-full h-[100svh] md:h-[75vh] overflow-hidden -mt-[56px] bg-black">
 
         {/* Background Images */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentSlide}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.0, ease: "easeInOut" }}
-            className="absolute inset-0 z-0"
-          >
-            <Image
-              src={heroImages[currentSlide]}
-              alt="Hero"
-              fill
-              priority
-              placeholder="blur"
-              blurDataURL={getCloudinaryBlurUrl(heroImages[currentSlide])}
-              sizes="100vw"
-              className="object-cover"
-            />
-          </motion.div>
-        </AnimatePresence>
+        <div className="absolute inset-0 z-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentSlide}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8 }}
+              className="absolute inset-0"
+            >
+              <Image
+                src={heroImages[currentSlide]}
+                alt="Hero"
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-black/30" />
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
         {/* Content */}
         <div className="absolute inset-0 z-20 flex flex-col items-start justify-center px-6 md:px-20 max-w-7xl mx-auto">
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/20 backdrop-blur-md border border-white/20 mb-6 shadow-md"
-          >
-            <Sparkles size={16} className="text-[var(--brand-soft)]" />
-            <span className="text-xs font-bold tracking-widest uppercase text-white">
-              Limited Drop 2026
-            </span>
-          </motion.div>
-
           <motion.h1
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight max-w-2xl leading-[1.1] text-white"
-            style={{ textShadow: "0px 2px 10px rgba(0,0,0,0.4)" }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight max-w-2xl leading-[1.1] text-white"
           >
-            Presence in <br className="hidden sm:block" /> <span className="text-[var(--brand-soft)]">Every Detail.</span>
+            Presence in <br className="hidden sm:block" /> Every Detail.
           </motion.h1>
 
           <motion.p
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-            className="text-sm md:text-base text-white/90 max-w-lg mt-4 mb-7 font-medium"
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="text-base md:text-lg text-white/90 max-w-lg mt-6 mb-8 font-medium"
           >
             From signature scents that capture the room to precision-cut apparel that defines it. Elevate your identity.
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
-            className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
+            transition={{ duration: 0.6, delay: 0.4 }}
           >
             <Link
               href="/products"
-              className="btn-premium w-full sm:w-auto flex justify-center !px-5 !py-2.5 md:!px-7 md:!py-3 shadow-2xl"
+              className="btn-premium flex items-center gap-2 !px-8 !py-4 shadow-xl"
             >
-              Shop All Originals <ArrowRight size={18} />
+              Shop All Originals <ArrowRight size={20} />
             </Link>
           </motion.div>
 
@@ -230,7 +217,7 @@ export default function HomePage({ initialProducts }: Props) {
             <button
               key={i}
               onClick={() => setCurrentSlide(i)}
-              className={`transition-all duration-300 rounded-full ${i === currentSlide ? "w-8 h-2.5 bg-white shadow-lg" : "w-2.5 h-2.5 bg-white/40"}`}
+              className={`transition-all duration-300 rounded-full ${i === currentSlide ? "w-8 h-2.5 bg-white shadow-lg" : "w-2.5 h-2.5 bg-white/40 hover:bg-white/60"}`}
             />
           ))}
         </div>
