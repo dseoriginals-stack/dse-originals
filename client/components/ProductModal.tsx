@@ -25,7 +25,7 @@ export default function ProductModal({
   // ✅ Group attributes for separated selection
   const groupedAttributes: Record<string, string[]> = {}
   product.variants?.forEach((v) => {
-    v.attributes.forEach((attr) => {
+    v.attributes?.forEach((attr) => {
       if (!groupedAttributes[attr.name]) groupedAttributes[attr.name] = []
       if (!groupedAttributes[attr.name].includes(attr.value)) {
         groupedAttributes[attr.name].push(attr.value)
@@ -37,7 +37,7 @@ export default function ProductModal({
   const [selections, setSelections] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {}
     const first = product.variants?.[0]
-    first?.attributes.forEach(a => {
+    first?.attributes?.forEach(a => {
       initial[a.name] = a.value
     })
     return initial
@@ -45,7 +45,7 @@ export default function ProductModal({
 
   // ✅ Computed selected variant
   const selectedVariant = product.variants?.find(v =>
-    v.attributes.every(a => selections[a.name] === a.value)
+    v.attributes?.every(a => selections[a.name] === a.value)
   ) || product.variants?.[0] || null
 
   const handleAttributeClick = (name: string, value: string) => {
@@ -53,7 +53,7 @@ export default function ProductModal({
 
     // Try to find exact match
     const match = product.variants?.find(v =>
-      v.attributes.every(a => nextSelections[a.name] === a.value)
+      v.attributes?.every(a => nextSelections[a.name] === a.value)
     )
 
     if (match) {
@@ -61,11 +61,11 @@ export default function ProductModal({
     } else {
       // Falling back to first variant matching the new selection
       const fallback = product.variants?.find(v =>
-        v.attributes.some(a => a.name === name && a.value === value)
+        v.attributes?.some(a => a.name === name && a.value === value)
       )
       if (fallback) {
         const reset: Record<string, string> = {}
-        fallback.attributes.forEach(a => { reset[a.name] = a.value })
+        fallback.attributes?.forEach(a => { reset[a.name] = a.value })
         setSelections(reset)
       }
     }
@@ -202,9 +202,9 @@ export default function ProductModal({
 
                         // Check if it's available with current OTHER selections
                         const isAvailable = product.variants?.some(v => 
-                          v.attributes.some(a => a.name === name && a.value === val) &&
+                          v.attributes?.some(a => a.name === name && a.value === val) &&
                           Object.entries(selections).every(([otherName, otherVal]) => 
-                            otherName === name || v.attributes.some(a => a.name === otherName && a.value === otherVal)
+                            otherName === name || v.attributes?.some(a => a.name === otherName && a.value === otherVal)
                           ) &&
                           v.stock > 0
                         )

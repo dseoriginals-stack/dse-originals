@@ -384,7 +384,7 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
             {(() => {
               const grouped: Record<string, string[]> = {}
               product.variants.forEach((v) => {
-                v.attributes.forEach((attr) => {
+                v.attributes?.forEach((attr) => {
                   if (!grouped[attr.name]) grouped[attr.name] = []
                   if (!grouped[attr.name].includes(attr.value)) {
                     grouped[attr.name].push(attr.value)
@@ -399,18 +399,18 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                   // If exact match doesn't exist, we might want to find the first variant that matches this new selection
                   const match = product.variants.find(v =>
                     Object.entries(next).every(([n, val]) => 
-                      v.attributes.some(a => a.name === n && a.value === val)
+                      v.attributes?.some(a => a.name === n && a.value === val)
                     )
                   )
 
                   if (!match) {
                     // Find first variant that has this specific attribute and reset others if needed
                     const fallback = product.variants.find(v =>
-                      v.attributes.some(a => a.name === name && a.value === value)
+                      v.attributes?.some(a => a.name === name && a.value === value)
                     )
                     if (fallback) {
                       const reset: Record<string, string> = {}
-                      fallback.attributes.forEach(a => { reset[a.name] = a.value })
+                      fallback.attributes?.forEach(a => { reset[a.name] = a.value })
                       return reset
                     }
                   }
@@ -452,14 +452,14 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                         
                         // Check if this specific attribute value is available at all
                         const exists = product.variants.some(v => 
-                          v.attributes.some(a => a.name === name && a.value === val)
+                          v.attributes?.some(a => a.name === name && a.value === val)
                         )
 
                         // Check if it's available with current OTHER selections
                         const isAvailable = product.variants.some(v => 
-                          v.attributes.some(a => a.name === name && a.value === val) &&
+                          v.attributes?.some(a => a.name === name && a.value === val) &&
                           Object.entries(selections).every(([otherName, otherVal]) => 
-                            otherName === name || v.attributes.some(a => a.name === otherName && a.value === otherVal)
+                            otherName === name || v.attributes?.some(a => a.name === otherName && a.value === otherVal)
                           ) &&
                           v.stock > 0
                         )
