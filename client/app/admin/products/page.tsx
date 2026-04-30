@@ -105,7 +105,7 @@ export default function AdminProducts() {
         const mainSku = p.variants?.[0]?.sku || ""
 
         // Extract nested data for the card view
-        const image = p.images?.[0]?.url || p.image || null
+        const image = p.images?.[0]?.url || p.variants?.find((v: any) => v.image)?.image || p.image || null
         const price = p.variants?.[0]?.price ? Number(p.variants[0].price) : 0
         const stock = p.variants?.reduce((sum: number, v: any) => sum + (Number(v.stock) || 0), 0) || 0
 
@@ -384,6 +384,36 @@ export default function AdminProducts() {
               <div className="bg-white rounded-3xl border border-[var(--border-light)] p-8 shadow-sm space-y-6">
                 <h3 className="text-sm font-black text-[var(--text-heading)] tracking-tight">Product Information</h3>
                 
+                {/* MAIN IMAGE UPLOAD */}
+                <div className="flex flex-col md:flex-row items-center gap-6 bg-gray-50/50 p-6 rounded-2xl border border-gray-100 border-dashed">
+                  <div className="relative w-32 h-32 rounded-2xl overflow-hidden group border border-gray-200 bg-white flex items-center justify-center shadow-sm shrink-0">
+                    {preview ? (
+                      <img src={preview} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                    ) : (
+                      <div className="text-gray-300 flex flex-col items-center">
+                        <ImageIcon size={32} />
+                        <span className="text-[9px] font-black uppercase mt-2 text-gray-400">Main Photo</span>
+                      </div>
+                    )}
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      onChange={async (e: any) => {
+                        const f = e.target.files?.[0]; if (!f) return;
+                        const comp = await imageCompression(f, { maxSizeMB: 1 });
+                        setForm({ ...form, image: new File([comp], f.name, { type: comp.type }) })
+                        setPreview(URL.createObjectURL(comp))
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-600 mb-1">Primary Product Image</h4>
+                    <p className="text-[10px] font-medium text-gray-400 leading-relaxed max-w-xs mb-3">This is the main image displayed on the storefront card and product page. (Required if no variants)</p>
+                    <button type="button" className="text-[10px] font-black text-[var(--brand-primary)] uppercase tracking-widest bg-[var(--brand-soft)]/20 px-4 py-2 rounded-lg pointer-events-none">Click Image to Upload</button>
+                  </div>
+                </div>
+
                 <div className="space-y-1">
                   <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Name <span className="text-red-500">*</span></label>
                   <input 
@@ -410,6 +440,17 @@ export default function AdminProducts() {
                       onChange={(e) => setForm({ ...form, description: e.target.value })}
                       className="w-full p-5 min-h-[150px] focus:outline-none text-sm font-medium"
                     />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Base Price (₱) <span className="text-red-500">*</span></label>
+                    <input type="number" placeholder="0.00" value={form.price} onChange={e => setForm({...form, price: e.target.value})} className="w-full px-5 py-3 bg-white border border-[var(--border-light)] rounded-xl focus:ring-2 focus:ring-[var(--brand-primary)] focus:outline-none font-bold text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Total Stock <span className="text-red-500">*</span></label>
+                    <input type="number" placeholder="0" value={form.stock} onChange={e => setForm({...form, stock: e.target.value})} className="w-full px-5 py-3 bg-white border border-[var(--border-light)] rounded-xl focus:ring-2 focus:ring-[var(--brand-primary)] focus:outline-none font-bold text-sm" />
                   </div>
                 </div>
 

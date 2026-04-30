@@ -32,6 +32,7 @@ import categoryRoutes from "./routes/category.routes.js"
 import reviewRoutes from "./modules/review/review.routes.js"
 import analyticsRoutes from "./modules/analytics/analytics.routes.js"
 import userRoutes from "./modules/user/user.routes.js"
+import cloudinary from "./config/cloudinary.js"
 
 // Webhooks
 import { handleXenditWebhook } from "./webhooks/xendit.webhook.js"
@@ -116,6 +117,19 @@ app.use("/api/search", searchRoutes)
 app.use("/api/donations", donationRoutes)
 app.use("/api/categories", categoryRoutes)
 app.use("/api/admin", adminRoutes)
+
+app.post("/api/upload", async (req, res) => {
+  try {
+    const { image } = req.body
+    if (!image) return res.status(400).json({ message: "No image provided" })
+    
+    const uploadRes = await cloudinary.uploader.upload(image, { folder: "dse_uploads" })
+    res.json({ url: uploadRes.secure_url })
+  } catch (err) {
+    console.error("Upload failed", err)
+    res.status(500).json({ message: "Upload failed", error: err.message })
+  }
+})
 
 // =========================
 // WEBHOOK

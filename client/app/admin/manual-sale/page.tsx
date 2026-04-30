@@ -22,6 +22,9 @@ export default function ManualSalePage() {
 
   // Customer Info
   const [customerName, setCustomerName] = useState("")
+  
+  // Checkout Success
+  const [lastOrder, setLastOrder] = useState<any>(null)
 
   useEffect(() => {
     fetchProducts()
@@ -138,7 +141,9 @@ export default function ManualSalePage() {
         isManual: true
       }
 
-      await api.post("/orders/manual", payload)
+      const res = await api.post("/orders/manual", payload)
+      
+      setLastOrder({ ...res, cartItems: [...cart], subtotal, priceMode, guestName: customerName || "Walk-in Customer" })
       
       toast.success("Order Processed Successfully!")
       setCart([])
@@ -149,6 +154,10 @@ export default function ManualSalePage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const printReceipt = () => {
+    window.print()
   }
 
   return (
@@ -248,8 +257,11 @@ export default function ManualSalePage() {
                 </div>
               </div>
 
-              <div className="flex flex-col items-end">
+              <div className="flex flex-col items-end gap-2">
                  <span className="text-[9px] font-black uppercase tracking-widest px-3 py-1 bg-white/10 rounded-full border border-white/10">Cash Payment</span>
+                 {cart.length > 0 && (
+                   <button onClick={() => setCart([])} className="text-[10px] text-red-300 hover:text-red-400 font-bold uppercase tracking-widest transition-colors">Clear Cart</button>
+                 )}
               </div>
             </div>
 
@@ -346,6 +358,69 @@ export default function ManualSalePage() {
           </div>
         </div>
       </div>
+
+      {/* SUCCESS / RECEIPT MODAL */}
+      <AnimatePresence>
+        {lastOrder && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm print:bg-white print:static print:p-0">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl print:shadow-none print:max-w-none print:w-full print:border-none border border-gray-100 relative"
+            >
+              <div className="print:hidden absolute top-4 right-4 flex gap-2">
+                <button onClick={() => setLastOrder(null)} className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition">✕</button>
+              </div>
+
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-[var(--brand-soft)]/20 text-[var(--brand-primary)] rounded-full flex items-center justify-center mx-auto mb-4 print:hidden">
+                  <Check size={32} strokeWidth={3} />
+                </div>
+                <h2 className="text-2xl font-[1000] text-[var(--text-heading)] tracking-tighter">DSE Originals</h2>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Walk-in Receipt</p>
+                <div className="text-xs font-bold text-gray-500 mt-2">Order #{lastOrder.id?.slice(-6).toUpperCase()}</div>
+                <div className="text-[10px] text-gray-400">{new Date().toLocaleString()}</div>
+              </div>
+
+              <div className="border-t border-dashed border-gray-300 py-4 mb-4">
+                <div className="text-xs font-bold text-gray-600 mb-2">Customer: {lastOrder.guestName}</div>
+                <div className="text-[10px] text-gray-400 mb-4">Pricing: {lastOrder.priceMode === "srp" ? "Retail (SRP)" : "Reseller"}</div>
+
+                <div className="space-y-3">
+                  {lastOrder.cartItems.map((item: any, i: number) => (
+                    <div key={i} className="flex justify-between text-xs font-bold text-gray-600">
+                      <div>
+                        <span>{item.quantity}x </span>
+                        <span>{item.name} ({item.variantName})</span>
+                      </div>
+                      <span>₱{(item.quantity * (lastOrder.priceMode === "srp" ? item.srp : item.reseller)).toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t border-gray-300 pt-4 flex justify-between items-center mb-8">
+                <span className="font-black text-gray-500 uppercase text-[10px] tracking-widest">Total Paid</span>
+                <span className="text-2xl font-[1000] text-[var(--text-heading)]">₱{lastOrder.subtotal.toLocaleString()}</span>
+              </div>
+
+              <div className="print:hidden space-y-3">
+                <button onClick={printReceipt} className="w-full btn-premium !py-4 rounded-xl text-xs uppercase tracking-widest shadow-xl">
+                  Print Receipt
+                </button>
+                <button onClick={() => setLastOrder(null)} className="w-full py-4 rounded-xl text-xs font-bold uppercase tracking-widest bg-gray-100 text-gray-600 hover:bg-gray-200 transition">
+                  New Sale
+                </button>
+              </div>
+
+              <div className="hidden print:block text-center text-[10px] text-gray-400 mt-8 font-bold uppercase tracking-widest">
+                Thank you for your purchase!
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

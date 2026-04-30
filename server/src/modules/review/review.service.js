@@ -17,6 +17,7 @@ export async function getProductReviews(productId) {
       createdAt: true,
       userId: true,
       productId: true,
+      images: true,
       user: {
         select: { name: true }
       }
@@ -63,14 +64,15 @@ CREATE REVIEW
 
 export async function createReview(userId, data) {
 
-  const { productId, rating, comment } = data
+  const { productId, rating, comment, images } = data
 
   return prisma.review.create({
     data: {
       userId,
       productId,
       rating,
-      comment
+      comment,
+      images: images || []
     }
   })
 

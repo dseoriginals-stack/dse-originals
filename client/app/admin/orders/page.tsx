@@ -33,7 +33,8 @@ type OrderItem = {
 
 type Order = {
   id: string
-  total: number
+  totalAmount: number
+  pointsDiscount: number
   status: string
   trackingNo?: string
   createdAt: string
@@ -254,7 +255,7 @@ function OrderRow({ order, onOpen, trackingValue, onTrackingChange, onUpdateStat
       </td>
       <td className="px-8 py-6">
         <div className="flex flex-col">
-          <span className="font-black text-sm text-[var(--text-heading)]">₱{Number(order.total).toLocaleString()}</span>
+          <span className="font-black text-sm text-[var(--text-heading)]">₱{Number(order.totalAmount).toLocaleString()}</span>
           <span className="text-[9px] text-emerald-600 font-black uppercase tracking-widest mt-1">Fully Paid</span>
         </div>
       </td>
@@ -387,9 +388,15 @@ function OrderModal({ order, onClose, onUpdateStatus }: any) {
                   <span>Subtotal + Shipping</span>
                   <span>₱{order.shippingFee.toLocaleString()} Fee</span>
                 </div>
-                <div className="flex justify-between items-end">
+                {order.pointsDiscount > 0 && (
+                  <div className="flex justify-between text-xs font-bold opacity-80 uppercase tracking-widest mb-2 text-emerald-200">
+                    <span>Points Discount</span>
+                    <span>-₱{order.pointsDiscount.toLocaleString()}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-end pt-4 mt-2 border-t border-white/20">
                   <span className="text-sm font-black uppercase tracking-[0.2em]">Final Total</span>
-                  <span className="text-3xl font-[1000]">₱{order.total.toLocaleString()}</span>
+                  <span className="text-3xl font-[1000]">₱{order.totalAmount.toLocaleString()}</span>
                 </div>
               </div>
             </div>

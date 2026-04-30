@@ -6,6 +6,7 @@ import Image from "next/image"
 
 import { api } from "@/lib/api"
 import { useCart } from "@/context/CartContext"
+import { useAuth } from "@/context/AuthContext"
 import ProductCard from "@/components/ProductCard"
 import RecommendationStrip from "@/components/product/RecommendationStrip"
 import { flyToCart } from "@/lib/flyToCart"
@@ -29,6 +30,7 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
   const router = useRouter()
 
   const { addToCart } = useCart()
+  const { user } = useAuth() as any
 
   // HELPER FOR VARIANT SORTING (55ml -> 30ml -> Others)
   const sortVariants = (vars: ProductVariant[]) => {
@@ -537,10 +539,18 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
 
       {/* REVIEWS */}
       <div className="mt-10">
-        <ReviewForm
-          productId={product.id}
-          onSuccess={() => setRefreshReviews((p) => p + 1)}
-        />
+        {user ? (
+          <ReviewForm
+            productId={product.id}
+            onSuccess={() => setRefreshReviews((p) => p + 1)}
+          />
+        ) : (
+          <div className="bg-gray-50/50 rounded-[2.5rem] p-10 text-center border-2 border-dashed border-gray-200 mb-12">
+            <h4 className="text-lg font-black text-[var(--text-heading)] mb-2">Want to leave a review?</h4>
+            <p className="text-[var(--text-muted)] text-sm mb-6 font-medium">Please log in to share your experience with the community.</p>
+            <Link href="/account" className="btn-premium px-8 !py-4 rounded-xl text-xs inline-flex shadow-sm">Login to Review</Link>
+          </div>
+        )}
 
         <Reviews key={refreshReviews} productId={product.id} />
       </div>

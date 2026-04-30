@@ -22,7 +22,6 @@ import {
 import Link from "next/link"
 import toast from "react-hot-toast"
 import { getImageUrl } from "@/lib/image"
-
 const FREE_SHIPPING_THRESHOLD = 3000
 
 export default function CartPage() {
@@ -291,7 +290,9 @@ export default function CartPage() {
 
                   <div className="flex justify-between items-center group">
                     <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest group-hover:text-[var(--brand-accent)] transition-colors">Voucher / Discount</span>
-                    <span className="text-xs font-bold text-emerald-500 italic">No Voucher Active</span>
+                    <span className="text-xs font-bold text-emerald-500 italic">
+                      {usePoints ? "Lucky Points Active" : "No Voucher Active"}
+                    </span>
                   </div>
 
                   {usePoints && (

@@ -83,7 +83,6 @@ export const createOrder = async (req, res, next) => {
       address,
       guestEmail,
       guestName,
-      clientOrderId,
       deliveryMethod = "delivery",
       shippingFee = 0,
       pointsToUse = 0
@@ -987,6 +986,19 @@ export const createManualOrder = async (req, res, next) => {
       // Award points if paid
       if (status === "paid" && userId) {
         await awardOrderPoints(tx, order.id)
+      }
+
+      // Log inventory movements
+      for (const item of items) {
+        await tx.inventoryMovement.create({
+          data: {
+            variantId: item.variantId,
+            orderId: order.id,
+            change: -item.quantity,
+            type: "order",
+            reason: "Manual Walk-in Sale (POS)"
+          }
+        })
       }
 
       return order
