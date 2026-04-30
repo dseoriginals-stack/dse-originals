@@ -526,7 +526,7 @@ export default function AdminProducts() {
                     ))}
                   </div>
                 </div>
-              </div>v>
+              </div>
 
               {/* STEP 2: GENERATE MATRIX */}
               <button 
