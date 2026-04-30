@@ -195,27 +195,39 @@ export default function ProductModal({
                       {displayValues.map((val) => {
                         const isActive = selections[name] === val
                         
-                        // Check if this specific attribute value is available in ANY variant
-                        const isUnavailable = !product.variants?.some(v => 
-                          v.attributes.some(a => a.name === name && a.value === val) && v.stock > 0
+                        // Check if this specific attribute value is available at all
+                        const exists = product.variants?.some(v => 
+                          v.attributes.some(a => a.name === name && a.value === val)
+                        )
+
+                        // Check if it's available with current OTHER selections
+                        const isAvailable = product.variants?.some(v => 
+                          v.attributes.some(a => a.name === name && a.value === val) &&
+                          Object.entries(selections).every(([otherName, otherVal]) => 
+                            otherName === name || v.attributes.some(a => a.name === otherName && a.value === otherVal)
+                          ) &&
+                          v.stock > 0
                         )
 
                         return (
                           <button
                             key={val}
-                            disabled={isUnavailable}
+                            disabled={!exists}
                             onClick={() => handleAttributeClick(name, val)}
                             className={`
                               px-7 py-4 md:px-6 md:py-3 rounded-2xl text-[12px] md:text-[11px] font-bold transition-all duration-300 border-2
-                              ${isUnavailable 
+                              ${!exists 
                                 ? "opacity-20 cursor-not-allowed line-through bg-gray-50 border-gray-100" 
                                 : isActive
                                   ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-[0_8px_20px_rgba(39,76,119,0.25)] scale-[1.05]"
-                                  : "bg-white border-[var(--border-light)] text-gray-600 hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] hover:shadow-md"
+                                  : !isAvailable
+                                    ? "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed opacity-60"
+                                    : "bg-white border-[var(--border-light)] text-gray-600 hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] hover:shadow-md"
                               }
                             `}
                           >
                             {val}
+                            {!isAvailable && exists && <span className="ml-2 opacity-50 text-[8px]">Out</span>}
                           </button>
                         )
                       })}

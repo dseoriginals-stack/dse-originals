@@ -62,6 +62,29 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
   const initialVariant = product?.variants?.find(v => v.stock > 0) || product?.variants?.[0] || null
   const [variant, setVariant] = useState<ProductVariant | null>(initialVariant)
 
+  // ✅ Track selections independently
+  const [selections, setSelections] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {}
+    initialVariant?.attributes.forEach(a => {
+      initial[a.name] = a.value
+    })
+    return initial
+  })
+
+  // ✅ Keep variant in sync with selections
+  useEffect(() => {
+    if (!product) return
+    const match = product.variants.find(v =>
+      Object.entries(selections).every(([name, value]) =>
+        v.attributes.some(a => a.name === name && a.value === value)
+      )
+    )
+    if (match && match.id !== variant?.id) {
+      setVariant(match)
+      if (match.image) setActiveImage(match.image)
+    }
+  }, [selections, product])
+
   const [qty, setQty] = useState(1)
   
   // Determine initial image with multiple fallbacks
@@ -113,10 +136,17 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
 
         setProduct(res)
 
+        // Initial Selections
         const firstAvailable =
           res.variants.find(v => v.stock > 0) || res.variants[0]
 
         setVariant(firstAvailable)
+        
+        const initialSel: Record<string, string> = {}
+        firstAvailable?.attributes.forEach(a => {
+          initialSel[a.name] = a.value
+        })
+        setSelections(initialSel)
 
         const fallbackImg = res.images?.[0]?.url || res.variants.find(v => v.image)?.image || "/placeholder.png"
         setActiveImage(firstAvailable?.image || fallbackImg)
@@ -362,34 +392,30 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                 })
               })
 
-              const selections: Record<string, string> = {}
-              variant?.attributes.forEach(a => {
-                selections[a.name] = a.value
-              })
-
               const handleAttrClick = (name: string, value: string) => {
-                const next = { ...selections, [name]: value }
-                
-                // 1. Try to find a variant that matches ALL current selections
-                const match = product.variants.find(v =>
-                  Object.entries(next).every(([n, val]) => 
-                    v.attributes.some(a => a.name === n && a.value === val)
+                setSelections(prev => {
+                  const next = { ...prev, [name]: value }
+                  
+                  // If exact match doesn't exist, we might want to find the first variant that matches this new selection
+                  const match = product.variants.find(v =>
+                    Object.entries(next).every(([n, val]) => 
+                      v.attributes.some(a => a.name === n && a.value === val)
+                    )
                   )
-                )
 
-                if (match) {
-                  setVariant(match)
-                  if (match.image) setActiveImage(match.image)
-                } else {
-                  // 2. If no exact match, find any variant with the clicked attribute
-                  const fallback = product.variants.find(v =>
-                    v.attributes.some(a => a.name === name && a.value === value)
-                  )
-                  if (fallback) {
-                    setVariant(fallback)
-                    if (fallback.image) setActiveImage(fallback.image)
+                  if (!match) {
+                    // Find first variant that has this specific attribute and reset others if needed
+                    const fallback = product.variants.find(v =>
+                      v.attributes.some(a => a.name === name && a.value === value)
+                    )
+                    if (fallback) {
+                      const reset: Record<string, string> = {}
+                      fallback.attributes.forEach(a => { reset[a.name] = a.value })
+                      return reset
+                    }
                   }
-                }
+                  return next
+                })
               }
 
               // Sort attributes to show Size first, then Color
@@ -423,23 +449,37 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                     <div className="flex gap-3 flex-wrap">
                       {displayValues.map((val) => {
                         const isSelected = selections[name] === val
-                        const isOut = !product.variants.some(v => 
-                          v.attributes.some(a => a.name === name && a.value === val) && v.stock > 0
+                        
+                        // Check if this specific attribute value is available at all
+                        const exists = product.variants.some(v => 
+                          v.attributes.some(a => a.name === name && a.value === val)
+                        )
+
+                        // Check if it's available with current OTHER selections
+                        const isAvailable = product.variants.some(v => 
+                          v.attributes.some(a => a.name === name && a.value === val) &&
+                          Object.entries(selections).every(([otherName, otherVal]) => 
+                            otherName === name || v.attributes.some(a => a.name === otherName && a.value === otherVal)
+                          ) &&
+                          v.stock > 0
                         )
 
                         return (
                           <button
                             key={val}
-                            disabled={isOut}
+                            disabled={!exists}
                             onClick={() => handleAttrClick(name, val)}
-                            className={`px-6 py-3.5 md:px-5 md:py-2 rounded-2xl text-[11px] md:text-[10px] font-black tracking-widest uppercase transition-all duration-300 border-2 ${isOut
-                              ? "opacity-30 bg-gray-50 border-gray-100 line-through cursor-not-allowed"
+                            className={`px-6 py-3.5 md:px-5 md:py-2 rounded-2xl text-[11px] md:text-[10px] font-black tracking-widest uppercase transition-all duration-300 border-2 ${!exists 
+                              ? "opacity-20 cursor-not-allowed line-through"
                               : isSelected
                                 ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-[0_8px_20px_rgba(39,76,119,0.25)] scale-[1.05]"
-                                : "bg-white border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)]"
+                                : !isAvailable
+                                  ? "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed opacity-60"
+                                  : "bg-white border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)]"
                               }`}
                           >
                             {val}
+                            {!isAvailable && exists && <span className="ml-2 opacity-50 text-[8px]">Out</span>}
                           </button>
                         )
                       })}
