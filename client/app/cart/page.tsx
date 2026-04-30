@@ -187,17 +187,17 @@ export default function CartPage() {
             <div className="space-y-4">
               {cart.map((item) => (
                 <div
-                  key={item.variantId}
-                  onClick={() => toggleSelection(item.variantId)}
-                  className={`bg-[var(--bg-card)] cursor-pointer rounded-[2rem] p-5 flex flex-col md:flex-row gap-6 border-2 transition-all relative group ${selectedItems.includes(item.variantId) ? 'border-[var(--brand-primary)] shadow-xl shadow-[var(--brand-primary)]/5' : 'border-transparent hover:border-[var(--border-light)] shadow-sm'
+                  key={item.cartKey}
+                  onClick={() => toggleSelection(item.cartKey!)}
+                  className={`bg-[var(--bg-card)] cursor-pointer rounded-[2rem] p-5 flex flex-col md:flex-row gap-6 border-2 transition-all relative group ${selectedItems.includes(item.cartKey!) ? 'border-[var(--brand-primary)] shadow-xl shadow-[var(--brand-primary)]/5' : 'border-transparent hover:border-[var(--border-light)] shadow-sm'
                     }`}
                 >
                   <div className="flex gap-4 md:gap-6 flex-1">
                     {/* CHECKBOX */}
                     <div className="flex items-center">
-                      <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${selectedItems.includes(item.variantId) ? "bg-[var(--brand-primary)] border-[var(--brand-primary)] shadow-md shadow-[var(--brand-primary)]/10" : "bg-[var(--bg-surface)] border-gray-200"
+                      <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${selectedItems.includes(item.cartKey!) ? "bg-[var(--brand-primary)] border-[var(--brand-primary)] shadow-md shadow-[var(--brand-primary)]/10" : "bg-[var(--bg-surface)] border-gray-200"
                         }`}>
-                        {selectedItems.includes(item.variantId) && <Check size={16} className="text-white font-black" />}
+                        {selectedItems.includes(item.cartKey!) && <Check size={16} className="text-white font-black" />}
                       </div>
                     </div>
 
@@ -234,7 +234,7 @@ export default function CartPage() {
 
                       <div className="hidden md:flex items-center gap-6 mt-4">
                         <button
-                          onClick={(e) => { e.stopPropagation(); removeFromCart(item.variantId) }}
+                          onClick={(e) => { e.stopPropagation(); removeFromCart(item.cartKey!) }}
                           className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-red-500 transition-colors"
                         >
                           Remove Item
@@ -247,14 +247,14 @@ export default function CartPage() {
                   <div className="relative z-10 flex items-center justify-between md:flex-col md:justify-center md:items-end gap-4 border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-8 border-[var(--border-light)]">
                     <div className="flex items-center bg-[var(--bg-surface)] border-2 border-[var(--border-light)] rounded-full p-1 shadow-inner md:scale-110">
                       <button
-                        onClick={(e) => { e.stopPropagation(); updateQuantity(item.variantId, item.quantity - 1) }}
+                        onClick={(e) => { e.stopPropagation(); updateQuantity(item.cartKey!, item.quantity - 1) }}
                         className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[var(--border-light)] shadow-sm text-[var(--text-muted)] hover:text-red-500 transition-colors"
                       >
                         <Minus size={14} />
                       </button>
                       <span className="w-10 text-center text-sm font-black text-[var(--text-heading)]">{item.quantity}</span>
                       <button
-                        onClick={(e) => { e.stopPropagation(); updateQuantity(item.variantId, item.quantity + 1) }}
+                        onClick={(e) => { e.stopPropagation(); updateQuantity(item.cartKey!, item.quantity + 1) }}
                         className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[var(--border-light)] shadow-sm text-[var(--text-muted)] hover:bg-[var(--brand-primary)] hover:text-white transition-colors"
                       >
                         <Plus size={14} />

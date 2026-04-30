@@ -63,7 +63,7 @@ export default function ProductCard({
         quantity: 1,
         category: product.category,
         image: imageUrl,
-        attributes: activeVariant?.attributes?.map(a => ({ name: a.name, value: a.value })) || []
+        attributes: Object.entries(selections).map(([name, value]) => ({ name, value }))
       })
       setAdded(true)
       setTimeout(() => {
@@ -77,7 +77,12 @@ export default function ProductCard({
 
   const selections: Record<string, string> = {}
   activeVariant?.attributes?.forEach(a => {
-    selections[a.name] = a.value
+    if (a.name === "Sizes") {
+      const parsedSizes = a.value.split(",").map((s: any) => s.trim()).filter(Boolean)
+      if (parsedSizes.length > 0) selections["Size"] = parsedSizes[0]
+    } else {
+      selections[a.name] = a.value
+    }
   })
 
   const handleAttrClick = (e: any, name: string, value: string) => {
@@ -85,9 +90,12 @@ export default function ProductCard({
     e.stopPropagation()
     const next = { ...selections, [name]: value }
     const match = product.variants?.find(v =>
-      Object.entries(next).every(([n, val]) => 
-        v.attributes.some(a => a.name === n && a.value === val)
-      )
+      Object.entries(next).every(([n, val]) => {
+        if (n === "Size" && v.attributes.some((a: any) => a.name === "Sizes")) {
+          return v.attributes.find((a: any) => a.name === "Sizes")?.value.split(",").map((s: any) => s.trim()).includes(val)
+        }
+        return v.attributes.some((a: any) => a.name === n && a.value === val)
+      })
     )
     if (match) setActiveVariant(match)
   }
@@ -168,8 +176,17 @@ export default function ProductCard({
                   const grouped: Record<string, string[]> = {}
                   product.variants.forEach(v => {
                     v.attributes.forEach(a => {
-                      if (!grouped[a.name]) grouped[a.name] = []
-                      if (!grouped[a.name].includes(a.value)) grouped[a.name].push(a.value)
+                      if (a.name === "Sizes") {
+                        a.value.split(",").forEach((val: string) => {
+                          const trimmed = val.trim()
+                          if (!trimmed) return
+                          if (!grouped["Size"]) grouped["Size"] = []
+                          if (!grouped["Size"].includes(trimmed)) grouped["Size"].push(trimmed)
+                        })
+                      } else {
+                        if (!grouped[a.name]) grouped[a.name] = []
+                        if (!grouped[a.name].includes(a.value)) grouped[a.name].push(a.value)
+                      }
                     })
                   })
 

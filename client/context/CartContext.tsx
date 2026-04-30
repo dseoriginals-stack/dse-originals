@@ -21,6 +21,7 @@ import { v4 as uuidv4 } from "uuid"
 ========================= */
 
 export type CartItem = {
+  cartKey?: string
   variantId: string
   productId: string
   name: string
@@ -261,43 +262,52 @@ export function CartProvider({
       return
     }
 
+    const cartKey = item.cartKey || `${item.variantId}-${(item.attributes || []).map(a => `${a.name}:${a.value}`).join('|')}`
+    const finalItem = { ...item, cartKey }
+
     if (user) {
       try {
         await api.post("/cart", {
-          variantId: item.variantId,
-          productId: item.productId,
-          quantity: item.quantity,
+          variantId: finalItem.variantId,
+          productId: finalItem.productId,
+          quantity: finalItem.quantity,
+          attributes: finalItem.attributes // Note: Backend needs to support this
         })
         const res = await api.get<{ items: CartItem[] }>("/cart")
-        setCart(res.items || [])
-        setSelectedItems(prev => prev.includes(item.variantId) ? prev : [...prev, item.variantId])
+        
+        // Ensure items from server have cartKeys
+        const itemsWithKeys = (res.items || []).map(i => ({
+          ...i,
+          cartKey: i.cartKey || `${i.variantId}-${(i.attributes || []).map(a => `${a.name}:${a.value}`).join('|')}`
+        }))
+        
+        setCart(itemsWithKeys)
+        setSelectedItems(prev => prev.includes(cartKey) ? prev : [...prev, cartKey])
         setIsCartOpen(true)
-        toast.success(`"${item.name}" added to cart`)
+        toast.success(`"${finalItem.name}" added to cart`)
       } catch (err) {
         console.error("Cart API error", err)
         toast.error("Failed to add item to cart")
       }
     } else {
       setCart(prev => {
-        const existing = prev.find(
-          p => p.variantId === item.variantId && p.productId === item.productId
-        )
+        const existing = prev.find(p => p.cartKey === cartKey)
         if (existing) {
           return prev.map(p =>
-            p.variantId === item.variantId
-              ? { ...p, quantity: Math.min(p.quantity + item.quantity, MAX_QTY) }
+            p.cartKey === cartKey
+              ? { ...p, quantity: Math.min(p.quantity + finalItem.quantity, MAX_QTY) }
               : p
           )
         }
-        return [item, ...prev]
+        return [finalItem, ...prev]
       })
-      setSelectedItems(prev => prev.includes(item.variantId) ? prev : [...prev, item.variantId])
+      setSelectedItems(prev => prev.includes(cartKey) ? prev : [...prev, cartKey])
       setIsCartOpen(true)
-      toast.success(`"${item.name}" added to cart`)
+      toast.success(`"${finalItem.name}" added to cart`)
     }
 
-    setSelectedItems([item.variantId])
-    setLastAddedVariantId(item.variantId)
+    setSelectedItems([cartKey])
+    setLastAddedVariantId(cartKey)
     triggerCartAnimation()
   }, [user])
 
@@ -308,39 +318,49 @@ export function CartProvider({
   /* ========================= */
 
   const updateQuantity = useCallback(
-    async (variantId: string, quantity: number) => {
+    async (cartKey: string, quantity: number) => {
       if (quantity <= 0) {
-        removeFromCart(variantId)
+        removeFromCart(cartKey)
         return
       }
 
       setCart(prev =>
         prev.map(item =>
-          item.variantId === variantId
+          item.cartKey === cartKey
             ? { ...item, quantity: Math.min(quantity, MAX_QTY) }
             : item
         )
       )
 
       if (user) {
+        const item = cart.find(i => i.cartKey === cartKey)
+        if (!item) return
+
         try {
-          await api.patch("/cart/qty", { variantId, quantity: Math.min(quantity, MAX_QTY) })
+          await api.patch("/cart/qty", { 
+            variantId: item.variantId, 
+            quantity: Math.min(quantity, MAX_QTY),
+            attributes: item.attributes
+          })
         } catch (err) {
           console.error("Failed to update quantity on server", err)
         }
       }
     },
-    [user]
+    [user, cart]
   )
 
   const removeFromCart = useCallback(
-    async (variantId: string) => {
-      setCart(prev => prev.filter(item => item.variantId !== variantId))
-      setSelectedItems(prev => prev.filter(id => id !== variantId))
+    async (cartKey: string) => {
+      const item = cart.find(i => i.cartKey === cartKey)
+      setCart(prev => prev.filter(i => i.cartKey !== cartKey))
+      setSelectedItems(prev => prev.filter(id => id !== cartKey))
 
-      if (user) {
+      if (user && item) {
         try {
-          await api.delete(`/cart/item/${variantId}`)
+          await api.delete(`/cart/item/${item.variantId}`, {
+             headers: { 'x-cart-attributes': JSON.stringify(item.attributes) }
+          } as any)
           toast.success("Item removed from cart")
         } catch (err) {
           console.error("Failed to remove item from server cart", err)
@@ -350,7 +370,7 @@ export function CartProvider({
         toast.success("Item removed")
       }
     },
-    [user]
+    [user, cart]
   )
 
   const removeSelectedItems = useCallback(async () => {
@@ -398,11 +418,11 @@ export function CartProvider({
   const total = subtotal
   const isEmpty = cart.length === 0
 
-  const toggleSelection = useCallback((variantId: string) => {
+  const toggleSelection = useCallback((cartKey: string) => {
     setSelectedItems(prev =>
-      prev.includes(variantId)
-        ? prev.filter(id => id !== variantId)
-        : [...prev, variantId]
+      prev.includes(cartKey)
+        ? prev.filter(id => id !== cartKey)
+        : [...prev, cartKey]
     )
   }, [])
 
@@ -410,19 +430,19 @@ export function CartProvider({
     if (selectedItems.length === cart.length) {
       setSelectedItems([])
     } else {
-      setSelectedItems(cart.map(i => i.variantId))
+      setSelectedItems(cart.map(i => i.cartKey!))
     }
   }, [cart, selectedItems])
 
   const selectedSubtotal = useMemo(() => {
     return cart
-      .filter(item => selectedItems.includes(item.variantId))
+      .filter(item => selectedItems.includes(item.cartKey!))
       .reduce((acc, item) => acc + item.price * item.quantity, 0)
   }, [cart, selectedItems])
-
+ 
   const selectedCount = useMemo(() => {
     return cart
-      .filter(item => selectedItems.includes(item.variantId))
+      .filter(item => selectedItems.includes(item.cartKey!))
       .reduce((acc, item) => acc + item.quantity, 0)
   }, [cart, selectedItems])
 
