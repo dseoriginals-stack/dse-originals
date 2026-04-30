@@ -34,8 +34,8 @@ export default function ManualSalePage() {
 
   const fetchProducts = async () => {
     try {
-      const data = await api.get(`/products/all?cb=${Date.now()}`)
-      setProducts(data || [])
+      const data = await api.get(`/admin/products?cb=${Date.now()}`)
+      setProducts(data?.data || data || [])
     } catch (err) {
       console.error("Sync failed:", err)
     } finally {

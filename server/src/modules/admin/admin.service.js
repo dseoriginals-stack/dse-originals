@@ -228,7 +228,8 @@ const getProducts = async () => {
           name: true,
           price: true,
           stock: true,
-          image: true
+          image: true,
+          attributes: true
         }
       }
     },
