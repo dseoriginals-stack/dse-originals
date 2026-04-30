@@ -20,7 +20,7 @@ export async function request<T = any>(
 
   const timeout =
     typeof window !== "undefined"
-      ? setTimeout(() => controller.abort(), 30000)
+      ? setTimeout(() => controller.abort(), isFormData ? 120000 : 30000)
       : null
 
   const isServer = typeof window === "undefined"
