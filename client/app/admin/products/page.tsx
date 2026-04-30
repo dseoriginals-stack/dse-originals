@@ -65,8 +65,8 @@ export default function AdminProducts() {
   const [variantsState, setVariantsState] = useState<VariantRow[]>([])
   
   // Input helpers for the two tables
-  const [colorInput, setColorInput] = useState<any[]>([])
-  const [sizeInput, setSizeInput] = useState<any[]>([])
+  const [colorInput, setColorInput] = useState<{ id: string; value: string; image: File | null; preview: string | null }[]>([])
+  const [sizeInput, setSizeInput] = useState<{ id: string; value: string }[]>([])
   
   const [form, setForm] = useState({
     name: "",
@@ -216,17 +216,23 @@ export default function AdminProducts() {
 
     if (product.variants?.length) {
       // Extract unique colors and sizes for the input tables
-      const colors = new Set<string>()
+      const colorsMap = new Map<string, { value: string; preview: string | null }>()
       const sizes = new Set<string>()
       
       product.variants.forEach((v: any) => {
+        let colorVal = ""
         v.attributes?.forEach((a: any) => {
-          if (a.name === "Color") colors.add(a.value)
+          if (a.name === "Color") {
+            colorVal = a.value
+            if (!colorsMap.has(colorVal)) {
+              colorsMap.set(colorVal, { value: colorVal, preview: v.image || null })
+            }
+          }
           if (a.name === "Size" || a.name === "Volume") sizes.add(a.value)
         })
       })
-
-      setColorInput(Array.from(colors).map(c => ({ id: Math.random().toString(), value: c })))
+      
+      setColorInput(Array.from(colorsMap.values()).map(c => ({ id: Math.random().toString(), value: c.value, image: null, preview: c.preview })))
       setSizeInput(Array.from(sizes).map(s => ({ id: Math.random().toString(), value: s })))
 
       const mapped: VariantRow[] = product.variants.map((v: any) => {
@@ -427,8 +433,8 @@ export default function AdminProducts() {
                               ])
                             } else if (catName.includes('apparel') || catName.includes('clothing')) {
                               setColorInput([
-                                { id: "c1", value: "Black" },
-                                { id: "c2", value: "White" }
+                                { id: "c1", value: "Black", image: null, preview: null },
+                                { id: "c2", value: "White", image: null, preview: null }
                               ])
                               setSizeInput([
                                 { id: "s1", value: "XS" },
@@ -456,27 +462,49 @@ export default function AdminProducts() {
                     </div>
                   </div>
                 </div>
-              </div>
-
-              {/* STEP 1: DEFINE ATTRIBUTES */}
+              </div>              {/* STEP 1: DEFINE ATTRIBUTES */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-white rounded-3xl border border-[var(--border-light)] p-8 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-black text-[var(--text-heading)]">1. Available Colors</h3>
-                    <button type="button" onClick={() => setColorInput([...colorInput, { id: Date.now().toString(), value: "" }])} className="text-[10px] font-black uppercase text-[var(--brand-primary)]">+ Add</button>
+                    <button type="button" onClick={() => setColorInput([...colorInput, { id: Date.now().toString(), value: "", image: null, preview: null }])} className="text-[10px] font-black uppercase text-[var(--brand-primary)]">+ Add</button>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-4">
                     {colorInput.map((c, idx) => (
-                      <div key={c.id} className="flex gap-2">
-                        <input value={c.value} onChange={(e) => {
-                          const next = [...colorInput]; next[idx].value = e.target.value; setColorInput(next)
-                        }} className="flex-1 px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm font-bold" placeholder="e.g. Black" />
-                        <button onClick={() => setColorInput(colorInput.filter(i => i.id !== c.id))} className="text-gray-300 hover:text-red-500"><Trash2 size={14}/></button>
+                      <div key={c.id} className="flex items-center gap-4 bg-gray-50/50 p-3 rounded-2xl border border-gray-100/50">
+                        <div className="relative w-16 h-16 rounded-xl bg-white border border-gray-100 flex items-center justify-center overflow-hidden shrink-0 group">
+                          {c.preview ? (
+                            <img src={c.preview} className="w-full h-full object-cover" />
+                          ) : (
+                            <ImageIcon size={20} className="text-gray-300" />
+                          )}
+                          <input 
+                            type="file" 
+                            className="absolute inset-0 opacity-0 cursor-pointer" 
+                            onChange={async (e: any) => {
+                              const f = e.target.files?.[0]; if (!f) return;
+                              const comp = await imageCompression(f, { maxSizeMB: 1 });
+                              const next = [...colorInput];
+                              next[idx].image = new File([comp], f.name, { type: comp.type });
+                              next[idx].preview = URL.createObjectURL(comp);
+                              setColorInput(next);
+                            }}
+                          />
+                        </div>
+                        <input 
+                          value={c.value} 
+                          onChange={(e) => {
+                            const next = [...colorInput]; next[idx].value = e.target.value; setColorInput(next)
+                          }} 
+                          className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-bold" 
+                          placeholder="e.g. Black" 
+                        />
+                        <button onClick={() => setColorInput(colorInput.filter(i => i.id !== c.id))} className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 size={16}/></button>
                       </div>
                     ))}
                   </div>
                 </div>
-
+ 
                 <div className="bg-white rounded-3xl border border-[var(--border-light)] p-8 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-black text-[var(--text-heading)]">2. Available Sizes/Volumes</h3>
@@ -484,16 +512,21 @@ export default function AdminProducts() {
                   </div>
                   <div className="space-y-2">
                     {sizeInput.map((s, idx) => (
-                      <div key={s.id} className="flex gap-2">
-                        <input value={s.value} onChange={(e) => {
-                          const next = [...sizeInput]; next[idx].value = e.target.value; setSizeInput(next)
-                        }} className="flex-1 px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm font-bold" placeholder="e.g. XL" />
-                        <button onClick={() => setSizeInput(sizeInput.filter(i => i.id !== s.id))} className="text-gray-300 hover:text-red-500"><Trash2 size={14}/></button>
+                      <div key={s.id} className="flex items-center gap-2 bg-gray-50/50 p-3 rounded-xl border border-gray-100/50">
+                        <input 
+                          value={s.value} 
+                          onChange={(e) => {
+                            const next = [...sizeInput]; next[idx].value = e.target.value; setSizeInput(next)
+                          }} 
+                          className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-bold" 
+                          placeholder="e.g. XL" 
+                        />
+                        <button onClick={() => setSizeInput(sizeInput.filter(i => i.id !== s.id))} className="p-2 text-gray-300 hover:text-red-500 rounded-lg transition"><Trash2 size={16}/></button>
                       </div>
                     ))}
                   </div>
                 </div>
-              </div>
+              </div>v>
 
               {/* STEP 2: GENERATE MATRIX */}
               <button 
@@ -524,13 +557,18 @@ export default function AdminProducts() {
                     const existing = variantsState.find(v => 
                       Object.entries(combo).every(([n, val]) => v.optionValues[n] === val)
                     )
+                    
+                    // Automatically assign image from color input if available
+                    const colorVal = combo.Color
+                    const colorData = colorInput.find(c => c.value === colorVal)
+
                     return existing || {
                       id: Math.random().toString(36).substr(2, 9),
                       optionValues: combo,
                       price: form.price,
                       stock: form.stock || "0",
-                      image: null,
-                      preview: null
+                      image: colorData?.image || null,
+                      preview: colorData?.preview || null
                     }
                   })
                   setVariantsState(newMatrix)
