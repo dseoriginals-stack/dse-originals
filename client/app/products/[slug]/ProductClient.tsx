@@ -142,6 +142,19 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
     fetchData()
   }, [slug])
 
+  // ✅ CUSTOM PRICE LOGIC (Standardized for Perfumes)
+  const getDisplayPrice = () => {
+    if (!variant) return 0
+    const attrValues = (variant.attributes || []).map((a) => String(a.value || "").toLowerCase())
+    
+    if (attrValues.some(v => v.includes("55ml"))) return 349
+    if (attrValues.some(v => v.includes("30ml"))) return 249
+    
+    return Number(variant.price)
+  }
+
+  const price = getDisplayPrice()
+
   /* =========================
      ADD TO CART
   ========================= */
@@ -168,7 +181,7 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
       quantity: qty,
       category: product.category,
       image: getImageUrl(activeImage),
-      attributes: variant.attributes.map(a => ({ name: a.name, value: a.value }))
+      attributes: variant.attributes?.map(a => ({ name: a.name, value: a.value })) || []
     })
 
     setAdded(true)
@@ -224,18 +237,7 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
 
   const stock = variant?.stock || 0
   
-  // ✅ CUSTOM PRICE LOGIC (Standardized for Perfumes)
-  const getDisplayPrice = () => {
-    if (!variant) return 0
-    const attrValues = (variant.attributes || []).map((a) => String(a.value || "").toLowerCase())
-    
-    if (attrValues.some(v => v.includes("55ml"))) return 349
-    if (attrValues.some(v => v.includes("30ml"))) return 249
-    
-    return Number(variant.price)
-  }
 
-  const price = getDisplayPrice()
 
   /* =========================
      UI
