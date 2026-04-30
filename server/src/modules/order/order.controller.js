@@ -958,7 +958,7 @@ export const createManualOrder = async (req, res, next) => {
 
         orderItems.push({
           variantId: variant.id,
-          productName: variant.product.name,
+          productName: item.productName || variant.product.name,
           quantity: item.quantity,
           price: item.price
         })

@@ -26,6 +26,9 @@ export default function ManualSalePage() {
   // Checkout Success
   const [lastOrder, setLastOrder] = useState<any>(null)
 
+  // Size Selection for Apparel
+  const [selectedVariantForSize, setSelectedVariantForSize] = useState<{product: any, variant: any} | null>(null)
+
   useEffect(() => {
     fetchProducts()
     const syncInterval = setInterval(fetchProducts, 60000)
@@ -69,14 +72,29 @@ export default function ManualSalePage() {
     }
   }
 
-  const addToCart = (product: any, variant: any) => {
+  const addToCart = (product: any, variant: any, selectedSize?: string) => {
     if (variant.stock <= 0) {
       toast.error("Item out of stock")
       return
     }
 
+    // Check if it's an apparel variant with the new "Sizes" attribute
+    const sizesAttr = variant.attributes?.find((a: any) => a.name === "Sizes")
+    if (sizesAttr && !selectedSize) {
+      setSelectedVariantForSize({ product, variant })
+      return
+    }
+
     const prices = getPOSPrices(product, variant)
-    const existingIndex = cart.findIndex(item => item.variantId === variant.id)
+    
+    // If it was an apparel with "Sizes", we construct a clean name
+    let variantName = variant.attributes?.filter((a: any) => a.name !== "Sizes").map((a: any) => a.value).join(" / ") || "Standard"
+    if (selectedSize) {
+      variantName = variantName === "Standard" ? selectedSize : `${variantName} / ${selectedSize}`
+    }
+
+    const cartKey = `${variant.id}-${selectedSize || 'none'}`
+    const existingIndex = cart.findIndex(item => item.cartKey === cartKey)
     
     if (existingIndex > -1) {
       const newCart = [...cart]
@@ -88,16 +106,22 @@ export default function ManualSalePage() {
       setCart(newCart)
     } else {
       setCart([...cart, {
+        cartKey,
         productId: product.id,
         variantId: variant.id,
         name: product.name,
-        variantName: variant.attributes?.map((a: any) => a.value).join(" / ") || "Standard",
+        variantName,
+        selectedSize,
         srp: prices.srp,
         reseller: prices.reseller,
         image: variant.image || product.images?.[0]?.url || "/placeholder.png",
         quantity: 1,
         stock: variant.stock
       }])
+    }
+    
+    if (selectedSize) {
+      setSelectedVariantForSize(null)
     }
     toast.success("Added to POS cart")
   }
@@ -132,7 +156,8 @@ export default function ManualSalePage() {
         items: cart.map(item => ({
           variantId: item.variantId,
           quantity: item.quantity,
-          price: priceMode === "srp" ? item.srp : item.reseller
+          price: priceMode === "srp" ? item.srp : item.reseller,
+          productName: `${item.name}${item.variantName !== "Standard" ? ` (${item.variantName})` : ""}`
         })),
         guestName: customerName || "Walk-in Customer",
         deliveryMethod: "pickup",
@@ -418,6 +443,57 @@ export default function ManualSalePage() {
               <div className="hidden print:block text-center text-[10px] text-gray-400 mt-8 font-bold uppercase tracking-widest">
                 Thank you for your purchase!
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* SIZE SELECTION MODAL */}
+      <AnimatePresence>
+        {selectedVariantForSize && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl border border-gray-100"
+            >
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h3 className="text-xl font-[1000] text-[var(--text-heading)] tracking-tight">Select Size</h3>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
+                    {selectedVariantForSize.product.name} 
+                    {selectedVariantForSize.variant.attributes?.filter((a:any)=>a.name!=="Sizes").length > 0 && 
+                      ` (${selectedVariantForSize.variant.attributes.filter((a:any)=>a.name!=="Sizes").map((a:any)=>a.value).join("/")})`}
+                  </p>
+                </div>
+                <button onClick={() => setSelectedVariantForSize(null)} className="p-2 hover:bg-gray-100 rounded-full transition">✕</button>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                {selectedVariantForSize.variant.attributes
+                  ?.find((a: any) => a.name === "Sizes")
+                  ?.value.split(",")
+                  .map((size: string) => {
+                    const trimmedSize = size.trim()
+                    return (
+                      <button
+                        key={trimmedSize}
+                        onClick={() => addToCart(selectedVariantForSize.product, selectedVariantForSize.variant, trimmedSize)}
+                        className="py-4 rounded-2xl border-2 border-gray-100 hover:border-[var(--brand-primary)] hover:bg-[var(--brand-soft)]/10 text-sm font-black transition-all"
+                      >
+                        {trimmedSize}
+                      </button>
+                    )
+                  })}
+              </div>
+
+              <button 
+                onClick={() => setSelectedVariantForSize(null)}
+                className="w-full mt-8 py-4 rounded-2xl bg-gray-100 text-gray-500 text-xs font-black uppercase tracking-widest hover:bg-gray-200 transition"
+              >
+                Cancel
+              </button>
             </motion.div>
           </div>
         )}
