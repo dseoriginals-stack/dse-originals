@@ -88,16 +88,47 @@ export default function ProductCard({
   const handleAttrClick = (e: any, name: string, value: string) => {
     e.preventDefault()
     e.stopPropagation()
-    const next = { ...selections, [name]: value }
-    const match = product.variants?.find(v =>
-      Object.entries(next).every(([n, val]) => {
-        if (n === "Size" && v.attributes?.some((a: any) => a.name === "Sizes")) {
-          return v.attributes.find((a: any) => a.name === "Sizes")?.value.split(",").map((s: any) => s.trim()).includes(val)
+    
+    setSelections(prev => {
+      const next = { ...prev, [name]: value }
+      
+      const match = product.variants?.find(v =>
+        Object.entries(next).every(([n, val]) => {
+          if (n === "Size" && v.attributes?.some((a: any) => a.name === "Sizes")) {
+            return v.attributes.find((a: any) => a.name === "Sizes")?.value.split(",").map((s: any) => s.trim()).includes(val)
+          }
+          return v.attributes?.some((a: any) => a.name === n && a.value === val)
+        })
+      )
+
+      if (match) {
+        setActiveVariant(match)
+        return next
+      }
+
+      // Fallback: find ANY variant with this attribute value
+      const fallback = product.variants?.find(v => {
+        if (name === "Size" && v.attributes?.some((a: any) => a.name === "Sizes")) {
+          return v.attributes.find((a: any) => a.name === "Sizes")?.value.split(",").map((s: any) => s.trim()).includes(value)
         }
-        return v.attributes?.some((a: any) => a.name === n && a.value === val)
+        return v.attributes?.some((a: any) => a.name === name && a.value === value)
       })
-    )
-    if (match) setActiveVariant(match)
+
+      if (fallback) {
+        setActiveVariant(fallback)
+        const reset: Record<string, string> = {}
+        fallback.attributes?.forEach((a: any) => {
+          if (a.name === "Sizes") {
+            reset["Size"] = value
+          } else {
+            reset[a.name] = a.value
+          }
+        })
+        return reset
+      }
+
+      return prev
+    })
   }
 
   return (
@@ -210,13 +241,38 @@ export default function ProductCard({
                       <div key={name} className="flex flex-wrap gap-1">
                         {sortedValues.map((val) => {
                           const isActive = selections[name] === val
+                          
+                          const checkMatch = (v: any, attrName: string, attrVal: string) => {
+                            if (attrName === "Size") {
+                              return v.attributes?.some((a: any) => 
+                                (a.name === "Size" && a.value === attrVal) ||
+                                (a.name === "Sizes" && a.value.split(",").map((s: any) => s.trim()).includes(attrVal))
+                              )
+                            }
+                            return v.attributes?.some((a: any) => a.name === attrName && a.value === attrVal)
+                          }
+
+                          const exists = product.variants?.some(v => checkMatch(v, name, val))
+                          const isAvailable = product.variants?.some(v => 
+                            checkMatch(v, name, val) &&
+                            Object.entries(selections).every(([otherName, otherVal]) => 
+                              otherName === name || checkMatch(v, otherName, otherVal)
+                            ) &&
+                            v.stock > 0
+                          )
+
                           return (
                             <button
                               key={val}
+                              disabled={!exists}
                               onClick={(e) => handleAttrClick(e, name, val)}
-                              className={`text-[9px] md:text-[8px] font-black px-2.5 py-1.5 md:px-1.5 md:py-0.5 rounded-md border transition-all ${isActive
-                                ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white shadow-sm'
-                                : 'bg-white/50 border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)]'
+                              className={`text-[9px] md:text-[8px] font-black px-2.5 py-1.5 md:px-1.5 md:py-0.5 rounded-md border transition-all ${!exists
+                                ? "opacity-20 cursor-not-allowed line-through"
+                                : isActive
+                                  ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white shadow-sm'
+                                  : !isAvailable
+                                    ? "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed opacity-60"
+                                    : 'bg-white/50 border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)]'
                                 }`}
                             >
                               {val}
