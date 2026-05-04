@@ -85,6 +85,6 @@ export const api = {
       body: body instanceof FormData ? body : JSON.stringify(body)
     }),
 
-  delete: <T = any>(endpoint: string) =>
-    request<T>(endpoint, { method: "DELETE" })
+  delete: <T = any>(endpoint: string, options?: RequestInit) =>
+    request<T>(endpoint, { ...options, method: "DELETE" })
 }

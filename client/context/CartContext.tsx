@@ -174,6 +174,7 @@ export function CartProvider({
                   variantId: item.variantId,
                   productId: item.productId,
                   quantity: item.quantity,
+                  attributes: item.attributes
                 })
               } catch {}
             }
@@ -184,9 +185,13 @@ export function CartProvider({
           }
 
           const res = await api.get<{ items: CartItem[] }>("/cart")
-          const items = res.items || []
+          const items = (res.items || []).map(i => {
+            const attrsPart = (i.attributes || []).map(a => `${a.name}:${a.value}`).join('|')
+            const cartKey = i.cartKey || (attrsPart ? `${i.variantId}-${attrsPart}` : i.variantId)
+            return { ...i, cartKey }
+          })
           setCart(items)
-          setSelectedItems(prev => prev.length > 0 ? prev : items.map(i => i.variantId))
+          setSelectedItems(prev => prev.length > 0 ? prev : items.map(i => i.cartKey!))
         } catch {
           setCart([])
         }
@@ -199,9 +204,13 @@ export function CartProvider({
         const guestCartKey = getGuestCartKey(guestId)
         const raw = localStorage.getItem(guestCartKey)
         if (raw) {
-          const items = JSON.parse(raw)
+          const items = (JSON.parse(raw) as CartItem[]).map(i => {
+            const attrsPart = (i.attributes || []).map(a => `${a.name}:${a.value}`).join('|')
+            const cartKey = i.cartKey || (attrsPart ? `${i.variantId}-${attrsPart}` : i.variantId)
+            return { ...i, cartKey }
+          })
           setCart(items)
-          setSelectedItems(prev => prev.length > 0 ? prev : items.map((i: any) => i.variantId))
+          setSelectedItems(prev => prev.length > 0 ? prev : items.map(i => i.cartKey!))
         } else {
           setCart([])
           setSelectedItems([])
@@ -262,7 +271,8 @@ export function CartProvider({
       return
     }
 
-    const cartKey = item.cartKey || `${item.variantId}-${(item.attributes || []).map(a => `${a.name}:${a.value}`).join('|')}`
+    const attrsPart = (item.attributes || []).map(a => `${a.name}:${a.value}`).join('|')
+    const cartKey = item.cartKey || (attrsPart ? `${item.variantId}-${attrsPart}` : item.variantId)
     const finalItem = { ...item, cartKey }
 
     if (user) {
@@ -306,7 +316,6 @@ export function CartProvider({
       toast.success(`"${finalItem.name}" added to cart`)
     }
 
-    setSelectedItems([cartKey])
     setLastAddedVariantId(cartKey)
     triggerCartAnimation()
   }, [user])
@@ -376,17 +385,22 @@ export function CartProvider({
   const removeSelectedItems = useCallback(async () => {
     if (selectedItems.length === 0) return
 
-    const itemsToRemove = [...selectedItems]
+    const itemsToRemove = cart.filter(item => selectedItems.includes(item.cartKey!))
+    const keysToRemove = itemsToRemove.map(i => i.cartKey!)
 
     // Update local state first for instant UI feedback
-    setCart(prev => prev.filter(item => !itemsToRemove.includes(item.variantId)))
+    setCart(prev => prev.filter(item => !keysToRemove.includes(item.cartKey!)))
     setSelectedItems([])
 
     if (user) {
       try {
         // Run all deletions in parallel
         await Promise.all(
-          itemsToRemove.map(id => api.delete(`/cart/item/${id}`))
+          itemsToRemove.map(item => 
+            api.delete(`/cart/item/${item.variantId}`, {
+              headers: { 'x-cart-attributes': JSON.stringify(item.attributes) }
+            } as any)
+          )
         )
         toast.success(`${itemsToRemove.length} items removed`)
       } catch (err) {
@@ -396,7 +410,7 @@ export function CartProvider({
     } else {
       toast.success("Items removed")
     }
-  }, [user, selectedItems])
+  }, [user, selectedItems, cart])
 
   const clearCart = useCallback(async () => {
     setCart([])
