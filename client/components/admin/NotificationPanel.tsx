@@ -7,12 +7,11 @@ import { useRouter } from "next/navigation"
 
 type AdminNotification = {
   id: string
-  type: "order" | "stock" | "payment" | "system"
-  title: string
+  type: string
   message: string
-  read: boolean
+  isRead: boolean
   createdAt: string
-  link?: string
+  metadata?: any
 }
 
 export default function NotificationPanel({ onClose }: { onClose: () => void }) {
@@ -27,19 +26,60 @@ export default function NotificationPanel({ onClose }: { onClose: () => void }) 
   async function fetchNotifications() {
     try {
       setLoading(true)
-      // Real implementation: Fetching from shared admin stats or specific notification endpoint
-      const res = await api.get<AdminNotification[]>("/admin/notifications")
-      setNotifications(res || [])
+      const res = await api.get<{ notifications: AdminNotification[], unreadCount: number }>("/admin/notifications")
+      setNotifications(res?.notifications || [])
     } catch (err) {
-      // If endpoint doesn't exist yet, we show empty state rather than fake data
       setNotifications([])
     } finally {
       setLoading(false)
     }
   }
 
-  const markAllRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+  const markAllRead = async () => {
+    try {
+      await api.patch("/admin/notifications/read-all", {})
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })))
+    } catch (err) {
+      console.error("Failed to mark all read:", err)
+    }
+  }
+
+  const handleNotificationClick = async (n: AdminNotification) => {
+    try {
+      if (!n.isRead) {
+        await api.patch(`/admin/notifications/${n.id}/read`, {})
+      }
+      
+      let link = ""
+      if (n.type === "NEW_ORDER") link = "/admin/orders"
+      if (n.type === "NEW_REVIEW") link = "/admin/reviews"
+      if (n.type === "NEW_STORY") link = "/admin/stories"
+
+      if (link) router.push(link)
+      onClose()
+    } catch (err) {
+      console.error("Action failed:", err)
+    }
+  }
+
+  const getIcon = (type: string) => {
+    switch (type) {
+      case "NEW_ORDER": return <Package size={24} />
+      case "NEW_REVIEW": return <CheckCircle size={24} />
+      case "NEW_STORY": return <Info size={24} />
+      case "LOW_STOCK": return <AlertTriangle size={24} />
+      default: return <Bell size={24} />
+    }
+  }
+
+  const getColorClass = (type: string) => {
+    switch (type) {
+      case "NEW_ORDER": return "bg-blue-50 text-blue-600"
+      case "NEW_REVIEW": return "bg-emerald-50 text-emerald-600"
+      case "NEW_STORY": return "bg-purple-50 text-purple-600"
+      case "LOW_STOCK": return "bg-amber-50 text-amber-600"
+      default: return "bg-gray-50 text-gray-400"
+    }
   }
 
   return (
@@ -73,26 +113,18 @@ export default function NotificationPanel({ onClose }: { onClose: () => void }) 
             {notifications.map(n => (
               <div 
                 key={n.id} 
-                onClick={() => { if(n.link) router.push(n.link); onClose(); }}
-                className={`p-6 flex gap-5 hover:bg-gray-50 transition cursor-pointer relative group ${!n.read ? 'bg-blue-50/10' : ''}`}
+                onClick={() => handleNotificationClick(n)}
+                className={`p-6 flex gap-5 hover:bg-gray-50 transition cursor-pointer relative group ${!n.isRead ? 'bg-blue-50/10' : ''}`}
               >
-                {!n.read && <div className="absolute top-8 left-3 w-1.5 h-1.5 rounded-full bg-[#1B3B60] shadow-[0_0_10px_rgba(27,59,96,0.5)]" />}
+                {!n.isRead && <div className="absolute top-8 left-3 w-1.5 h-1.5 rounded-full bg-[#1B3B60] shadow-[0_0_10px_rgba(27,59,96,0.5)]" />}
                 
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${
-                  n.type === 'order' ? 'bg-blue-50 text-blue-600' :
-                  n.type === 'stock' ? 'bg-amber-50 text-amber-600' :
-                  n.type === 'payment' ? 'bg-emerald-50 text-emerald-600' :
-                  'bg-gray-50 text-gray-400'
-                }`}>
-                  {n.type === 'order' && <Package size={24} />}
-                  {n.type === 'stock' && <AlertTriangle size={24} />}
-                  {n.type === 'payment' && <CheckCircle size={24} />}
-                  {n.type === 'system' && <Info size={24} />}
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${getColorClass(n.type)}`}>
+                  {getIcon(n.type)}
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <h4 className="text-sm font-black text-[var(--text-heading)] leading-tight mb-1 group-hover:text-[var(--brand-primary)] transition">
-                    {n.title}
+                    {n.type.replace(/_/g, ' ')}
                   </h4>
                   <p className="text-xs font-medium text-[var(--text-muted)] leading-relaxed">
                     {n.message}
