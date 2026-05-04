@@ -58,7 +58,7 @@ export const getCart = async (req, res, next) => {
             name: product.name,
             price: getPrice(),
             quantity: item.quantity,
-            attributes: attributes.map(a => ({ name: a.name, value: a.value })),
+            attributes: item.attributes || [], // ✅ Use stored selections
             image: variant.image || product.images?.[0]?.url || null
           }
         }).reverse() || []
@@ -85,7 +85,7 @@ export const addItem = async (req, res, next) => {
       return res.status(400).json({ success: false, message: "No user or session ID provided" })
     }
 
-    const { variantId, quantity } = req.body
+    const { variantId, quantity, attributes } = req.body // ✅ Get attributes
 
     const variant = await prisma.productVariant.findUnique({
       where: { id: variantId }
@@ -109,10 +109,12 @@ export const addItem = async (req, res, next) => {
 
     }
 
+    // ✅ Match variant AND attributes
     const existing = await prisma.cartItem.findFirst({
       where: {
         cartId: cart.id,
-        variantId // ✅ FIXED
+        variantId,
+        attributes: { equals: attributes || [] }
       }
     })
 
@@ -130,8 +132,9 @@ export const addItem = async (req, res, next) => {
       await prisma.cartItem.create({
         data: {
           cartId: cart.id,
-          variantId, // ✅ FIXED
-          quantity
+          variantId,
+          quantity,
+          attributes: attributes || [] // ✅ Store attributes
         }
       })
 
@@ -163,10 +166,15 @@ export const removeItem = async (req, res, next) => {
       return res.status(404).json({ message: "Cart not found" })
     }
 
+    const attributes = req.headers['x-cart-attributes'] 
+      ? JSON.parse(req.headers['x-cart-attributes']) 
+      : undefined
+
     await prisma.cartItem.deleteMany({
       where: {
         cartId: cart.id,
-        variantId
+        variantId,
+        ...(attributes && { attributes: { equals: attributes } })
       }
     })
 
@@ -182,7 +190,7 @@ export const updateItemQuantity = async (req, res, next) => {
   try {
     const userId = req.user?.id
     const sessionId = req.headers["x-session-id"]
-    const { variantId, quantity } = req.body
+    const { variantId, quantity, attributes } = req.body
 
     const whereClause = userId ? { userId } : { sessionId }
 
@@ -197,7 +205,8 @@ export const updateItemQuantity = async (req, res, next) => {
     await prisma.cartItem.updateMany({
       where: {
         cartId: cart.id,
-        variantId
+        variantId,
+        attributes: { equals: attributes || [] }
       },
       data: {
         quantity

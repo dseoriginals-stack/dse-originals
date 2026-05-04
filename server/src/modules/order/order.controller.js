@@ -180,7 +180,8 @@ export const createOrder = async (req, res, next) => {
           variantId: variant.id,
           productName: variant.product.name,
           quantity: quantity,
-          price: standardPrice
+          price: standardPrice,
+          attributes: item.attributes || [] // ✅ Store attributes
         })
       }
 
@@ -752,7 +753,8 @@ export const trackOrder = async (req, res, next) => {
       items: order.items.map(i => ({
         productName: i.productName,
         quantity: i.quantity,
-        price: i.price
+        price: i.price,
+        attributes: i.attributes || [] // ✅ Return attributes
       })),
       events: order.events,
       trackingNo: order.trackingNo
@@ -960,7 +962,8 @@ export const createManualOrder = async (req, res, next) => {
           variantId: variant.id,
           productName: item.productName || variant.product.name,
           quantity: item.quantity,
-          price: item.price
+          price: item.price,
+          attributes: item.attributes || [] // ✅ Store attributes
         })
       }
 

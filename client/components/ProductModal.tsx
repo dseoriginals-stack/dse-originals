@@ -97,6 +97,7 @@ export default function ProductModal({
         price: Number(selectedVariant.price),
         quantity: qty,
         image: imageUrl,
+        attributes: Object.entries(selections).map(([name, value]) => ({ name, value }))
       })
 
       setAdded(true)

@@ -173,6 +173,7 @@ export default function CheckoutPage() {
             ? item.variantId
             : ((item.variantId as any)?.id || (item.variantId as any)?.variantId || (item.variantId as any)?.[0]?.variantId || (item.variantId as any)?.[0]?.id || ""),
           quantity: item.quantity,
+          attributes: item.attributes || [] // ✅ Pass attributes
         })),
         deliveryMethod: delivery,
         shippingFee,
@@ -562,6 +563,15 @@ export default function CheckoutPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="text-xs font-bold text-[var(--text-heading)] line-clamp-1">{item.name}</h4>
+                      {item.attributes && item.attributes.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-0.5">
+                          {item.attributes.map((a: any, i: number) => (
+                            <span key={i} className="text-[8px] font-black uppercase tracking-tighter text-[var(--brand-primary)] opacity-60">
+                              {a.name}: {a.value}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                       <p className="text-xs text-[var(--text-muted)] font-semibold mt-0.5">₱{(item.price * item.quantity).toLocaleString()}</p>
                     </div>
                   </div>
