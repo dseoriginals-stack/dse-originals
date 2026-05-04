@@ -8,7 +8,7 @@ import { LayoutDashboard, BarChart3, Package, ShoppingCart, CreditCard, Users, L
 import { useAuth } from "@/context/AuthContext"
 import { useEffect, useState } from "react"
 import NotificationPanel from "@/components/admin/NotificationPanel"
-import AdminSearch from "@/components/admin/AdminSearch"
+import GlobalSearch from "@/components/admin/GlobalSearch"
 import RealTimeAdmin from "@/components/admin/RealTimeAdmin"
 
 const nav = [
@@ -182,7 +182,7 @@ export default function AdminLayout({
             </button>
             <div className="hidden sm:block">
               {/* GLOBAL SEARCH */}
-              <AdminSearch />
+              <GlobalSearch />
             </div>
           </div>
 

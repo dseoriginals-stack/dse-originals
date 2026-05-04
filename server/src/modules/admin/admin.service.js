@@ -349,6 +349,69 @@ const deleteOrder = async (id) => {
   })
 }
 
+const globalSearch = async (query) => {
+  const q = query.toLowerCase()
+
+  const [orders, products, users] = await Promise.all([
+    prisma.order.findMany({
+      where: {
+        OR: [
+          { id: { contains: query, mode: 'insensitive' } },
+          { guestEmail: { contains: query, mode: 'insensitive' } },
+          { guestName: { contains: query, mode: 'insensitive' } },
+          { user: { email: { contains: query, mode: 'insensitive' } } }
+        ]
+      },
+      take: 5,
+      include: { user: { select: { name: true, email: true } } }
+    }),
+    prisma.product.findMany({
+      where: {
+        OR: [
+          { name: { contains: query, mode: 'insensitive' } },
+          { description: { contains: query, mode: 'insensitive' } }
+        ]
+      },
+      take: 5,
+      select: { id: true, name: true, price: true }
+    }),
+    prisma.user.findMany({
+      where: {
+        OR: [
+          { name: { contains: query, mode: 'insensitive' } },
+          { email: { contains: query, mode: 'insensitive' } }
+        ]
+      },
+      take: 5,
+      select: { id: true, name: true, email: true, role: true }
+    })
+  ])
+
+  return {
+    orders: orders.map(o => ({
+      id: o.id,
+      title: `Order #${o.id.slice(0, 8).toUpperCase()}`,
+      subtitle: o.user?.email || o.guestEmail || 'Guest Order',
+      type: 'order',
+      link: `/admin/orders?id=${o.id}`
+    })),
+    products: products.map(p => ({
+      id: p.id,
+      title: p.name,
+      subtitle: `₱${Number(p.price).toLocaleString()}`,
+      type: 'product',
+      link: `/admin/products?id=${p.id}`
+    })),
+    users: users.map(u => ({
+      id: u.id,
+      title: u.name,
+      subtitle: u.email,
+      type: 'user',
+      link: `/admin/users?id=${u.id}`
+    }))
+  }
+}
+
 export default {
   getAdminStats,
   getOrders,
@@ -360,5 +423,6 @@ export default {
   getStories,
   getReviews,
   deleteReview,
-  deleteOrder
+  deleteOrder,
+  globalSearch
 }

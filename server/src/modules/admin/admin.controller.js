@@ -157,6 +157,19 @@ const markAllNotificationsRead = async (req, res, next) => {
   }
 }
 
+const globalSearch = async (req, res, next) => {
+  try {
+    const { q } = req.query
+    if (!q) return res.json({ orders: [], products: [], users: [] })
+
+    const results = await adminService.globalSearch(q)
+    res.json(results)
+  } catch (err) {
+    logger.error("Global search failed", { error: err })
+    next(err)
+  }
+}
+
 export default {
   getAdminStats,
   getOrders,
@@ -171,5 +184,6 @@ export default {
   deleteOrder,
   getNotifications,
   markNotificationRead,
-  markAllNotificationsRead
+  markAllNotificationsRead,
+  globalSearch
 }

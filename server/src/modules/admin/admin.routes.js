@@ -31,4 +31,7 @@ router.get("/notifications", authorize("admin", "staff"), adminController.getNot
 router.patch("/notifications/read-all", authorize("admin", "staff"), adminController.markAllNotificationsRead)
 router.patch("/notifications/:id/read", authorize("admin", "staff"), adminController.markNotificationRead)
 
+// Global Search
+router.get("/search", authorize("admin", "staff"), adminController.globalSearch)
+
 export default router
