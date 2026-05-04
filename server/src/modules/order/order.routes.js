@@ -33,11 +33,11 @@ router.post("/checkout", optionalAuthenticate, validate(createOrderSchema), cont
 // Optional guest order creation endpoint
 router.post("/", validate(createOrderSchema), controller.createOrder)
 
-// Staff Walk-in Orders (Manual)
+// Staff/Admin Walk-in Orders (Manual)
 router.post(
   "/manual", 
   authenticate, 
-  requireRole("staff"), 
+  authorize("admin", "staff"), 
   controller.createManualOrder
 )
 
@@ -55,29 +55,29 @@ router.get(
 router.put(
   "/:id/status",
   authenticate,
-  requireRole("staff"),
+  authorize("admin", "staff"),
   controller.updateOrderStatus
 )
 
-/* Staff actions: approve / ship / deliver */
+/* Staff/Admin actions: approve / ship / deliver */
 router.patch(
   "/:id/approve",
   authenticate,
-  requireRole("staff"),
+  authorize("admin", "staff"),
   controller.approveOrder
 )
 
 router.patch(
   "/:id/ship",
   authenticate,
-  requireRole("staff"),
+  authorize("admin", "staff"),
   controller.shipOrder
 )
 
 router.patch(
   "/:id/deliver",
   authenticate,
-  requireRole("staff"),
+  authorize("admin", "staff"),
   controller.deliverOrder
 )
 
