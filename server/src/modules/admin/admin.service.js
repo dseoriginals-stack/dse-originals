@@ -73,8 +73,8 @@ const getAdminStats = async () => {
     _sum: { amount: true },
     where: { status: "paid" }
   })
-
-  // 5. CATEGORY BREAKDOWN
+ 
+  // 5. REVENUE BY CATEGORY
   const categories = await prisma.category.findMany({
     include: {
       products: {
@@ -83,7 +83,8 @@ const getAdminStats = async () => {
           variants: {
             include: {
               orderItems: {
-                where: { order: { status: "paid" } }
+                where: { order: { status: "paid" } },
+                select: { quantity: true, price: true }
               }
             }
           }
@@ -91,26 +92,57 @@ const getAdminStats = async () => {
       }
     }
   })
-
+ 
   const categoryBreakdown = categories.map(cat => {
-    let sales = 0
+    let revenue = 0
     cat.products.forEach(prod => {
       prod.variants.forEach(variant => {
         variant.orderItems.forEach(item => {
-          sales += item.quantity
+          revenue += Number(item.price) * item.quantity
         })
       })
     })
-    return { name: cat.name, sales }
-  }).sort((a, b) => b.sales - a.sales)
-
-  // 6. RECENT ORDERS
+    return { name: cat.name, value: revenue }
+  }).filter(c => c.value > 0).sort((a, b) => b.value - a.value)
+ 
+  // 6. INVENTORY ALERTS (Low Stock < 5)
+  const lowStockProducts = await prisma.productVariant.findMany({
+    where: { stock: { lt: 5 } },
+    include: {
+      product: {
+        select: { name: true }
+      }
+    },
+    take: 10,
+    orderBy: { stock: 'asc' }
+  })
+ 
+  const inventoryAlerts = lowStockProducts.map(v => ({
+    id: v.id,
+    sku: v.sku,
+    name: v.name ? `${v.product.name} (${v.name})` : v.product.name,
+    stock: v.stock
+  }))
+ 
+  // 7. CUSTOMER TIERS
+  const tierCounts = await prisma.user.groupBy({
+    by: ['tier'],
+    _count: { id: true },
+    where: { role: 'customer' }
+  })
+ 
+  const customerTiers = tierCounts.map(t => ({
+    name: t.tier,
+    count: t._count.id
+  }))
+ 
+  // 8. RECENT ORDERS
   const recentOrders = await prisma.order.findMany({
     take: 5,
     orderBy: { createdAt: 'desc' },
     include: { user: { select: { name: true } } }
   })
-
+ 
   return {
     totalCustomers: users,
     totalOrders: ordersCount,
@@ -120,7 +152,9 @@ const getAdminStats = async () => {
     revenueChart,
     topProducts,
     recentOrders,
-    categoryBreakdown
+    categoryBreakdown,
+    inventoryAlerts,
+    customerTiers
   }
 }
 

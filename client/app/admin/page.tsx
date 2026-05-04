@@ -25,11 +25,18 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  Legend,
   ResponsiveContainer
 } from 'recharts'
 import Image from "next/image"
 import Link from "next/link"
 import toast from "react-hot-toast"
+import { AlertCircle, ChevronRight, GraduationCap } from "lucide-react"
 
 type Stats = {
   totalOrders: number
@@ -39,6 +46,18 @@ type Stats = {
   revenueChart: { date: string; amount: number }[]
   topProducts: { id: string; name: string; sold: number; image?: string }[]
   recentOrders: { id: string; total: number; status: string; createdAt: string; user: { name: string } }[]
+  categoryBreakdown: { name: string; value: number }[]
+  inventoryAlerts: { id: string; sku: string; name: string; stock: number }[]
+  customerTiers: { name: string; count: number }[]
+}
+
+const CATEGORY_COLORS = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4']
+const TIER_COLORS: Record<string, string> = {
+  Faith: '#94a3b8',
+  Devoted: '#6366f1',
+  Disciple: '#f59e0b',
+  Prophet: '#f43f5e',
+  Saint: '#10b981'
 }
 
 export default function AdminDashboard() {
@@ -279,6 +298,149 @@ export default function AdminDashboard() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* SECONDARY ANALYTICS & INVENTORY SECTION */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* INVENTORY ALERTS */}
+        <div className="bg-white rounded-[2.5rem] border border-[var(--border-light)] p-8 shadow-sm flex flex-col">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-xl font-black text-[var(--text-heading)]">Restock Alerts</h2>
+              <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest mt-1">Inventory below threshold</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center">
+              <AlertCircle size={20} />
+            </div>
+          </div>
+
+          <div className="flex-1 space-y-4">
+            {isStatsLoading ? (
+               Array(4).fill(0).map((_, i) => <div key={i} className="h-12 bg-gray-50 rounded-2xl animate-pulse" />)
+            ) : (
+              <>
+                {stats?.inventoryAlerts?.map(item => (
+                  <div key={item.id} className="flex items-center justify-between p-4 bg-gray-50/50 rounded-2xl border border-gray-100 group hover:border-rose-200 transition">
+                    <div className="min-w-0">
+                      <p className="text-xs font-black text-[var(--text-heading)] line-clamp-1">{item.name}</p>
+                      <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider mt-0.5">SKU: {item.sku}</p>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-sm font-black text-rose-600">{item.stock}</span>
+                      <span className="text-[8px] font-black uppercase text-rose-300">Left</span>
+                    </div>
+                  </div>
+                ))}
+                {(!stats?.inventoryAlerts || stats.inventoryAlerts.length === 0) && (
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <div className="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-4">
+                      <Package size={24} />
+                    </div>
+                    <p className="text-xs font-black text-[var(--text-heading)] uppercase">Stock Levels Healthy</p>
+                    <p className="text-[10px] text-[var(--text-muted)] font-bold mt-1">No products require urgent restocking</p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+          
+          <Link href="/admin/products" className="mt-8 py-4 border-2 border-dashed border-gray-100 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-[var(--brand-primary)] hover:border-[var(--brand-primary)] transition">
+            Manage All Inventory <ChevronRight size={14} />
+          </Link>
+        </div>
+
+        {/* REVENUE BY CATEGORY */}
+        <div className="bg-white rounded-[2.5rem] border border-[var(--border-light)] p-8 shadow-sm">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-xl font-black text-[var(--text-heading)]">Category Split</h2>
+              <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mt-1">Revenue by product type</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-violet-50 text-violet-500 flex items-center justify-center">
+              <Activity size={20} />
+            </div>
+          </div>
+
+          <div className="h-[280px] w-full">
+            {isStatsLoading ? (
+              <div className="w-full h-full bg-gray-50 rounded-full animate-pulse mx-auto max-w-[200px]" />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={stats?.categoryBreakdown}
+                    innerRadius={60}
+                    outerRadius={90}
+                    paddingAngle={8}
+                    dataKey="value"
+                  >
+                    {stats?.categoryBreakdown?.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]} stroke="none" />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', fontWeight: 'bold' }}
+                    formatter={(val) => `₱${Number(val).toLocaleString()}`}
+                  />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    align="center"
+                    iconType="circle"
+                    formatter={(val) => <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-1">{val}</span>}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        {/* CUSTOMER TIERS */}
+        <div className="bg-white rounded-[2.5rem] border border-[var(--border-light)] p-8 shadow-sm">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-xl font-black text-[var(--text-heading)]">Faithful Rewards</h2>
+              <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-1">User Loyalty Distribution</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center">
+              <GraduationCap size={20} />
+            </div>
+          </div>
+
+          <div className="h-[280px] w-full">
+            {isStatsLoading ? (
+              <div className="w-full h-full bg-gray-50 rounded-3xl animate-pulse" />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={stats?.customerTiers} layout="vertical" margin={{ left: -10, right: 30 }}>
+                  <XAxis type="number" hide />
+                  <YAxis 
+                    dataKey="name" 
+                    type="category" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 9, fontWeight: 900, fill: '#64748b' }}
+                    width={80}
+                  />
+                  <Tooltip 
+                    cursor={{ fill: 'transparent' }}
+                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}
+                  />
+                  <Bar 
+                    dataKey="count" 
+                    radius={[0, 10, 10, 0]} 
+                    barSize={20}
+                  >
+                    {stats?.customerTiers?.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={TIER_COLORS[entry.name] || '#6366f1'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
       </div>
 
       {/* RECENT ORDERS TABLE SECTION */}
