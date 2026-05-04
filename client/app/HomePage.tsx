@@ -401,7 +401,7 @@ export default function HomePage({ initialProducts }: Props) {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-            {bestsellers.slice(0, 4).map((p, i) => (
+            {bestsellers.slice(0, 8).map((p, i) => (
               <motion.div
                 key={p.id}
                 initial={{ opacity: 0, scale: 0.95 }}
