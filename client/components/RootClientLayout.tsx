@@ -37,7 +37,7 @@ export default function RootClientLayout({
           </Suspense>
 
           <div className="flex flex-col min-h-screen">
-            <Header />
+            {!isAdmin && <Header />}
             <main className="flex-1">{children}</main>
             {!isAdmin && <Footer />}
             {!isAdmin && <FloatingChat />}

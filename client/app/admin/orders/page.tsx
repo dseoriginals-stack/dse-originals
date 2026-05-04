@@ -249,7 +249,7 @@ function OrderRow({ order, onOpen, trackingValue, onTrackingChange, onUpdateStat
       </td>
       <td className="px-8 py-6">
         <div className="flex flex-col">
-          <span className="font-bold text-sm text-[var(--text-heading)]">{order.user?.name || "Guest Customer"}</span>
+          <span className="font-bold text-sm text-[var(--text-heading)]">{order.user?.name || order.guestName || "Guest Customer"}</span>
           <span className="text-[10px] text-[var(--text-muted)] font-bold mt-1 truncate max-w-[150px]">{order.user?.email || order.guestEmail}</span>
         </div>
       </td>
