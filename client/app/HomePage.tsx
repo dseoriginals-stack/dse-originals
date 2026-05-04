@@ -414,6 +414,154 @@ export default function HomePage({ initialProducts }: Props) {
             ))}
           </div>
         </section>
+ 
+        {/* ================= FLAGSHIP SHOWCASE ================= */}
+        <section className="py-24 relative overflow-hidden">
+          <div className="text-center mb-16 px-4">
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-xs font-black text-[var(--brand-primary)] uppercase tracking-[0.4em] mb-4"
+            >
+              The DSE Signature
+            </motion.p>
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="text-4xl md:text-6xl font-[1000] text-[var(--text-heading)] tracking-tighter"
+            >
+              Presence In Every Thread.
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="mt-6 text-slate-500 font-medium max-w-2xl mx-auto text-sm md:text-base leading-relaxed"
+            >
+              Quality clothing and signature scents for those who refuse to settle and define their presence through excellence and faith.
+            </motion.p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 px-4">
+            {[
+              { title: "Freedom in Every Move", img: "/hero2.png", delay: 0 },
+              { title: "Confidence That Shows", img: "/hero3.png", delay: 0.1 },
+              { title: "Built for Your Build", img: "/hero4.png", delay: 0.2 },
+              { title: "Refined, but not Loud", img: "/hero1.png", delay: 0.3 },
+            ].map((item, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: item.delay }}
+                className="group relative aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-2xl"
+              >
+                <Image
+                  src={item.img}
+                  alt={item.title}
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute bottom-8 left-8 right-8 text-center">
+                  <h3 className="text-white font-black text-sm uppercase tracking-widest">{item.title}</h3>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* ================= WHY CHOOSE DSE ================= */}
+        <section className="py-24 bg-slate-50/50 rounded-[4rem] my-12 border border-white/50">
+          <div className="max-w-5xl mx-auto px-6">
+            <div className="text-center mb-20">
+              <h2 className="text-3xl md:text-5xl font-[1000] text-[var(--text-heading)] tracking-tighter uppercase">Why DSE Originals Stand Out</h2>
+              <p className="mt-4 text-slate-400 font-bold uppercase tracking-widest text-[10px]">Purposely designed for those who move, sweat, and show up in style.</p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-16 md:gap-12 items-center">
+              {/* Left Column */}
+              <div className="space-y-16">
+                {[
+                  { icon: <Sparkles size={24} />, title: "High-Quality", desc: "Quality-crafted fabrics and premium oils that won't easily fade or stretch out over time." },
+                  { icon: <Target size={24} />, title: "Precision Design", desc: "Every thread and note is calculated to ensure a sharp fit and a lasting impression." },
+                ].map((item, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    className="flex flex-col items-center md:items-end text-center md:text-right gap-4"
+                  >
+                    <div className="w-14 h-14 rounded-2xl bg-white shadow-xl flex items-center justify-center text-[var(--brand-primary)] border border-gray-50">
+                      {item.icon}
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-black text-[var(--text-heading)] mb-2 uppercase tracking-tight">{item.title}</h4>
+                      <p className="text-xs text-slate-400 font-medium leading-loose">{item.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Center Image */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="relative aspect-[3/4] md:aspect-square flex items-center justify-center"
+              >
+                <div className="absolute inset-0 bg-[var(--brand-primary)]/5 rounded-full blur-3xl" />
+                <div className="relative w-full h-full rounded-[3rem] overflow-hidden shadow-2xl">
+                  <Image
+                    src="/hero5.png"
+                    alt="Highlight"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              </motion.div>
+
+              {/* Right Column */}
+              <div className="space-y-16">
+                {[
+                  { icon: <ShieldCheck size={24} />, title: "Durable & Lasting", desc: "Designed with upgraded materials that can survive your busiest days and laundry runs." },
+                  { icon: <Users size={24} />, title: "Community Driven", desc: "Every purchase supports our shared mission of hope and social communication." },
+                ].map((item, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: 30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    className="flex flex-col items-center md:items-start text-center md:text-left gap-4"
+                  >
+                    <div className="w-14 h-14 rounded-2xl bg-white shadow-xl flex items-center justify-center text-[var(--brand-primary)] border border-gray-50">
+                      {item.icon}
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-black text-[var(--text-heading)] mb-2 uppercase tracking-tight">{item.title}</h4>
+                      <p className="text-xs text-slate-400 font-medium leading-loose">{item.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-20 text-center">
+              <Link
+                href="/products"
+                className="btn-premium !px-12 !py-5 shadow-2xl shadow-[var(--brand-primary)]/20"
+              >
+                Shop The Collection
+              </Link>
+            </div>
+          </div>
+        </section>
 
 
 
