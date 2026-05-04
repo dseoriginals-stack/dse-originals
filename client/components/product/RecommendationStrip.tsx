@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { api } from "@/lib/api"
 import ProductCard from "../ProductCard"
+import { transformProductToCard } from "@/lib/transformProduct"
 import { Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
 
@@ -89,17 +90,20 @@ export default function RecommendationStrip({
           </div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-            {products.slice(0, 4).map((product, idx) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                viewport={{ once: true }}
-              >
-                <ProductCard product={product} />
-              </motion.div>
-            ))}
+            {products.slice(0, 4).map((product, idx) => {
+              const cardProduct = transformProductToCard(product)
+              return (
+                <motion.div
+                  key={cardProduct.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <ProductCard product={cardProduct} />
+                </motion.div>
+              )
+            })}
           </div>
         )}
       </div>

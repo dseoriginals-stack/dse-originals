@@ -67,9 +67,9 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
   // ✅ Track selections independently
   const [selections, setSelections] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {}
-    initialVariant?.attributes.forEach(a => {
+    initialVariant?.attributes?.forEach(a => {
       if (a.name === "Sizes") {
-         const parsedSizes = a.value.split(",").map(s => s.trim()).filter(Boolean)
+         const parsedSizes = (a.value || "").split(",").map(s => s.trim()).filter(Boolean)
          if (parsedSizes.length > 0) initial["Size"] = parsedSizes[0]
       } else {
          initial[a.name] = a.value
@@ -81,12 +81,12 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
   // ✅ Keep variant in sync with selections
   useEffect(() => {
     if (!product) return
-    const match = product.variants.find(v =>
+    const match = product.variants?.find(v =>
       Object.entries(selections).every(([name, value]) => {
-        if (name === "Size" && v.attributes.some(a => a.name === "Sizes")) {
+        if (name === "Size" && v.attributes?.some(a => a.name === "Sizes")) {
           return v.attributes.find(a => a.name === "Sizes")?.value.split(",").map(s => s.trim()).includes(value)
         }
-        return v.attributes.some(a => a.name === name && a.value === value)
+        return v.attributes?.some(a => a.name === name && a.value === value)
       })
     )
     if (match && match.id !== variant?.id) {
@@ -153,9 +153,9 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
         setVariant(firstAvailable)
         
         const initialSel: Record<string, string> = {}
-        firstAvailable?.attributes.forEach(a => {
+        firstAvailable?.attributes?.forEach(a => {
           if (a.name === "Sizes") {
-             const parsedSizes = a.value.split(",").map(s => s.trim()).filter(Boolean)
+             const parsedSizes = (a.value || "").split(",").map(s => s.trim()).filter(Boolean)
              if (parsedSizes.length > 0) initialSel["Size"] = parsedSizes[0]
           } else {
              initialSel[a.name] = a.value
@@ -325,8 +325,8 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
 
           <div className="flex gap-3 mt-4 overflow-x-auto px-1 py-2 custom-scrollbar">
             {(() => {
-              const allImages = [...product.images]
-              product.variants.forEach(v => {
+              const allImages = [...(product.images || [])]
+              product.variants?.forEach(v => {
                 if (v.image && !allImages.some(img => img.url === v.image)) {
                   allImages.push({ url: v.image, isPrimary: false })
                 }
@@ -398,10 +398,10 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
           <div className="space-y-6">
             {(() => {
               const grouped: Record<string, string[]> = {}
-              product.variants.forEach((v) => {
+              product.variants?.forEach((v) => {
                 v.attributes?.forEach((attr) => {
                   if (attr.name === "Sizes") {
-                    attr.value.split(",").forEach(val => {
+                    (attr.value || "").split(",").forEach(val => {
                       const trimmed = val.trim()
                       if (!trimmed) return
                       if (!grouped["Size"]) grouped["Size"] = []
@@ -422,7 +422,7 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                 setSelections(prev => {
                   const next = { ...prev, [name]: value }
                   
-                  const match = product.variants.find(v =>
+                  const match = product.variants?.find(v =>
                     Object.entries(next).every(([n, val]) => {
                       if (n === "Size" && v.attributes?.some(a => a.name === "Sizes")) {
                          return v.attributes.find(a => a.name === "Sizes")?.value.split(",").map(s => s.trim()).includes(val)
@@ -432,7 +432,7 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                   )
 
                   if (!match) {
-                    const fallback = product.variants.find(v => {
+                    const fallback = product.variants?.find(v => {
                       if (name === "Size" && v.attributes?.some(a => a.name === "Sizes")) {
                         return v.attributes.find(a => a.name === "Sizes")?.value.split(",").map(s => s.trim()).includes(value)
                       }
@@ -487,12 +487,12 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                         const isSelected = selections[name] === val
                         
                         // Check if this specific attribute value is available at all
-                        const exists = product.variants.some(v => 
+                        const exists = product.variants?.some(v => 
                           v.attributes?.some(a => a.name === name && a.value === val)
                         )
 
                         // Check if it's available with current OTHER selections
-                        const isAvailable = product.variants.some(v => 
+                        const isAvailable = product.variants?.some(v => 
                           v.attributes?.some(a => a.name === name && a.value === val) &&
                           Object.entries(selections).every(([otherName, otherVal]) => 
                             otherName === name || v.attributes?.some(a => a.name === otherName && a.value === otherVal)

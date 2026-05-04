@@ -197,7 +197,7 @@ export default function ProductModal({
                         
                         // Check if this specific attribute value is available at all
                         const exists = product.variants?.some(v => 
-                          v.attributes.some(a => a.name === name && a.value === val)
+                          v.attributes?.some(a => a.name === name && a.value === val)
                         )
 
                         // Check if it's available with current OTHER selections
