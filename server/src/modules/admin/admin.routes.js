@@ -26,4 +26,9 @@ router.get("/reviews", authorize("admin"), adminController.getReviews)
 router.delete("/reviews/:id", authorize("admin"), adminController.deleteReview)
 router.delete("/orders/:id", authorize("admin"), adminController.deleteOrder)
 
+// Notification Routes
+router.get("/notifications", authorize("admin", "staff"), adminController.getNotifications)
+router.patch("/notifications/read-all", authorize("admin", "staff"), adminController.markAllNotificationsRead)
+router.patch("/notifications/:id/read", authorize("admin", "staff"), adminController.markNotificationRead)
+
 export default router

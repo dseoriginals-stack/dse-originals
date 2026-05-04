@@ -1,4 +1,5 @@
 import prisma from "../../config/prisma.js"
+import notificationService from "../../services/notification.service.js"
 
 /*
 --------------------------------
@@ -63,17 +64,32 @@ CREATE REVIEW
 */
 
 export async function createReview(userId, data) {
-
   const { productId, rating, comment, images } = data
 
-  return prisma.review.create({
+  const review = await prisma.review.create({
     data: {
       userId,
       productId,
       rating,
       comment,
       images: images || []
+    },
+    include: {
+      product: { select: { name: true } },
+      user: { select: { name: true } }
     }
   })
 
+  // Create Admin Notification
+  try {
+    await notificationService.createNotification(
+      "NEW_REVIEW",
+      `New ${review.rating}-star review for ${review.product.name} by ${review.user?.name || "Customer"}`,
+      { reviewId: review.id, productId, rating }
+    )
+  } catch (nErr) {
+    console.error("Notification Error:", nErr)
+  }
+
+  return review
 }

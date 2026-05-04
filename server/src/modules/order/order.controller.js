@@ -1004,6 +1004,18 @@ export const createManualOrder = async (req, res, next) => {
         })
       }
 
+      // Create Notification
+      try {
+        const { createNotification } = await import("../../services/notification.service.js")
+        await createNotification(
+          "NEW_ORDER",
+          `New POS Order #${order.id.slice(-6)} - ₱${totalAmount.toLocaleString()}`,
+          { orderId: order.id, total: totalAmount, isManual: true }
+        )
+      } catch (nErr) {
+        console.error("Notification Error:", nErr)
+      }
+
       return order
     })
 

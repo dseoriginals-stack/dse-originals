@@ -148,6 +148,18 @@ export async function createCheckout({
     total
   })
 
+  // Create Admin Notification
+  try {
+    const { createNotification } = await import("./notification.service.js")
+    await createNotification(
+      "NEW_ORDER",
+      `New Online Order #${order.id.slice(-6)} - ₱${total.toLocaleString()}`,
+      { orderId: order.id, total }
+    )
+  } catch (nErr) {
+    console.error("Notification Error:", nErr)
+  }
+
   /* =========================
      RETURN RESPONSE
   ========================= */

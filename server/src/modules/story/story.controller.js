@@ -62,8 +62,14 @@ export const createStory = async (req, res, next) => {
     // 2. Notify Admin
     try {
       await sendAdminStoryNotification(story)
-    } catch (emailErr) {
-      console.error("Failed to notify admin via email:", emailErr)
+      const { createNotification } = await import("../../services/notification.service.js")
+      await createNotification(
+        "NEW_STORY",
+        `New Story Submitted: "${story.title}" by ${story.guestName || "User"}`,
+        { storyId: story.id, title: story.title }
+      )
+    } catch (err) {
+      console.error("Notification Error:", err)
     }
     
     res.status(201).json(story)

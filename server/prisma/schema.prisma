@@ -533,6 +533,22 @@ model CartRecovery {
 }
 
 //////////////////////////////////////////////////////
+// NOTIFICATIONS
+//////////////////////////////////////////////////////
+
+model Notification {
+  id        String   @id @default(uuid())
+  type      String   // NEW_ORDER, NEW_REVIEW, NEW_STORY, LOW_STOCK
+  message   String
+  metadata  Json?    // { orderId, reviewId, productId, etc }
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([isRead])
+}
+
+//////////////////////////////////////////////////////
 // ENUMS
 //////////////////////////////////////////////////////
 

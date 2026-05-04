@@ -123,6 +123,40 @@ const deleteOrder = async (req, res, next) => {
   }
 }
 
+const getNotifications = async (req, res, next) => {
+  try {
+    const { getNotifications, getUnreadCount } = await import("../../services/notification.service.js")
+    const [notifications, unreadCount] = await Promise.all([
+      getNotifications(),
+      getUnreadCount()
+    ])
+    res.json({ notifications, unreadCount })
+  } catch (err) {
+    next(err)
+  }
+}
+
+const markNotificationRead = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const { markAsRead } = await import("../../services/notification.service.js")
+    await markAsRead(id)
+    res.json({ success: true })
+  } catch (err) {
+    next(err)
+  }
+}
+
+const markAllNotificationsRead = async (req, res, next) => {
+  try {
+    const { markAllAsRead } = await import("../../services/notification.service.js")
+    await markAllAsRead()
+    res.json({ success: true })
+  } catch (err) {
+    next(err)
+  }
+}
+
 export default {
   getAdminStats,
   getOrders,
@@ -134,5 +168,8 @@ export default {
   getStories,
   getReviews,
   deleteReview,
-  deleteOrder
+  deleteOrder,
+  getNotifications,
+  markNotificationRead,
+  markAllNotificationsRead
 }
