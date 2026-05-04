@@ -22,6 +22,7 @@ import {
   X
 } from "lucide-react"
 import toast from "react-hot-toast"
+import { useAuth } from "@/context/AuthContext"
 
 type OrderItem = {
   id: string
@@ -61,6 +62,8 @@ export default function AdminOrders() {
   const [filter, setFilter] = useState(initialFilter)
   const [trackingInputs, setTrackingInputs] = useState<Record<string, string>>({})
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'admin'
 
   useEffect(() => {
     const status = searchParams.get("status")
@@ -197,6 +200,7 @@ export default function AdminOrders() {
                       onUpdateStatus={updateStatus}
                       onCancel={cancelOrder}
                       onDelete={deleteOrder}
+                      canDelete={isAdmin}
                     />
                   ))}
                   {filteredOrders.length === 0 && (
@@ -216,7 +220,7 @@ export default function AdminOrders() {
   )
 }
 
-function OrderRow({ order, onOpen, trackingValue, onTrackingChange, onUpdateStatus, onCancel, onDelete }: any) {
+function OrderRow({ order, onOpen, trackingValue, onTrackingChange, onUpdateStatus, onCancel, onDelete, canDelete }: any) {
   const statusStyles: any = {
     pending: "bg-amber-50 text-amber-600 border-amber-100",
     accepted: "bg-violet-50 text-violet-600 border-violet-100",
@@ -314,13 +318,15 @@ function OrderRow({ order, onOpen, trackingValue, onTrackingChange, onUpdateStat
             >
               Done
             </button>
-            <button 
-              onClick={() => onDelete(order.id)}
-              className="p-2 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-xl transition shadow-sm ml-2"
-              title="Permanent Delete"
-            >
-              <Trash2 size={14} />
-            </button>
+            {canDelete && (
+              <button 
+                onClick={() => onDelete(order.id)}
+                className="p-2 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-xl transition shadow-sm ml-2"
+                title="Permanent Delete"
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
           </div>
           <div className="p-2 bg-gray-50 rounded-xl border border-[var(--border-light)] text-[10px] font-black uppercase text-gray-400">
             Details
