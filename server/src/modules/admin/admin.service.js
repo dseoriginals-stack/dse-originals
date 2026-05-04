@@ -3,7 +3,11 @@ import { logOrderEvent } from "../../services/orderEvent.service.js"
 
 const getAdminStats = async () => {
   const users = await prisma.user.count()
-  const ordersCount = await prisma.order.count()
+  const ordersCount = await prisma.order.count({
+    where: {
+      status: { notIn: ['cancelled', 'rejected'] }
+    }
+  })
   const productsCount = await prisma.product.count()
 
   const revenue = await prisma.order.aggregate({
