@@ -486,16 +486,24 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                       {displayValues.map((val) => {
                         const isSelected = selections[name] === val
                         
+                        const checkMatch = (v: any, attrName: string, attrVal: string) => {
+                          if (attrName === "Size") {
+                            return v.attributes?.some((a: any) => 
+                              (a.name === "Size" && a.value === attrVal) ||
+                              (a.name === "Sizes" && a.value.split(",").map((s: any) => s.trim()).includes(attrVal))
+                            )
+                          }
+                          return v.attributes?.some((a: any) => a.name === attrName && a.value === attrVal)
+                        }
+
                         // Check if this specific attribute value is available at all
-                        const exists = product.variants?.some(v => 
-                          v.attributes?.some(a => a.name === name && a.value === val)
-                        )
+                        const exists = product.variants?.some(v => checkMatch(v, name, val))
 
                         // Check if it's available with current OTHER selections
                         const isAvailable = product.variants?.some(v => 
-                          v.attributes?.some(a => a.name === name && a.value === val) &&
+                          checkMatch(v, name, val) &&
                           Object.entries(selections).every(([otherName, otherVal]) => 
-                            otherName === name || v.attributes?.some(a => a.name === otherName && a.value === otherVal)
+                            otherName === name || checkMatch(v, otherName, otherVal)
                           ) &&
                           v.stock > 0
                         )
