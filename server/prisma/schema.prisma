@@ -266,6 +266,7 @@ model Order {
   pickupTime     DateTime?
 
   paymentId      String?     @unique
+  clientOrderId  String?     @unique
   paymentMethod  String?     // cash, online
   isManual       Boolean     @default(false)
   trackingNo     String?

@@ -1,14 +1,18 @@
-
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { PrismaClient } from '@prisma/client'
+const prisma = new PrismaClient()
 
 async function main() {
-  const count = await prisma.product.count();
-  console.log(`Product count: ${count}`);
-  const products = await prisma.product.findMany({ take: 5 });
-  console.log('Sample products:', JSON.stringify(products, null, 2));
+  try {
+    const res = await prisma.$queryRaw`SELECT column_name FROM information_schema.columns WHERE table_name = 'OrderItem' AND column_name = 'attributes'`
+    console.log('OrderItem attributes column:', res)
+    
+    const res2 = await prisma.$queryRaw`SELECT column_name FROM information_schema.columns WHERE table_name = 'CartItem' AND column_name = 'attributes'`
+    console.log('CartItem attributes column:', res2)
+  } catch (err) {
+    console.error('Check failed:', err)
+  } finally {
+    await prisma.$disconnect()
+  }
 }
 
 main()
-  .catch(e => console.error(e))
-  .finally(async () => await prisma.$disconnect());
