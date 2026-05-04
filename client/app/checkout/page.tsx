@@ -29,7 +29,7 @@ const STORE_HOURS = "Mon–Sat, 9 AM – 6 PM"
 export default function CheckoutPage() {
   const { cart, selectedItems, removeFromCart } = useCart()
   const { user, loading: authLoading } = useAuth()
-  const itemsToCheckout = cart.filter(item => selectedItems.includes(item.variantId))
+  const itemsToCheckout = cart.filter(item => selectedItems.includes(item.cartKey || item.variantId))
 
   const [step, setStep] = useState<Step>(1)
   const [delivery, setDelivery] = useState<DeliveryMethod>("delivery")
