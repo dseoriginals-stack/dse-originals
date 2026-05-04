@@ -30,6 +30,18 @@ export default function ProductCard({
   // Find default variant or first variant
   const defaultVariant = product.variants?.find(v => v.id === product.variantId) || product.variants?.[0]
   const [activeVariant, setActiveVariant] = useState(defaultVariant)
+  const [selections, setSelections] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {}
+    defaultVariant?.attributes?.forEach(a => {
+      if (a.name === "Sizes") {
+        const parsed = (a.value || "").split(",").map(s => s.trim()).filter(Boolean)
+        if (parsed.length > 0) initial["Size"] = parsed[0]
+      } else {
+        initial[a.name] = a.value
+      }
+    })
+    return initial
+  })
 
   const getDisplayPrice = (variant: any) => {
     if (!variant) return product.price
@@ -75,47 +87,52 @@ export default function ProductCard({
     }
   }
 
-  const selections: Record<string, string> = {}
-  activeVariant?.attributes?.forEach(a => {
-    if (a.name === "Sizes") {
-      const parsedSizes = (a.value || "").split(",").map((s: any) => s.trim()).filter(Boolean)
-      if (parsedSizes.length > 0) selections["Size"] = parsedSizes[0]
-    } else {
-      selections[a.name] = a.value
-    }
-  })
+
 
   const handleAttrClick = (e: any, name: string, value: string) => {
     e.preventDefault()
     e.stopPropagation()
     
-    const next = { ...selections, [name]: value }
-    
-    const match = product.variants?.find(v =>
-      Object.entries(next).every(([n, val]) => {
-        if (n === "Size" && v.attributes?.some((a: any) => a.name === "Sizes")) {
-          return v.attributes.find((a: any) => a.name === "Sizes")?.value.split(",").map((s: any) => s.trim()).includes(val)
-        }
-        return v.attributes?.some((a: any) => a.name === n && a.value === val)
-      })
-    )
+    setSelections(prev => {
+      const next = { ...prev, [name]: value }
+      
+      const match = product.variants?.find(v =>
+        Object.entries(next).every(([n, val]) => {
+          if (n === "Size" && v.attributes?.some((a: any) => a.name === "Sizes")) {
+            return v.attributes.find((a: any) => a.name === "Sizes")?.value.split(",").map((s: any) => s.trim()).includes(val)
+          }
+          return v.attributes?.some((a: any) => a.name === n && a.value === val)
+        })
+      )
 
-    if (match) {
-      setActiveVariant(match)
-      return
-    }
-
-    // Fallback: find ANY variant with this attribute value
-    const fallback = product.variants?.find(v => {
-      if (name === "Size" && v.attributes?.some((a: any) => a.name === "Sizes")) {
-        return v.attributes.find((a: any) => a.name === "Sizes")?.value.split(",").map((s: any) => s.trim()).includes(value)
+      if (match) {
+        setActiveVariant(match)
+        return next
       }
-      return v.attributes?.some((a: any) => a.name === name && a.value === value)
-    })
 
-    if (fallback) {
-      setActiveVariant(fallback)
-    }
+      // Fallback
+      const fallback = product.variants?.find(v => {
+        if (name === "Size" && v.attributes?.some((a: any) => a.name === "Sizes")) {
+          return v.attributes.find((a: any) => a.name === "Sizes")?.value.split(",").map((s: any) => s.trim()).includes(value)
+        }
+        return v.attributes?.some((a: any) => a.name === name && a.value === value)
+      })
+
+      if (fallback) {
+        setActiveVariant(fallback)
+        const reset: Record<string, string> = {}
+        fallback.attributes?.forEach((a: any) => {
+          if (a.name === "Sizes") {
+            reset["Size"] = value
+          } else {
+            reset[a.name] = a.value
+          }
+        })
+        return reset
+      }
+
+      return prev
+    })
   }
 
   return (
