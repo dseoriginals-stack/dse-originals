@@ -89,46 +89,33 @@ export default function ProductCard({
     e.preventDefault()
     e.stopPropagation()
     
-    setSelections(prev => {
-      const next = { ...prev, [name]: value }
-      
-      const match = product.variants?.find(v =>
-        Object.entries(next).every(([n, val]) => {
-          if (n === "Size" && v.attributes?.some((a: any) => a.name === "Sizes")) {
-            return v.attributes.find((a: any) => a.name === "Sizes")?.value.split(",").map((s: any) => s.trim()).includes(val)
-          }
-          return v.attributes?.some((a: any) => a.name === n && a.value === val)
-        })
-      )
-
-      if (match) {
-        setActiveVariant(match)
-        return next
-      }
-
-      // Fallback: find ANY variant with this attribute value
-      const fallback = product.variants?.find(v => {
-        if (name === "Size" && v.attributes?.some((a: any) => a.name === "Sizes")) {
-          return v.attributes.find((a: any) => a.name === "Sizes")?.value.split(",").map((s: any) => s.trim()).includes(value)
+    const next = { ...selections, [name]: value }
+    
+    const match = product.variants?.find(v =>
+      Object.entries(next).every(([n, val]) => {
+        if (n === "Size" && v.attributes?.some((a: any) => a.name === "Sizes")) {
+          return v.attributes.find((a: any) => a.name === "Sizes")?.value.split(",").map((s: any) => s.trim()).includes(val)
         }
-        return v.attributes?.some((a: any) => a.name === name && a.value === value)
+        return v.attributes?.some((a: any) => a.name === n && a.value === val)
       })
+    )
 
-      if (fallback) {
-        setActiveVariant(fallback)
-        const reset: Record<string, string> = {}
-        fallback.attributes?.forEach((a: any) => {
-          if (a.name === "Sizes") {
-            reset["Size"] = value
-          } else {
-            reset[a.name] = a.value
-          }
-        })
-        return reset
+    if (match) {
+      setActiveVariant(match)
+      return
+    }
+
+    // Fallback: find ANY variant with this attribute value
+    const fallback = product.variants?.find(v => {
+      if (name === "Size" && v.attributes?.some((a: any) => a.name === "Sizes")) {
+        return v.attributes.find((a: any) => a.name === "Sizes")?.value.split(",").map((s: any) => s.trim()).includes(value)
       }
-
-      return prev
+      return v.attributes?.some((a: any) => a.name === name && a.value === value)
     })
+
+    if (fallback) {
+      setActiveVariant(fallback)
+    }
   }
 
   return (
