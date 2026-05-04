@@ -81,9 +81,9 @@ export default function ResellerPage() {
                 </div>
                 <div className="space-y-5">
                   {[
-                    "Fixed Reseller Pricing – ₱299 for 55ml, ₱199 for 30ml.",
+                    "Fixed Reseller Pricing – ₱299 (55ml), ₱199 (30ml), ₱369 (Apparel).",
                     "Low Minimum Requirement – Only 12 items to start.",
-                    "High Profit Margins – Earn significant income per bottle.",
+                    "High Profit Margins – Earn significant income per piece.",
                     "Full Marketing Support – Ready-to-use product photos.",
                     "Fast Nationwide Shipping – Reliable delivery via J&T Express."
                   ].map((benefit, i) => (
@@ -110,8 +110,8 @@ export default function ResellerPage() {
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--brand-soft)]/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-[var(--brand-primary)] mb-4">
                   Partner Dispatch Portal
                 </div>
-                <h2 className="text-4xl font-[1000] text-[var(--text-heading)] tracking-tighter">Bulk Order Perfumes</h2>
-                <p className="text-sm font-bold text-[var(--text-muted)] mt-2">Mix and match any scent. Min 12 pcs required.</p>
+                <h2 className="text-4xl font-[1000] text-[var(--text-heading)] tracking-tighter">Bulk Order Products</h2>
+                <p className="text-sm font-bold text-[var(--text-muted)] mt-2">Mix and match perfumes and apparel. Min 12 pcs required.</p>
               </div>
 
               <BulkOrderShop />
@@ -173,7 +173,10 @@ function BulkOrderShop() {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ""}/api/products/all`)
         const data = await res.json()
-        setProducts(data?.filter((p: any) => p.category?.name?.toLowerCase().includes("perfume")) || [])
+        setProducts(data?.filter((p: any) => {
+          const cat = (p.category?.name || p.category || "").toLowerCase()
+          return cat.includes("perfume") || cat.includes("apparel")
+        }) || [])
       } catch (err) {
         toast.error("Connecting to server...")
       } finally {
@@ -195,14 +198,23 @@ function BulkOrderShop() {
 
   const totals = products.reduce((acc, p) => {
     p.variants.forEach((v: any) => {
-      const qty = cart[v.id] || 0
-      if (qty > 0) {
-        const is55ml = v.attributes?.some((a: any) => a.value.includes("55"))
-        const price = is55ml ? 299 : 199
-        acc.amount += qty * price
-        acc.count += qty
-        acc.srpAmount += qty * Number(v.price)
-      }
+        const qty = cart[v.id] || 0
+        if (qty > 0) {
+          const cat = (p.category?.name || p.category || "").toLowerCase()
+          const attrValues = (v.attributes || []).map((a: any) => (a.value || "").toLowerCase())
+          
+          let price = 0
+          if (cat.includes("apparel") || attrValues.some(val => ["small", "medium", "large", "xl", "2xl", "s", "m", "l"].includes(val))) {
+            price = 369
+          } else {
+            const is55ml = attrValues.some(val => val.includes("55"))
+            price = is55ml ? 299 : 199
+          }
+
+          acc.amount += qty * price
+          acc.count += qty
+          acc.srpAmount += qty * Number(v.price)
+        }
     })
     return acc
   }, { amount: 0, count: 0, srpAmount: 0 })
@@ -220,11 +232,21 @@ function BulkOrderShop() {
           const product = products.find(p => p.variants.some((v: any) => v.id === pid))
           const variant = product?.variants.find((v: any) => v.id === pid)
           if (!variant) continue
-          const is55ml = variant.attributes?.some((a: any) => a.value.includes("55"))
+          const cat = (product?.category?.name || product?.category || "").toLowerCase()
+          const attrValues = (variant.attributes || []).map((a: any) => (a.value || "").toLowerCase())
+          
+          let price = 0
+          if (cat.includes("apparel") || attrValues.some(val => ["small", "medium", "large", "xl", "2xl", "s", "m", "l"].includes(val))) {
+            price = 369
+          } else {
+            const is55ml = attrValues.some(val => val.includes("55"))
+            price = is55ml ? 299 : 199
+          }
+
           orderItems.push({
             variantId: variant.id,
             quantity: cart[pid],
-            price: is55ml ? 299 : 199,
+            price: price,
           })
         }
       }
@@ -298,7 +320,19 @@ function BulkOrderShop() {
                   <div key={v.id} className={`p-4 rounded-2xl transition-all border ${qty > 0 ? "bg-white border-[var(--brand-primary)] shadow-md" : "bg-white/40 border-transparent"}`}>
                     <div className="flex justify-between items-center mb-3">
                       <p className="text-[10px] font-black uppercase text-gray-400">{v.attributes?.map((a: any) => a.value).join("/")}</p>
-                      <span className="text-sm font-black text-[var(--brand-primary)]">₱{is55ml ? 299 : 199}</span>
+                      {(() => {
+                        const cat = (product.category?.name || product.category || "").toLowerCase()
+                        const attrValues = (v.attributes || []).map((a: any) => (a.value || "").toLowerCase())
+                        
+                        let price = 0
+                        if (cat.includes("apparel") || attrValues.some(val => ["small", "medium", "large", "xl", "2xl", "s", "m", "l"].includes(val))) {
+                          price = 369
+                        } else {
+                          const is55ml = attrValues.some(val => val.includes("55"))
+                          price = is55ml ? 299 : 199
+                        }
+                        return <span className="text-sm font-black text-[var(--brand-primary)]">₱{price}</span>
+                      })()}
                     </div>
                     <div className="flex items-center justify-between gap-4">
                       <button onClick={() => updateQty(v.id, -1, v.stock)} className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center"><Minus size={16} /></button>
