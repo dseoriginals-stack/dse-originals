@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic"
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, BarChart3, Package, ShoppingCart, CreditCard, Users, LogOut, MessageSquare, BookOpen, Bell, Menu, X } from "lucide-react"
+import { LayoutDashboard, BarChart3, Package, ShoppingCart, CreditCard, Users, LogOut, MessageSquare, BookOpen, Bell, Menu, X, Globe } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 import { useEffect, useState } from "react"
 import NotificationPanel from "@/components/admin/NotificationPanel"
@@ -184,6 +184,15 @@ export default function AdminLayout({
               {/* GLOBAL SEARCH */}
               <GlobalSearch />
             </div>
+            
+            {/* BACK TO WEBSITE */}
+            <Link 
+              href="/"
+              className="hidden lg:flex items-center gap-2 px-4 py-2.5 bg-[var(--brand-soft)]/20 text-[var(--brand-primary)] rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-[var(--brand-primary)] hover:text-white transition-all shadow-sm border border-[var(--brand-soft)]/30"
+            >
+              <Globe size={14} />
+              Website
+            </Link>
           </div>
 
           {/* PROFILE */}
