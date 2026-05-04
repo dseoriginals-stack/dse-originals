@@ -63,8 +63,8 @@ export default function ManualSalePage() {
     // Apparel logic (Category based or size based)
     const isApparel = 
       cat.includes("apparel") || 
-      attrValues.some(v => ["small", "medium", "large", "xl", "2xl", "shirt", "tee", "s", "m", "l"].includes(v)) ||
-      variant.attributes?.some(a => a.name.toLowerCase().includes("size"))
+      attrValues.some((v: string) => ["small", "medium", "large", "xl", "2xl", "shirt", "tee", "s", "m", "l"].includes(v)) ||
+      variant.attributes?.some((a: any) => a.name.toLowerCase().includes("size"))
 
     if (isApparel) {
       return { srp: 399, reseller: 369 }

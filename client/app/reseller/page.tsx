@@ -204,10 +204,10 @@ function BulkOrderShop() {
           const attrValues = (v.attributes || []).map((a: any) => (a.value || "").toLowerCase())
           
           let price = 0
-          if (cat.includes("apparel") || attrValues.some(val => ["small", "medium", "large", "xl", "2xl", "s", "m", "l"].includes(val))) {
+          if (cat.includes("apparel") || attrValues.some((val: string) => ["small", "medium", "large", "xl", "2xl", "s", "m", "l"].includes(val))) {
             price = 369
           } else {
-            const is55ml = attrValues.some(val => val.includes("55"))
+            const is55ml = attrValues.some((val: string) => val.includes("55"))
             price = is55ml ? 299 : 199
           }
 
@@ -236,10 +236,10 @@ function BulkOrderShop() {
           const attrValues = (variant.attributes || []).map((a: any) => (a.value || "").toLowerCase())
           
           let price = 0
-          if (cat.includes("apparel") || attrValues.some(val => ["small", "medium", "large", "xl", "2xl", "s", "m", "l"].includes(val))) {
+          if (cat.includes("apparel") || attrValues.some((val: string) => ["small", "medium", "large", "xl", "2xl", "s", "m", "l"].includes(val))) {
             price = 369
           } else {
-            const is55ml = attrValues.some(val => val.includes("55"))
+            const is55ml = attrValues.some((val: string) => val.includes("55"))
             price = is55ml ? 299 : 199
           }
 
@@ -325,10 +325,10 @@ function BulkOrderShop() {
                         const attrValues = (v.attributes || []).map((a: any) => (a.value || "").toLowerCase())
                         
                         let price = 0
-                        if (cat.includes("apparel") || attrValues.some(val => ["small", "medium", "large", "xl", "2xl", "s", "m", "l"].includes(val))) {
+                        if (cat.includes("apparel") || attrValues.some((val: string) => ["small", "medium", "large", "xl", "2xl", "s", "m", "l"].includes(val))) {
                           price = 369
                         } else {
-                          const is55ml = attrValues.some(val => val.includes("55"))
+                          const is55ml = attrValues.some((val: string) => val.includes("55"))
                           price = is55ml ? 299 : 199
                         }
                         return <span className="text-sm font-black text-[var(--brand-primary)]">₱{price}</span>
