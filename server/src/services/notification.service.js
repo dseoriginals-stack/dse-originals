@@ -2,13 +2,23 @@ import prisma from "../config/prisma.js"
 
 export const createNotification = async (type, message, metadata = {}) => {
   try {
-    return await prisma.notification.create({
+    const notification = await prisma.notification.create({
       data: {
         type,
         message,
         metadata
       }
     })
+
+    // Broadcast real-time update
+    try {
+      const { notifyAdmins } = await import("../config/socket.js")
+      notifyAdmins("notification:new", notification)
+    } catch (sErr) {
+      console.warn("Socket notification failed:", sErr.message)
+    }
+
+    return notification
   } catch (err) {
     console.error("Failed to create notification:", err)
   }

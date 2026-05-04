@@ -32,7 +32,23 @@ export default function AdminLayout({
   const router = useRouter()
   const { user, loading, logout } = useAuth()
   const [showNotifications, setShowNotifications] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      const fetchCount = async () => {
+        try {
+          const { api } = await import("@/lib/api")
+          const res = await api.get<{ notifications: any[], unreadCount: number }>("/admin/notifications")
+          setUnreadCount(res?.unreadCount || 0)
+        } catch (err) {
+          console.error("Count fetch failed", err)
+        }
+      }
+      fetchCount()
+    }
+  }, [user])
 
   /* =========================
      FIX: ROLE ACCESS (ADMIN & STAFF)
@@ -176,11 +192,18 @@ export default function AdminLayout({
             {/* NOTIFICATIONS */}
             <div className="relative">
               <div 
-                onClick={() => setShowNotifications(!showNotifications)}
+                onClick={() => {
+                  setShowNotifications(!showNotifications)
+                  setUnreadCount(0)
+                }}
                 className="relative cursor-pointer w-10 h-10 flex items-center justify-center rounded-full hover:bg-[var(--bg-surface)] transition-colors border border-transparent hover:border-[var(--border-light)]"
               >
                 <Bell size={20} className="text-[var(--text-main)]" />
-                {/* Dynamic Badge Logic would go here once connected to a live websocket/polling */}
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white animate-bounce">
+                    {unreadCount}
+                  </span>
+                )}
               </div>
               {showNotifications && <NotificationPanel onClose={() => setShowNotifications(false)} />}
             </div>
