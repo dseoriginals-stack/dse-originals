@@ -39,15 +39,27 @@ export const getRelatedProducts = async (req, res, next) => {
       orderBy: { createdAt: "desc" },
       include: {
         images: {
-          where: { isPrimary: true },
+          orderBy: { isPrimary: "desc" },
           take: 1
+        },
+        variants: {
+          include: {
+            attributes: true
+          }
         }
       }
     })
 
-    await setCache(cacheKey, related, 300)
+    const response = related.map(p => ({
+      ...p,
+      image: p.images?.[0]?.url || null,
+      price: Number(p.variants?.[0]?.price || 0),
+      stock: p.variants?.reduce((acc, v) => acc + (v.stock || 0), 0) || 0,
+      variantId: p.variants?.[0]?.id || ""
+    }))
 
-    res.json(related)
+    await setCache(cacheKey, response, 300)
+    res.json(response)
 
   } catch (err) {
     next(err)
@@ -70,8 +82,13 @@ export const getTrendingProducts = async (req, res, next) => {
       orderBy: { createdAt: "desc" },
       include: {
         images: {
-          where: { isPrimary: true },
+          orderBy: { isPrimary: "desc" },
           take: 1
+        },
+        variants: {
+          include: {
+            attributes: true
+          }
         }
       }
     })
@@ -81,7 +98,11 @@ export const getTrendingProducts = async (req, res, next) => {
       name: p.name,
       slug: p.slug,
       image: p.images?.[0]?.url || null,
-      sales: 0 // Placeholder as we switched to simple fetch
+      price: Number(p.variants?.[0]?.price || 0),
+      stock: p.variants?.reduce((acc, v) => acc + (v.stock || 0), 0) || 0,
+      variantId: p.variants?.[0]?.id || "",
+      variants: p.variants,
+      sales: 0 
     }))
 
     await setCache(cacheKey, response, 300)
@@ -119,8 +140,13 @@ export const getFrequentlyBoughtTogether = async (req, res, next) => {
       orderBy: { createdAt: "desc" },
       include: {
         images: {
-          where: { isPrimary: true },
+          orderBy: { isPrimary: "desc" },
           take: 1
+        },
+        variants: {
+          include: {
+            attributes: true
+          }
         }
       }
     })
@@ -130,6 +156,10 @@ export const getFrequentlyBoughtTogether = async (req, res, next) => {
       name: p.name,
       slug: p.slug,
       image: p.images?.[0]?.url || null,
+      price: Number(p.variants?.[0]?.price || 0),
+      stock: p.variants?.reduce((acc, v) => acc + (v.stock || 0), 0) || 0,
+      variantId: p.variants?.[0]?.id || "",
+      variants: p.variants,
       frequency: 0
     }))
 
@@ -203,8 +233,13 @@ export const getPersonalizedRecommendations = async (req, res, next) => {
       orderBy: { createdAt: "desc" },
       include: {
         images: {
-          where: { isPrimary: true },
+          orderBy: { isPrimary: "desc" },
           take: 1
+        },
+        variants: {
+          include: {
+            attributes: true
+          }
         }
       }
     })
@@ -214,8 +249,16 @@ export const getPersonalizedRecommendations = async (req, res, next) => {
       return getTrendingProducts(req, res, next)
     }
 
-    await setCache(cacheKey, recommendations, 600)
-    res.json(recommendations)
+    const response = recommendations.map(p => ({
+      ...p,
+      image: p.images?.[0]?.url || null,
+      price: Number(p.variants?.[0]?.price || 0),
+      stock: p.variants?.reduce((acc, v) => acc + (v.stock || 0), 0) || 0,
+      variantId: p.variants?.[0]?.id || ""
+    }))
+
+    await setCache(cacheKey, response, 600)
+    res.json(response)
 
   } catch (err) {
     next(err)
