@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { api } from "@/lib/api"
 import { AlertTriangle, Clock, CheckCircle2, MessageSquare, ExternalLink, User, Mail, Globe, Image as ImageIcon } from "lucide-react"
 import toast from "react-hot-toast"
-import { format } from "date-fns"
 
 type Issue = {
   id: string
@@ -45,6 +44,17 @@ export default function IssuesPage() {
     fetchIssues()
   }, [])
 
+  const formatDate = (dateString: string) => {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true
+    }).format(new Date(dateString))
+  }
+
   const updateStatus = async (id: string, status: string) => {
     try {
       await api.patch(`/issues/${id}/status`, { status })
@@ -84,7 +94,7 @@ export default function IssuesPage() {
                     <span className="text-slate-300">|</span>
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
                       <Clock size={12} />
-                      {format(new Date(issue.createdAt), "MMM d, yyyy • h:mm a")}
+                      {formatDate(issue.createdAt)}
                     </span>
                     <span className="text-slate-300">|</span>
                     <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500 font-bold">
