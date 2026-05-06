@@ -10,6 +10,7 @@ import { getShippingRate, calculateWeight, calculateShippingTotal, ShippingZone 
 import PaymentModal from "@/components/PaymentModal"
 import toast from "react-hot-toast"
 import { motion, AnimatePresence } from "framer-motion"
+import { v4 as uuidv4 } from "uuid"
 
 import CheckoutSkeleton from "@/components/ui/CheckoutSkeleton"
 
@@ -39,6 +40,7 @@ export default function CheckoutPage() {
   const [shipping, setShipping] = useState<ShippingZone | null>(null)
   const [showPayment, setShowPayment] = useState(false)
   const [paymentUrl, setPaymentUrl] = useState("")
+  const clientOrderId = useRef(uuidv4()).current
 
   const [form, setForm] = useState({
     name: "", email: "", phone: "",
@@ -179,6 +181,7 @@ export default function CheckoutPage() {
         shippingFee,
         pointsToUse: usePoints ? Math.floor(pointsDiscount) : 0,
         guestName: form.name,
+        clientOrderId,
         address: delivery === "delivery" ? {
           fullName: form.name,
           phone: form.phone,

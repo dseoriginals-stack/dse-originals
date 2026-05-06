@@ -85,7 +85,8 @@ export const createOrder = async (req, res, next) => {
       guestName,
       deliveryMethod = "delivery",
       shippingFee = 0,
-      pointsToUse = 0
+      pointsToUse = 0,
+      clientOrderId
     } = req.body
 
     const userId = req.user?.id || null

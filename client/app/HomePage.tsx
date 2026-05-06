@@ -22,6 +22,8 @@ const heroImages = [
   "/hero3.png",
   "/hero4.png",
   "/hero5.png",
+  "/hero6.png",
+  "/hero7.png",
 ]
 
 export default function HomePage({ initialProducts }: Props) {
