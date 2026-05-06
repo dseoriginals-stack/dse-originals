@@ -2,8 +2,11 @@
 
 import Link from "next/link"
 import { Facebook, Instagram, Twitter, Mail, MapPin } from "lucide-react"
+import { useReportIssue } from "@/context/ReportIssueContext"
 
 export default function Footer() {
+  const { openReportModal } = useReportIssue()
+
   return (
     <footer className="bg-white/80 backdrop-blur-xl border-t border-[var(--border-light)] py-6 mt-auto z-10 relative">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -15,6 +18,12 @@ export default function Footer() {
             <Link href="/privacy" className="hover:text-[var(--brand-primary)] transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-[var(--brand-primary)] transition-colors">Terms of Service</Link>
             <Link href="/track" className="hover:text-[var(--brand-primary)] transition-colors text-[var(--brand-primary)]">Track Order</Link>
+            <button 
+              onClick={openReportModal}
+              className="hover:text-red-500 transition-colors uppercase"
+            >
+              Report Issue
+            </button>
           </div>
         </div>
 
