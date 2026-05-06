@@ -479,44 +479,44 @@ export default function HomePage({ initialProducts }: Props) {
         </section>
 
         {/* ================= WHY CHOOSE DSE ================= */}
-        <section className="py-16 md:py-24 bg-slate-50/50 rounded-[2.5rem] md:rounded-[4rem] my-8 md:my-12 border border-white/50 overflow-hidden">
+        <section className="py-12 md:py-24 bg-slate-50/50 rounded-[2rem] md:rounded-[4rem] my-8 md:my-12 border border-white/50 overflow-hidden">
           <div className="max-w-5xl mx-auto px-6">
-            <div className="text-center mb-12 md:mb-20">
-              <h2 className="text-3xl md:text-5xl font-[1000] text-[var(--text-heading)] tracking-tighter uppercase leading-none">Why DSE Originals Stand Out</h2>
-              <p className="mt-4 text-slate-400 font-bold uppercase tracking-widest text-[9px] md:text-[10px] max-w-xs md:max-w-none mx-auto">Purposely designed for those who move, sweat, and show up in style.</p>
+            <div className="text-center mb-10 md:mb-20">
+              <h2 className="text-2xl md:text-5xl font-[1000] text-[var(--text-heading)] tracking-tighter uppercase leading-none">Why DSE Originals Stand Out</h2>
+              <p className="mt-3 text-slate-400 font-bold uppercase tracking-widest text-[8px] md:text-[10px] max-w-[240px] md:max-w-none mx-auto">Purposely designed for those who move, sweat, and show up in style.</p>
             </div>
   
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-12 items-center">
+            <div className="flex flex-col md:grid md:grid-cols-3 gap-8 md:gap-12 items-center">
               {/* Left Column */}
-              <div className="space-y-12 md:space-y-16">
+              <div className="grid grid-cols-2 md:grid-cols-1 gap-6 md:gap-16 w-full">
                 {[
-                  { icon: <Sparkles size={24} />, title: "High-Quality", desc: "Quality-crafted fabrics and premium oils that won't easily fade or stretch out over time." },
-                  { icon: <Target size={24} />, title: "Precision Design", desc: "Every thread and note is calculated to ensure a sharp fit and a lasting impression." },
+                  { icon: <Sparkles size={20} />, title: "High-Quality", desc: "Quality-crafted fabrics and premium oils." },
+                  { icon: <Target size={20} />, title: "Precision Design", desc: "Every thread and note is calculated." },
                 ].map((item, i) => (
                   <motion.div
                     key={i}
-                    initial={{ opacity: 0, x: -30 }}
-                    whileInView={{ opacity: 1, x: 0 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="flex flex-col items-center md:items-end text-center md:text-right gap-4"
+                    className="flex flex-col items-center md:items-end text-center md:text-right gap-3 md:gap-4"
                   >
-                    <div className="w-14 h-14 rounded-2xl bg-white shadow-xl flex items-center justify-center text-[var(--brand-primary)] border border-gray-50">
+                    <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-white shadow-lg flex items-center justify-center text-[var(--brand-primary)] border border-gray-50">
                       {item.icon}
                     </div>
                     <div>
-                      <h4 className="text-lg font-black text-[var(--text-heading)] mb-2 uppercase tracking-tight">{item.title}</h4>
-                      <p className="text-xs text-slate-400 font-medium leading-loose">{item.desc}</p>
+                      <h4 className="text-sm md:text-lg font-black text-[var(--text-heading)] mb-1 md:mb-2 uppercase tracking-tight">{item.title}</h4>
+                      <p className="text-[10px] text-slate-400 font-medium leading-relaxed md:leading-loose max-w-[120px] md:max-w-none mx-auto">{item.desc}</p>
                     </div>
                   </motion.div>
                 ))}
               </div>
-
+  
               {/* Center Image */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                className="relative aspect-square md:aspect-square flex items-center justify-center order-first md:order-none"
+                className="relative w-3/4 md:w-full aspect-square flex items-center justify-center order-first md:order-none mx-auto"
               >
                 <div className="absolute inset-0 bg-[var(--brand-primary)]/5 rounded-full blur-3xl" />
                 <div className="relative w-full h-full rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-2xl">
@@ -528,26 +528,26 @@ export default function HomePage({ initialProducts }: Props) {
                   />
                 </div>
               </motion.div>
-
+  
               {/* Right Column */}
-              <div className="space-y-12 md:space-y-16">
+              <div className="grid grid-cols-2 md:grid-cols-1 gap-6 md:gap-16 w-full">
                 {[
-                  { icon: <ShieldCheck size={24} />, title: "Durable & Lasting", desc: "Designed with upgraded materials that can survive your busiest days and laundry runs." },
-                  { icon: <Users size={24} />, title: "Community Driven", desc: "Every purchase supports our shared mission of hope and social communication." },
+                  { icon: <ShieldCheck size={20} />, title: "Durable & Lasting", desc: "Designed with upgraded materials." },
+                  { icon: <Users size={20} />, title: "Community Driven", desc: "Supports our shared mission of hope." },
                 ].map((item, i) => (
                   <motion.div
                     key={i}
-                    initial={{ opacity: 0, x: 30 }}
-                    whileInView={{ opacity: 1, x: 0 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="flex flex-col items-center md:items-start text-center md:text-left gap-4"
+                    className="flex flex-col items-center md:items-start text-center md:text-left gap-3 md:gap-4"
                   >
-                    <div className="w-14 h-14 rounded-2xl bg-white shadow-xl flex items-center justify-center text-[var(--brand-primary)] border border-gray-50">
+                    <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-white shadow-lg flex items-center justify-center text-[var(--brand-primary)] border border-gray-50">
                       {item.icon}
                     </div>
                     <div>
-                      <h4 className="text-lg font-black text-[var(--text-heading)] mb-2 uppercase tracking-tight">{item.title}</h4>
-                      <p className="text-xs text-slate-400 font-medium leading-loose">{item.desc}</p>
+                      <h4 className="text-sm md:text-lg font-black text-[var(--text-heading)] mb-1 md:mb-2 uppercase tracking-tight">{item.title}</h4>
+                      <p className="text-[10px] text-slate-400 font-medium leading-relaxed md:leading-loose max-w-[120px] md:max-w-none mx-auto">{item.desc}</p>
                     </div>
                   </motion.div>
                 ))}
