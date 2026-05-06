@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, Bug, Send, AlertTriangle, MessageSquare, Info } from "lucide-react"
+import { X, Bug, Send, AlertTriangle, MessageSquare, Info, Image as ImageIcon } from "lucide-react"
 import { api } from "@/lib/api"
 import toast from "react-hot-toast"
 import { useAuth } from "@/context/AuthContext"
@@ -27,6 +27,21 @@ export default function ReportIssueModal({ isOpen, onClose }: Props) {
     type: "bug",
     description: "",
   })
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        return toast.error("Image size must be less than 5MB")
+      }
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,12 +51,20 @@ export default function ReportIssueModal({ isOpen, onClose }: Props) {
 
     setLoading(true)
     try {
+      let imageUrl = null
+      if (imagePreview) {
+        const uploadRes = await api.post("/upload", { image: imagePreview })
+        imageUrl = uploadRes.url
+      }
+
       await api.post("/issues", {
         ...form,
+        image: imageUrl,
         url: window.location.href
       })
       toast.success("Thank you! Your report has been submitted.")
       setForm({ ...form, description: "" })
+      setImagePreview(null)
       onClose()
     } catch (err: any) {
       toast.error(err.message || "Failed to submit report")
@@ -147,6 +170,32 @@ export default function ReportIssueModal({ isOpen, onClose }: Props) {
                     placeholder="Describe what happened..."
                     className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-[var(--brand-primary)] outline-none transition-all resize-none"
                   />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Screenshot (Optional)</label>
+                  <div className="flex flex-col gap-3">
+                    {imagePreview ? (
+                      <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-slate-100 shadow-sm group">
+                        <img src={imagePreview} className="w-full h-full object-cover" />
+                        <button 
+                          type="button"
+                          onClick={() => setImagePreview(null)}
+                          className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center w-full py-6 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl cursor-pointer hover:border-[var(--brand-primary)] hover:bg-[var(--brand-soft)]/5 transition-all">
+                        <div className="flex flex-col items-center justify-center">
+                          <ImageIcon className="w-8 h-8 text-slate-400 mb-2" />
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Click to upload screenshot</p>
+                        </div>
+                        <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+                      </label>
+                    )}
+                  </div>
                 </div>
               </div>
 

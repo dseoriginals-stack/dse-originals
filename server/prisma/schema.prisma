@@ -617,6 +617,7 @@ model IssueReport {
   type        String   // bug, error, suggestion, other
   description String
   url         String?  // The URL where the issue occurred
+  image       String?  // URL of the attached image/screenshot
   status      String   @default("pending") // pending, investigating, resolved, closed
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

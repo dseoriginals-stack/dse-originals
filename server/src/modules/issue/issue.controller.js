@@ -3,7 +3,7 @@ import logger from "../../config/logger.js"
 
 export const reportIssue = async (req, res, next) => {
   try {
-    const { name, email, type, description, url } = req.body
+    const { name, email, type, description, url, image } = req.body
     const userId = req.user?.id || null
 
     if (!email || !type || !description) {
@@ -18,6 +18,7 @@ export const reportIssue = async (req, res, next) => {
         type,
         description,
         url,
+        image,
         status: "pending"
       }
     })
