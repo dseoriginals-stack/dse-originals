@@ -479,16 +479,16 @@ export default function HomePage({ initialProducts }: Props) {
         </section>
 
         {/* ================= WHY CHOOSE DSE ================= */}
-        <section className="py-24 bg-slate-50/50 rounded-[4rem] my-12 border border-white/50">
+        <section className="py-16 md:py-24 bg-slate-50/50 rounded-[2.5rem] md:rounded-[4rem] my-8 md:my-12 border border-white/50 overflow-hidden">
           <div className="max-w-5xl mx-auto px-6">
-            <div className="text-center mb-20">
-              <h2 className="text-3xl md:text-5xl font-[1000] text-[var(--text-heading)] tracking-tighter uppercase">Why DSE Originals Stand Out</h2>
-              <p className="mt-4 text-slate-400 font-bold uppercase tracking-widest text-[10px]">Purposely designed for those who move, sweat, and show up in style.</p>
+            <div className="text-center mb-12 md:mb-20">
+              <h2 className="text-3xl md:text-5xl font-[1000] text-[var(--text-heading)] tracking-tighter uppercase leading-none">Why DSE Originals Stand Out</h2>
+              <p className="mt-4 text-slate-400 font-bold uppercase tracking-widest text-[9px] md:text-[10px] max-w-xs md:max-w-none mx-auto">Purposely designed for those who move, sweat, and show up in style.</p>
             </div>
-
-            <div className="grid md:grid-cols-3 gap-16 md:gap-12 items-center">
+  
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-12 items-center">
               {/* Left Column */}
-              <div className="space-y-16">
+              <div className="space-y-12 md:space-y-16">
                 {[
                   { icon: <Sparkles size={24} />, title: "High-Quality", desc: "Quality-crafted fabrics and premium oils that won't easily fade or stretch out over time." },
                   { icon: <Target size={24} />, title: "Precision Design", desc: "Every thread and note is calculated to ensure a sharp fit and a lasting impression." },
@@ -516,10 +516,10 @@ export default function HomePage({ initialProducts }: Props) {
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                className="relative aspect-[3/4] md:aspect-square flex items-center justify-center"
+                className="relative aspect-square md:aspect-square flex items-center justify-center order-first md:order-none"
               >
                 <div className="absolute inset-0 bg-[var(--brand-primary)]/5 rounded-full blur-3xl" />
-                <div className="relative w-full h-full rounded-[3rem] overflow-hidden shadow-2xl">
+                <div className="relative w-full h-full rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-2xl">
                   <Image
                     src="/hero5.png"
                     alt="Highlight"
@@ -530,7 +530,7 @@ export default function HomePage({ initialProducts }: Props) {
               </motion.div>
 
               {/* Right Column */}
-              <div className="space-y-16">
+              <div className="space-y-12 md:space-y-16">
                 {[
                   { icon: <ShieldCheck size={24} />, title: "Durable & Lasting", desc: "Designed with upgraded materials that can survive your busiest days and laundry runs." },
                   { icon: <Users size={24} />, title: "Community Driven", desc: "Every purchase supports our shared mission of hope and social communication." },
@@ -554,7 +554,7 @@ export default function HomePage({ initialProducts }: Props) {
               </div>
             </div>
 
-            <div className="mt-20 text-center">
+            <div className="mt-12 md:mt-20 text-center">
               <Link
                 href="/products"
                 className="btn-premium !px-12 !py-5 shadow-2xl shadow-[var(--brand-primary)]/20"
