@@ -169,6 +169,7 @@ export default function HomePage({ initialProducts }: Props) {
                 alt="Hero"
                 fill
                 priority
+                quality={100}
                 sizes="100vw"
                 className="object-cover"
               />
