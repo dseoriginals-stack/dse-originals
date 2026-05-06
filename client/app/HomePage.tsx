@@ -418,13 +418,13 @@ export default function HomePage({ initialProducts }: Props) {
         </section>
  
         {/* ================= FLAGSHIP SHOWCASE ================= */}
-        <section className="py-24 relative overflow-hidden">
-          <div className="text-center mb-16 px-4">
+        <section className="py-12 md:py-24 relative overflow-hidden">
+          <div className="text-center mb-10 md:mb-16 px-4">
             <motion.p
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-xs font-black text-[var(--brand-primary)] uppercase tracking-[0.4em] mb-4"
+              className="text-[10px] md:text-xs font-black text-[var(--brand-primary)] uppercase tracking-[0.4em] mb-4"
             >
               The DSE Signature
             </motion.p>
@@ -433,7 +433,7 @@ export default function HomePage({ initialProducts }: Props) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="text-4xl md:text-6xl font-[1000] text-[var(--text-heading)] tracking-tighter"
+              className="text-2xl md:text-6xl font-[1000] text-[var(--text-heading)] tracking-tighter uppercase leading-none"
             >
               Presence In Every Thread.
             </motion.h2>
@@ -442,13 +442,13 @@ export default function HomePage({ initialProducts }: Props) {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
-              className="mt-6 text-slate-500 font-medium max-w-2xl mx-auto text-sm md:text-base leading-relaxed"
+              className="mt-4 text-slate-500 font-medium max-w-lg mx-auto text-xs md:text-base leading-relaxed"
             >
               Quality clothing and signature scents for those who refuse to settle and define their presence through excellence and faith.
             </motion.p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 px-4">
             {[
               { title: "Freedom in Every Move", img: "/hero2.png", delay: 0 },
               { title: "Confidence That Shows", img: "/hero3.png", delay: 0.1 },
@@ -461,7 +461,7 @@ export default function HomePage({ initialProducts }: Props) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: item.delay }}
-                className="group relative aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-2xl"
+                className="group relative aspect-square md:aspect-[3/4] rounded-2xl md:rounded-[2.5rem] overflow-hidden shadow-2xl"
               >
                 <Image
                   src={item.img}
@@ -470,8 +470,8 @@ export default function HomePage({ initialProducts }: Props) {
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                <div className="absolute bottom-8 left-8 right-8 text-center">
-                  <h3 className="text-white font-black text-sm uppercase tracking-widest">{item.title}</h3>
+                <div className="absolute bottom-4 md:bottom-8 left-4 md:left-8 right-4 md:right-8 text-center">
+                  <h3 className="text-white font-black text-[10px] md:text-sm uppercase tracking-widest">{item.title}</h3>
                 </div>
               </motion.div>
             ))}
