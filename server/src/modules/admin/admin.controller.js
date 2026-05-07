@@ -91,6 +91,27 @@ const getQuestions = async (req, res, next) => {
   }
 }
 
+const getAbandonedCarts = async (req, res, next) => {
+  try {
+    const carts = await adminService.getAbandonedCarts()
+    res.json(carts)
+  } catch (err) {
+    logger.error("Admin abandoned carts fetch failed", { error: err })
+    next(err)
+  }
+}
+
+const sendRecoveryEmails = async (req, res, next) => {
+  try {
+    const { cartIds } = req.body
+    const result = await adminService.sendRecoveryEmails(cartIds)
+    res.json(result)
+  } catch (err) {
+    logger.error("Admin send recovery emails failed", { error: err })
+    next(err)
+  }
+}
+
 const getReviews = async (req, res, next) => {
   try {
     const reviews = await adminService.getReviews()
@@ -190,6 +211,8 @@ export default {
   getOrders,
   getPayments,
   getQuestions,
+  getAbandonedCarts,
+  sendRecoveryEmails,
   updateOrderStatus,
   getUsers,
   updateUserRole,

@@ -25,6 +25,7 @@ const nav = [
   { name: "Issues", href: "/admin/issues", icon: AlertTriangle },
   { name: "Activity Logs", href: "/admin/activity", icon: History },
   { name: "Vouchers", href: "/admin/vouchers", icon: Tag },
+  { name: "Abandoned Carts", href: "/admin/abandoned-carts", icon: ShoppingCart },
 ]
 
 export default function AdminLayout({

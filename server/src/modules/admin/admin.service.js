@@ -150,6 +150,91 @@ const getQuestions = async () => {
   })
 }
 
+/* =======================================
+   CART RECOVERY (Abandoned Carts)
+======================================= */
+
+const getAbandonedCarts = async () => {
+  // Carts not updated in the last 2 hours
+  const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000)
+
+  const carts = await prisma.cart.findMany({
+    where: {
+      updatedAt: { lte: twoHoursAgo },
+      items: { some: {} },
+      OR: [
+        { email: { not: null } },
+        { user: { email: { not: null } } }
+      ]
+    },
+    include: {
+      user: true,
+      items: {
+        include: { variant: { include: { product: true } } }
+      },
+      cartRecoveries: {
+        orderBy: { createdAt: 'desc' },
+        take: 1
+      }
+    }
+  })
+
+  // Filter out those who received a recovery email in the last 7 days
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  return carts.filter(c => {
+    const lastRecovery = c.cartRecoveries[0]
+    return !lastRecovery || new Date(lastRecovery.createdAt) < sevenDaysAgo
+  }).map(c => {
+    // Format response
+    const email = c.user?.email || c.email
+    const name = c.user?.name || "Guest"
+    const totalValue = c.items.reduce((sum, item) => sum + (Number(item.variant.price) * item.quantity), 0)
+    return {
+      id: c.id,
+      email,
+      name,
+      updatedAt: c.updatedAt,
+      totalValue,
+      itemsCount: c.items.length,
+      items: c.items.map(i => ({ name: i.variant.product.name, quantity: i.quantity }))
+    }
+  })
+}
+
+import { v4 as uuidv4 } from "uuid"
+
+const sendRecoveryEmails = async (cartIds) => {
+  if (!cartIds || !cartIds.length) return { count: 0 }
+
+  const carts = await prisma.cart.findMany({
+    where: { id: { in: cartIds } },
+    include: { user: true }
+  })
+
+  let count = 0
+  for (const cart of carts) {
+    const email = cart.user?.email || cart.email
+    if (!email) continue
+
+    // Create a recovery token
+    const token = uuidv4()
+    await prisma.cartRecovery.create({
+      data: {
+        cartId: cart.id,
+        token,
+        expiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) // 3 days
+      }
+    })
+
+    // In a real app, send an email here
+    // e.g. sendEmail(email, "You left something behind...", `Click here: https://dseoriginals.com/recover?token=${token}`)
+    
+    count++
+  }
+
+  return { count }
+}
+
 const getReviews = async () => {
   return await prisma.review.findMany({
     include: { user: true, product: true },
@@ -275,6 +360,8 @@ export default {
   getOrders,
   getPayments,
   getQuestions,
+  getAbandonedCarts,
+  sendRecoveryEmails,
   updateOrderStatus,
   getProducts,
   getUsers,
