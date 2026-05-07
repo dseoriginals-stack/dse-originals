@@ -144,7 +144,10 @@ const getAdminStats = async () => {
   const recentOrders = await prisma.order.findMany({
     take: 5,
     orderBy: { createdAt: 'desc' },
-    include: { user: { select: { name: true } } }
+    include: { 
+      user: { select: { name: true } },
+      address: true
+    }
   })
  
   return {
@@ -170,6 +173,7 @@ const getOrders = async () => {
   const orders = await prisma.order.findMany({
     include: {
       items: true,
+      address: true,
       user: {
         select: {
           id: true,

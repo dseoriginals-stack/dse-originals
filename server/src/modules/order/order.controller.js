@@ -3,7 +3,7 @@ import xendit from "../../config/xendit.js"
 import PDFDocument from "pdfkit"
 import logger from "../../config/logger.js"
 import { canTransition } from "../../utils/orderState.js"
-import { sendShippedEmail, sendDeliveredEmail } from "../../services/email.service.js"
+import { sendShippedEmail, sendDeliveredEmail, sendReadyForPickupEmail } from "../../services/email.service.js"
 import {
   reserveStock,
   reserveStockBatch,
@@ -52,12 +52,33 @@ async function cleanupExpiredCheckouts() {
       // 2. Delete or Cancel initialized orders that are "dead" (> 1 hour old)
       // This keeps the database clean of abandoned checkout attempts.
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
-      await tx.order.deleteMany({
+      
+      // 1. Find expired initialized orders
+      const expiredOrders = await tx.order.findMany({
         where: {
           status: "initialized",
           createdAt: { lt: oneHourAgo }
-        }
+        },
+        select: { id: true }
       })
+
+      if (expiredOrders.length > 0) {
+        const expiredIds = expiredOrders.map(o => o.id)
+
+        // 2. Release reservations
+        await tx.inventoryReservation.updateMany({
+          where: {
+            orderId: { in: expiredIds },
+            status: "reserved"
+          },
+          data: { status: "released" }
+        })
+
+        // 3. Delete the orders
+        await tx.order.deleteMany({
+          where: { id: { in: expiredIds } }
+        })
+      }
     })
 
   } catch (err) {
@@ -497,6 +518,16 @@ export const updateOrderStatus = async (req, res, next) => {
         await awardOrderPoints(tx, id)
       }
 
+      // Refund points if manually cancelled
+      if (status === "cancelled" && order.status !== "cancelled") {
+        if (updated.userId && updated.pointsUsed > 0) {
+          await tx.user.update({
+            where: { id: updated.userId },
+            data: { luckyPoints: { increment: updated.pointsUsed } }
+          })
+        }
+      }
+
       return updated
     })
 
@@ -514,7 +545,31 @@ export const updateOrderStatus = async (req, res, next) => {
       }
     }
 
-    res.json(updated)
+    if (status === "delivered") {
+      const fullOrder = await prisma.order.findUnique({
+        where: { id },
+        include: { items: true, user: true }
+      })
+      const toEmail = fullOrder.user?.email || fullOrder.guestEmail
+      if (toEmail) {
+        await sendDeliveredEmail(toEmail, fullOrder)
+      }
+    }
+
+    if (status === "approved" || status === "accepted") {
+      const fullOrder = await prisma.order.findUnique({
+        where: { id },
+        include: { items: true, user: true }
+      })
+      if (fullOrder.deliveryMethod === "pickup") {
+        const toEmail = fullOrder.user?.email || fullOrder.guestEmail
+        if (toEmail) {
+          await sendReadyForPickupEmail(toEmail, fullOrder)
+        }
+      }
+    }
+
+    res.json(result)
 
   } catch (err) {
     next(err)
@@ -813,6 +868,17 @@ export const approveOrder = async (req, res, next) => {
       return updated
     })
 
+    // Notify for pickup if applicable
+    if (result.deliveryMethod === "pickup") {
+      try {
+        const fullOrder = await prisma.order.findUnique({ where: { id }, include: { items: true, user: true } })
+        const toEmail = fullOrder.user?.email || fullOrder.guestEmail
+        if (toEmail) await sendReadyForPickupEmail(toEmail, fullOrder)
+      } catch (e) {
+        logger.warn("Failed to send pickup email", { err: e })
+      }
+    }
+
     res.json(result)
   } catch (err) {
     next(err)
@@ -928,6 +994,8 @@ export const createManualOrder = async (req, res, next) => {
     const {
       items,
       guestName,
+      guestEmail,
+      guestPhone,
       userId,
       paymentMethod = "cash",
       status = "paid"
@@ -979,14 +1047,26 @@ export const createManualOrder = async (req, res, next) => {
           paymentMethod,
           isManual: true,
           guestName: userId ? null : (guestName || "Walk-in Customer"),
+          guestEmail: userId ? null : guestEmail,
           deliveryMethod: "pickup",
           approvedById: staffId,
           approvedAt: new Date(),
           items: {
             create: orderItems
+          },
+          address: {
+            create: {
+              fullName: guestName || "Walk-in Customer",
+              phone: guestPhone || "N/A",
+              region: "Store Pickup",
+              province: "Store Pickup",
+              city: "Tagum",
+              barangay: "Tagum",
+              street: "Store Pickup"
+            }
           }
         },
-        include: { items: true }
+        include: { items: true, address: true }
       })
 
       // Award points if paid

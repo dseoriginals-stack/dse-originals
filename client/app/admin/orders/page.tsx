@@ -397,10 +397,22 @@ function OrderModal({ order, onClose, onUpdateStatus }: any) {
                         </div>
                         <div>
                           <p className="font-bold text-base text-[var(--text-heading)]">{item.productName}</p>
-                          <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest">{item.variantName || "Standard Unit"}</p>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {item.attributes && Array.isArray(item.attributes) && item.attributes.length > 0 ? (
+                              item.attributes.map((attr: any, idx: number) => (
+                                <span key={idx} className="text-[9px] bg-white border border-gray-100 px-2 py-0.5 rounded-md text-[var(--text-muted)] font-black uppercase tracking-widest">
+                                  {attr.name}: {attr.value}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest">
+                                {item.variantName || "Standard Unit"}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <p className="font-black text-base text-[var(--text-heading)]">₱{(item.price * item.quantity).toLocaleString()}</p>
+                      <p className="font-black text-base text-[var(--text-heading)]">₱{(Number(item.price) * item.quantity).toLocaleString()}</p>
                     </div>
                   ))}
                 </div>
@@ -429,10 +441,10 @@ function OrderModal({ order, onClose, onUpdateStatus }: any) {
               <section>
                 <h4 className="text-xs font-[1000] uppercase tracking-[0.2em] text-[var(--brand-primary)] mb-6">Customer Profile</h4>
                 <div className="grid grid-cols-2 gap-4">
-                  <DetailBox icon={<User size={14}/>} label="Full Name" value={order.user?.name || "Guest Customer"} />
-                  <DetailBox icon={<Mail size={14}/>} label="Email Address" value={order.user?.email || order.guestEmail} />
+                  <DetailBox icon={<User size={14}/>} label="Full Name" value={order.user?.name || order.guestName || "Guest Customer"} />
+                  <DetailBox icon={<Mail size={14}/>} label="Email Address" value={order.user?.email || order.guestEmail || "N/A"} />
                   <DetailBox icon={<Phone size={14}/>} label="Mobile Number" value={order.address?.phone || "N/A"} />
-                  <DetailBox icon={<CreditCard size={14}/>} label="Payment" value="Online Transaction" />
+                  <DetailBox icon={<CreditCard size={14}/>} label="Payment" value={order.paymentMethod ? (order.paymentMethod === 'cash' ? 'Cash on Delivery' : 'Online Payment') : 'Online Transaction'} />
                 </div>
               </section>
 

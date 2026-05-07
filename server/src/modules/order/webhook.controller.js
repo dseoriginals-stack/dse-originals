@@ -1,6 +1,7 @@
 import prisma from "../../config/prisma.js"
 import logger from "../../config/logger.js"
 import { awardOrderPoints } from "../../services/loyalty.service.js"
+import { sendOrderPaidEmail } from "../../services/email.service.js"
 
 export const handleXenditWebhook = async (req, res) => {
   try {
@@ -159,6 +160,21 @@ export const handleXenditWebhook = async (req, res) => {
           notifyAdmins("stats:update", {}) // Trigger dashboard refresh
         } catch (socErr) {
           logger.error("Socket notification failed", { error: socErr.message })
+        }
+
+        /*
+        EMAIL NOTIFICATION
+        */
+        try {
+          const toEmail = updated.user?.email || order.user?.email || order.guestEmail
+          if (toEmail) {
+            await sendOrderPaidEmail(toEmail, {
+              ...updated,
+              total: Number(updated.totalAmount)
+            })
+          }
+        } catch (mailErr) {
+          logger.error("Order Paid Email failed", { error: mailErr.message })
         }
 
       })

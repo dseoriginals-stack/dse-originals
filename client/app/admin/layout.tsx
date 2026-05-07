@@ -223,11 +223,12 @@ export default function AdminLayout({
 
               <div className="
                 w-10 h-10 rounded-full
-                bg-gradient-to-tr from-[var(--brand-primary)] to-[var(--brand-secondary)]
+                bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-accent)]
                 text-white flex items-center justify-center
-                text-sm font-bold shadow-md ring-2 ring-[var(--brand-soft)]/30
+                text-xs font-black shadow-lg ring-2 ring-[var(--brand-soft)]/50
+                transition-transform hover:scale-110 cursor-pointer
               ">
-                {user?.name?.charAt(0) || "U"}
+                {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || "AD"}
               </div>
 
               <div className="text-sm leading-tight hidden md:block">

@@ -180,6 +180,7 @@ export default function CheckoutPage() {
         shippingFee,
         pointsToUse: usePoints ? Math.floor(pointsDiscount) : 0,
         guestName: form.name,
+        guestEmail: form.email,
         clientOrderId,
         address: delivery === "delivery" ? {
           fullName: form.name,

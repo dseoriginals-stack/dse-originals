@@ -250,3 +250,50 @@ export const sendDeliveredEmail = async (to, order) => {
     html: baseTemplate(content)
   })
 }
+
+/*
+-----------------------------------
+READY FOR PICKUP EMAIL
+-----------------------------------
+*/
+
+export const sendReadyForPickupEmail = async (to, order) => {
+  const content = `
+    <div style="text-align: center; margin-bottom: 30px;">
+      <div style="font-size: 50px; margin-bottom: 10px;">🛍️</div>
+      <h2 style="margin: 0; font-size: 24px; color: #1e293b; font-weight: 800;">Ready for Pickup!</h2>
+      <p style="color: #64748b; font-size: 14px; margin-top: 5px;">Your DSEoriginals order is prepared and waiting for you.</p>
+    </div>
+
+    <div style="background: #f0f9ff; border-radius: 12px; padding: 25px; border: 1px solid #bae6fd; margin-bottom: 30px; text-align: center;">
+       <p style="color: #0369a1; font-size: 16px; font-weight: 700; margin: 0;">Order #${order.id.slice(-6).toUpperCase()} is ready at our branch.</p>
+    </div>
+
+    <div style="margin-bottom: 30px;">
+      <h3 style="font-size: 14px; color: #1e293b; margin-bottom: 15px;">Pickup Details</h3>
+      <p style="font-size: 14px; color: #64748b; line-height: 1.6;">
+        <strong>Location:</strong> DSEoriginals Main Branch<br/>
+        <strong>Order ID:</strong> ${order.id}<br/>
+        <strong>Items:</strong> ${order.items?.length || 0} items
+      </p>
+    </div>
+
+    <div style="background: #f8fafc; border-radius: 12px; padding: 25px;">
+       <h4 style="margin: 0; color: #1e293b;">Items to Collect:</h4>
+       <div style="margin-top: 15px;">
+         ${renderItems(order.items || [])}
+       </div>
+    </div>
+
+    <p style="text-align: center; font-size: 13px; color: #64748b; margin-top: 30px;">
+      Please present this email or your Order ID when you arrive.
+    </p>
+  `
+
+  await transporter.sendMail({
+    from: `"DSEoriginals" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: `Ready for Pickup: Order #${order.id.slice(-6).toUpperCase()}`,
+    html: baseTemplate(content)
+  })
+}
