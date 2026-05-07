@@ -11,6 +11,7 @@ import toast from "react-hot-toast"
 import { motion, AnimatePresence } from "framer-motion"
 import { v4 as uuidv4 } from "uuid"
 
+import { useRouter } from "next/navigation"
 import CheckoutSkeleton from "@/components/ui/CheckoutSkeleton"
 
 /* ============================ TYPES ============================ */
@@ -27,6 +28,7 @@ const STORE_HOURS = "Mon–Sat, 9 AM – 6 PM"
 /* ============================ PAGE ============================ */
 
 export default function CheckoutPage() {
+  const router = useRouter()
   const { cart, selectedItems, removeFromCart } = useCart()
   const { user, loading: authLoading } = useAuth()
   const itemsToCheckout = cart.filter(item => selectedItems.includes(item.cartKey || item.variantId))
@@ -59,11 +61,11 @@ export default function CheckoutPage() {
     // SCROLL TO TOP ON STEP CHANGE
     window.scrollTo({ top: 0, behavior: 'smooth' })
 
-    // EMPTY CART GUARD: Redirect home if cart is empty
-    if (!loading && cartItems.length === 0) {
+    // EMPTY CART GUARD: Redirect home if nothing to checkout
+    if (!authLoading && itemsToCheckout.length === 0) {
       router.push("/")
     }
-  }, [step, cartItems, loading, router])
+  }, [step, itemsToCheckout.length, authLoading])
 
   useEffect(() => {
     if (!authLoading) {
