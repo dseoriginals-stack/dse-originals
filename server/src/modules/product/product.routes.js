@@ -5,7 +5,10 @@ import {
   createProduct,
   deleteProduct,
   getProductBySlugController,
-  updateProduct
+  updateProduct,
+  getProductQuestions,
+  askProductQuestion,
+  answerProductQuestion
 } from "./product.controller.js"
 import { upload } from "../../config/multer.js"
 
@@ -20,6 +23,8 @@ const router = express.Router()
 router.get("/", getProducts)
 router.get("/search", searchProducts)
 router.get("/slug/:slug", getProductBySlugController)
+router.get("/:id/questions", getProductQuestions)
+router.post("/:id/questions", askProductQuestion)
 
 /* =========================
    ADMIN / STAFF
@@ -29,5 +34,6 @@ router.use(authenticate)
 router.post("/", authorize("admin", "staff"), upload.any(), createProduct)
 router.put("/:id", authorize("admin", "staff"), upload.any(), updateProduct)
 router.delete("/:id", authorize("admin", "staff"), deleteProduct)
+router.put("/questions/:questionId/answer", authorize("admin", "staff"), answerProductQuestion)
 
 export default router

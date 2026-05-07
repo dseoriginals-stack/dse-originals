@@ -4,6 +4,15 @@ import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import { API_URL } from "@/lib/api"
+import { motion, AnimatePresence } from "framer-motion"
+import { Calendar, CreditCard, Truck, CheckCircle2, ShoppingBag, Download, ArrowLeft, Clock } from "lucide-react"
+
+const steps = [
+  { status: "pending", label: "Order Placed", icon: Calendar, color: "bg-amber-500", desc: "We've received your request" },
+  { status: "paid", label: "Payment Confirmed", icon: CreditCard, color: "bg-emerald-500", desc: "Payment processed successfully" },
+  { status: "shipped", label: "Out for Delivery", icon: Truck, color: "bg-blue-500", desc: "Your package is on its way" },
+  { status: "delivered", label: "Delivered", icon: CheckCircle2, color: "bg-slate-900", desc: "Parcel has arrived at destination" }
+]
 
 type Order = {
   id: string
@@ -124,24 +133,53 @@ export default function OrderPage() {
 
         </div>
 
-        {/* TIMELINE */}
+        {/* TIMELINE TRACKER */}
 
-        <div className="bg-slate-50 rounded-xl p-4 text-sm space-y-2">
+        <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-100 overflow-hidden relative shadow-sm">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-wider">
+                Live Progress
+              </span>
+            </div>
+          </div>
 
-          <p>📝 Order placed</p>
+          <div className="relative space-y-10 pl-4">
+            {/* Connecting Line */}
+            <div className="absolute left-[2.35rem] top-2 bottom-2 w-0.5 bg-slate-100" />
 
-          {order.status !== "pending" && (
-            <p>💳 Payment confirmed</p>
-          )}
+            {steps.map((step, index) => {
+              const currentStepIndex = steps.findIndex(s => s.status === order.status)
+              const isCompleted = index < currentStepIndex
+              const isCurrent = index === currentStepIndex || (order.status === 'completed' && index === steps.length - 1)
+              const isUpcoming = index > currentStepIndex
+              const Icon = step.icon
 
-          {(order.status === "shipped" || order.status === "delivered") && (
-            <p>🚚 Shipped</p>
-          )}
-
-          {order.status === "delivered" && (
-            <p>📦 Delivered</p>
-          )}
-
+              return (
+                <div key={step.status} className="relative flex gap-6">
+                  <div className={`relative z-10 w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-md ${isUpcoming ? 'bg-white border border-slate-100 text-slate-300' : `${step.color} text-white`
+                    } ${isCurrent ? 'ring-4 ring-offset-2 ring-slate-100 scale-110' : ''}`}>
+                    {isCompleted ? <CheckCircle2 className="w-6 h-6" /> : <Icon className="w-6 h-6" />}
+                  </div>
+                  <div className="flex-1 pt-1">
+                    <h3 className={`font-bold transition-colors ${isUpcoming ? 'text-slate-400' : 'text-slate-900'}`}>
+                      {step.label}
+                    </h3>
+                    <p className="text-sm text-slate-500 mt-1">{step.desc}</p>
+                    {isCurrent && (
+                      <motion.div
+                        layoutId="activeStep"
+                        className="mt-3 inline-flex items-center gap-2 text-[10px] font-black text-slate-900 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 uppercase tracking-widest"
+                      >
+                        <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                        CURRENT STAGE
+                      </motion.div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
 
         {/* ITEMS */}

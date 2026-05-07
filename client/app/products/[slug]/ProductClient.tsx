@@ -16,6 +16,7 @@ import { transformProductToCard } from "@/lib/transformProduct"
 
 import Reviews from "@/components/Reviews"
 import ReviewForm from "@/components/ReviewForm"
+import ProductQA from "@/components/ProductQA"
 import CinematicLookbook from "@/components/product/CinematicLookbook"
 
 import { getImageUrl } from "@/lib/image"
@@ -635,6 +636,11 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
         )}
 
         <Reviews key={refreshReviews} productId={product.id} />
+      </div>
+
+      {/* Q&A SECTION */}
+      <div className="mt-6 mb-16">
+        <ProductQA productId={product.id} />
       </div>
 
       {/* DYNAMIC RECOMMENDATIONS */}

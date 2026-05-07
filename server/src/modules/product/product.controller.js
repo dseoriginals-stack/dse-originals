@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client"
 import cloudinary from "../../config/cloudinary.js"
 import fs from "fs"
 import { logActivity } from "../../utils/activityLogger.js"
+import jwt from "jsonwebtoken"
 import {
   getCache,
   setCache,
@@ -793,5 +794,86 @@ export const updateProduct = async (req, res, next) => {
     }
 
     next(err)
+  }
+}
+
+/* ========================================================
+   PRODUCT Q&A
+======================================================== */
+
+export const getProductQuestions = async (req, res) => {
+  try {
+    const { id } = req.params
+    const questions = await prisma.productQuestion.findMany({
+      where: { productId: id },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: { select: { name: true } }
+      }
+    })
+    res.json(questions)
+  } catch (err) {
+    console.error("❌ GET QUESTIONS ERROR:", err)
+    res.status(500).json({ error: "Failed to fetch questions" })
+  }
+}
+
+export const askProductQuestion = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { question, guestName } = req.body
+
+    // Try to get user from token if available
+    let userId = null
+    const authHeader = req.headers.authorization
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1]
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        userId = decoded.id
+      } catch (e) { } // Ignore if invalid/expired guest token
+    }
+
+    const q = await prisma.productQuestion.create({
+      data: {
+        productId: id,
+        question,
+        guestName: guestName || null,
+        userId
+      }
+    })
+
+    res.status(201).json(q)
+  } catch (err) {
+    console.error("❌ ASK QUESTION ERROR:", err)
+    res.status(500).json({ error: "Failed to submit question" })
+  }
+}
+
+export const answerProductQuestion = async (req, res) => {
+  try {
+    const { questionId } = req.params
+    const { answer } = req.body
+
+    const q = await prisma.productQuestion.update({
+      where: { id: questionId },
+      data: {
+        answer,
+        answeredAt: new Date()
+      }
+    })
+
+    await logActivity({
+      userId: req.user.id,
+      action: "ANSWERED_QUESTION",
+      entity: "ProductQuestion",
+      entityId: questionId,
+      req
+    })
+
+    res.json(q)
+  } catch (err) {
+    console.error("❌ ANSWER QUESTION ERROR:", err)
+    res.status(500).json({ error: "Failed to answer question" })
   }
 }

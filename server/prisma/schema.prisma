@@ -49,6 +49,7 @@ model User {
   donations     Donation[]
   issueReports  IssueReport[]
   activityLogs  ActivityLog[]
+  questions     ProductQuestion[]
 
   // ✅ REFERRALS
   // referrals     Referral[] @relation("Referrer")
@@ -178,6 +179,7 @@ model Product {
 
   reviews   Review[]
   wishlists Wishlist[]
+  questions ProductQuestion[]
 
   @@index([slug])
   @@index([categoryId])
@@ -651,3 +653,24 @@ model ActivityLog {
   @@index([entity])
 }
 
+//////////////////////////////////////////////////////
+// PRODUCT QUESTIONS (Q&A)
+//////////////////////////////////////////////////////
+
+model ProductQuestion {
+  id         String   @id @default(uuid())
+  productId  String
+  userId     String?
+  guestName  String?
+  question   String
+  answer     String?
+  answeredAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([productId])
+  @@index([userId])
+}
