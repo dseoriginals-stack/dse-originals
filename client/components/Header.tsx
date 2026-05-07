@@ -26,25 +26,19 @@ export default function Header() {
     <>
       <header className="sticky top-0 z-50 bg-[#274C77]/80 backdrop-blur-2xl border-b border-white/5 shadow-[0_10px_30px_rgba(0,0,0,0.1)] transition-all duration-300">
 
-        {/* SEAMLESS INFINITE PROMO BAND */}
-        <div className="bg-[#1B3B60] text-white py-2 overflow-hidden relative border-b border-white/5">
-          <div className="flex w-fit animate-infinite-scroll hover:[animation-play-state:paused]">
-            <div className="flex gap-12 text-[10px] font-black uppercase tracking-[0.3em] opacity-80 px-6">
-              <span>• Get Discounts from Loyalty Points</span>
-              <span>• Premium Faith-Inspired Collective</span>
-              <span>• Official DSEoriginals Store</span>
-              <span>• Shipping Available</span>
-              <span>• Hope • Faith • Love </span>
-            </div>
-            {/* Duplicated for seamless loop */}
-            <div className="flex gap-12 text-[10px] font-black uppercase tracking-[0.3em] opacity-80 px-6" aria-hidden="true">
-              <span>• Get Discounts from Loyalty Points</span>
-              <span>• Premium Faith-Inspired Collective</span>
-              <span>• Official DSEoriginals Store</span>
-              <span>• Shipping Available</span>
-              <span>• Hope • Faith • Love </span>
-            </div>
-          </div>
+        {/* PROMO BAND */}
+        <div className="bg-[#1B3B60] text-white py-1.5 overflow-hidden relative border-b border-white/5">
+          <motion.div
+            animate={{ x: ["100%", "-100%"] }}
+            transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+            className="whitespace-nowrap flex gap-12 text-[10px] font-black uppercase tracking-[0.3em] opacity-80"
+          >
+            <span>• Get Discounts from Loyalty Points</span>
+            <span>• Premium Faith-Inspired Collective</span>
+            <span>• Official DSEoriginals Store</span>
+            <span>• Shipping Available</span>
+            <span>• Hope • Faith • Love </span>
+          </motion.div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 md:px-8">
