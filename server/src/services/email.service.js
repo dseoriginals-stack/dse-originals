@@ -297,3 +297,49 @@ export const sendReadyForPickupEmail = async (to, order) => {
     html: baseTemplate(content)
   })
 }
+
+/*
+-----------------------------------
+REVIEW REQUEST EMAIL
+-----------------------------------
+*/
+
+export const sendReviewRequestEmail = async (to, order, unreviewedItems) => {
+  const content = `
+    <div style="text-align: center; margin-bottom: 30px;">
+      <div style="font-size: 50px; margin-bottom: 10px;">⭐</div>
+      <h2 style="margin: 0; font-size: 24px; color: #1e293b; font-weight: 800;">How are you loving it?</h2>
+      <p style="color: #64748b; font-size: 14px; margin-top: 5px;">We hope you're enjoying your recent purchase.</p>
+    </div>
+
+    <div style="background: #f8fafc; border-radius: 12px; padding: 25px; border: 1px solid #e2e8f0; margin-bottom: 30px; text-align: center;">
+       <p style="color: #475569; font-size: 15px; margin: 0; line-height: 1.6;">
+         Your feedback is incredibly valuable to our artisan community and helps other shoppers find their perfect scent.
+       </p>
+    </div>
+
+    <div style="margin-bottom: 30px;">
+      <h3 style="font-size: 14px; color: #1e293b; margin-bottom: 15px;">Your Unreviewed Items</h3>
+      ${unreviewedItems.map(item => `
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px;padding:10px;background:#fff;border-radius:8px;border:1px solid #e2e8f0;">
+          <span style="font-weight:600;color:#334155;">${item.productName}</span>
+        </div>
+      `).join("")}
+    </div>
+
+    <div style="text-align: center;">
+       ${button("Leave a Review", `${process.env.CLIENT_URL}/orders/${order.id}#reviews`)}
+    </div>
+
+    <p style="text-align: center; font-size: 12px; color: #94a3b8; margin-top: 30px;">
+      As a thank you, leaving a photo review earns you 50 extra Lucky Points!
+    </p>
+  `
+
+  await transporter.sendMail({
+    from: `"DSEoriginals" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: "How was your recent purchase? ⭐",
+    html: baseTemplate(content)
+  })
+}

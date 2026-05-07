@@ -92,16 +92,46 @@ const getPayments = async () => {
   })
 }
 
+import { 
+  sendShippedEmail, 
+  sendDeliveredEmail, 
+  sendReadyForPickupEmail 
+} from "../../services/email.service.js"
+
 const updateOrderStatus = async (orderId, status, trackingNo) => {
   const updated = await prisma.order.update({
     where: { id: orderId },
     data: {
       status,
       ...(trackingNo && { trackingNo })
+    },
+    include: {
+      items: {
+        include: { variant: { include: { product: true } } }
+      },
+      user: true
     }
   })
 
   await logOrderEvent(orderId, status, `Order status updated to ${status}`)
+
+  // Dispatch Email Logic
+  const email = updated.user?.email || updated.guestEmail
+  if (email) {
+    try {
+      if (status === "shipped" && updated.deliveryMethod !== "pickup") {
+        await sendShippedEmail(email, updated)
+      } else if (status === "delivered") {
+        await sendDeliveredEmail(email, updated)
+      } else if (status === "shipped" && updated.deliveryMethod === "pickup") {
+        // Shipped for pickup means ready for pickup
+        await sendReadyForPickupEmail(email, updated)
+      }
+    } catch (err) {
+      console.error(`Failed to send status update email to ${email}:`, err)
+    }
+  }
+
   return updated
 }
 
@@ -202,6 +232,7 @@ const getAbandonedCarts = async () => {
 }
 
 import { v4 as uuidv4 } from "uuid"
+import { sendAbandonedCartEmail, sendReviewRequestEmail } from "../../services/email.service.js"
 
 const sendRecoveryEmails = async (cartIds) => {
   if (!cartIds || !cartIds.length) return { count: 0 }
@@ -227,7 +258,12 @@ const sendRecoveryEmails = async (cartIds) => {
     })
 
     // In a real app, send an email here
-    // e.g. sendEmail(email, "You left something behind...", `Click here: https://dseoriginals.com/recover?token=${token}`)
+    try {
+      const recoveryUrl = `${process.env.CLIENT_URL || 'https://dseoriginals.com'}/recover?token=${token}`
+      await sendAbandonedCartEmail(email, cart, recoveryUrl)
+    } catch (err) {
+      console.error(`Failed to send abandoned cart email to ${email}:`, err)
+    }
     
     count++
   }
@@ -318,6 +354,27 @@ const sendReviewRequests = async (orderIds) => {
     })
 
     // In a real app, integrate email service here.
+    const email = order.user?.email || order.guestEmail
+    if (email) {
+      try {
+        // We need to re-evaluate the unreviewed items here since they aren't passed from the frontend
+        const unreviewedItems = []
+        // We will just fetch items for the order
+        const items = await prisma.orderItem.findMany({
+          where: { orderId: order.id },
+          include: { variant: { include: { product: true } } }
+        })
+        for (const item of items) {
+          unreviewedItems.push({
+            productId: item.variant.product.id,
+            productName: item.variant.product.name
+          })
+        }
+        await sendReviewRequestEmail(email, order, unreviewedItems)
+      } catch (err) {
+        console.error(`Failed to send review request email to ${email}:`, err)
+      }
+    }
     
     count++
   }
