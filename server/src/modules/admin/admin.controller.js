@@ -81,6 +81,16 @@ const getStories = async (req, res, next) => {
   }
 }
 
+const getQuestions = async (req, res, next) => {
+  try {
+    const questions = await adminService.getQuestions()
+    res.json(questions)
+  } catch (err) {
+    logger.error("Admin questions fetch failed", { error: err })
+    next(err)
+  }
+}
+
 const getReviews = async (req, res, next) => {
   try {
     const reviews = await adminService.getReviews()
@@ -179,6 +189,7 @@ export default {
   getAdminStats,
   getOrders,
   getPayments,
+  getQuestions,
   updateOrderStatus,
   getUsers,
   updateUserRole,

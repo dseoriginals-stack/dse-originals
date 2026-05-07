@@ -19,7 +19,8 @@ import {
   Mail,
   Phone,
   Trash2,
-  X
+  X,
+  Download
 } from "lucide-react"
 import toast from "react-hot-toast"
 import { useAuth } from "@/context/AuthContext"
@@ -138,6 +139,39 @@ export default function AdminOrders() {
 
   const isInitialLoading = loading && orders.length === 0
 
+  const exportCSV = () => {
+    const headers = [
+      "Order ID", "Date", "Customer Name", "Customer Email", "Status", 
+      "Delivery Method", "Tracking No", "Items", "Shipping Fee", "Points Discount", "Total Amount"
+    ]
+    
+    const csvContent = filteredOrders.map(o => {
+      const itemsStr = o.items.map(i => `${i.quantity}x ${i.productName}`).join("; ")
+      return [
+        o.id,
+        new Date(o.createdAt).toLocaleString(),
+        o.user?.name || (o as any).guestName || "Guest",
+        o.user?.email || o.guestEmail || "N/A",
+        o.status,
+        o.deliveryMethod,
+        o.trackingNo || "",
+        itemsStr,
+        o.shippingFee,
+        o.pointsDiscount,
+        o.totalAmount
+      ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(",")
+    })
+
+    const blob = new Blob([ [headers.join(",")].concat(csvContent).join("\n") ], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.setAttribute("href", url)
+    link.setAttribute("download", `DSE_Orders_Export_${new Date().toISOString().split('T')[0]}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
     <div className="space-y-8 pb-20">
       
@@ -170,6 +204,12 @@ export default function AdminOrders() {
               </button>
             ))}
           </div>
+          <button 
+            onClick={exportCSV}
+            className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold text-xs hover:bg-black transition-all shadow-md"
+          >
+            <Download size={16} /> Export CSV
+          </button>
         </div>
       </div>
 

@@ -140,6 +140,16 @@ const getStories = async () => {
   })
 }
 
+const getQuestions = async () => {
+  return prisma.productQuestion.findMany({
+    orderBy: { createdAt: 'desc' },
+    include: {
+      product: { select: { name: true, slug: true } },
+      user: { select: { name: true, email: true } }
+    }
+  })
+}
+
 const getReviews = async () => {
   return await prisma.review.findMany({
     include: { user: true, product: true },
@@ -264,6 +274,7 @@ export default {
   getAdminStats,
   getOrders,
   getPayments,
+  getQuestions,
   updateOrderStatus,
   getProducts,
   getUsers,

@@ -16,6 +16,7 @@ router.get("/stats", authorize("admin", "staff"), adminController.getAdminStats)
 router.get("/orders", authorize("admin", "staff"), adminController.getOrders)
 router.get("/payments", authorize("admin", "staff"), adminController.getPayments)
 router.get("/products", authorize("admin", "staff"), adminController.getProducts)
+router.get("/questions", authorize("admin", "staff"), adminController.getQuestions)
 router.patch("/orders/:id/status", authorize("admin", "staff"), adminController.updateOrderStatus)
 
 // Sensitive Routes (Admin Only)
