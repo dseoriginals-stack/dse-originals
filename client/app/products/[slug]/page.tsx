@@ -24,9 +24,25 @@ export async function generateMetadata(
     const title = `${product.name} | DSE Originals`
     const description = product.description?.substring(0, 160) || `Experience premium quality with ${product.name} from DSE Originals.`
     
-    let imageUrl = getImageUrl(product.images?.[0]?.url)
-    if (imageUrl.startsWith('/')) {
+    // ✅ Ensure high-quality absolute URL for social media
+    let imageUrl = ""
+    const primaryImage = product.images?.[0]?.url || product.variants?.find((v: any) => v.image)?.image
+    
+    if (primaryImage) {
+      imageUrl = getImageUrl(primaryImage)
+      // If it's a relative path, prepend the main domain
+      if (imageUrl.startsWith('/')) {
         imageUrl = `https://www.dseoriginals.com${imageUrl}`
+      }
+      // If it's a Cloudinary URL, we can force a social-friendly transformation
+      if (imageUrl.includes('cloudinary.com') && !imageUrl.includes('/upload/')) {
+         // Handle cases where /upload/ might be missing or structured differently
+      } else if (imageUrl.includes('cloudinary.com')) {
+         imageUrl = imageUrl.replace('/upload/', '/upload/w_1200,h_630,c_fill,g_auto,f_jpg/')
+      }
+    } else {
+      // Fallback to a branded social share image if the product has no images
+      imageUrl = `https://www.dseoriginals.com/DSEoriginals.png`
     }
 
     return {
@@ -58,7 +74,10 @@ export async function generateMetadata(
   } catch (err) {
     return {
       title: 'DSE Originals | Premium Collection',
-      description: 'Handcrafted excellence for your lifestyle.'
+      description: 'Handcrafted excellence for your lifestyle.',
+      openGraph: {
+        images: [`https://www.dseoriginals.com/DSEoriginals.png`]
+      }
     }
   }
 }
