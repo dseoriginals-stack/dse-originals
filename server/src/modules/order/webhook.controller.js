@@ -11,17 +11,25 @@ export const handleXenditWebhook = async (req, res) => {
     ============================
     */
 
-    if (
-      req.headers["x-callback-token"] !==
-      process.env.XENDIT_WEBHOOK_SECRET
-    ) {
-      return res.status(403).json({
-        message: "Invalid webhook signature"
-      })
+    const callbackToken = req.headers["x-callback-token"]
+    const secret = process.env.XENDIT_WEBHOOK_SECRET || process.env.XENDIT_CALLBACK_TOKEN
+
+    if (!callbackToken || callbackToken !== secret) {
+      return res.status(403).json({ message: "Invalid webhook signature" })
     }
 
-    const event = req.body
-    const orderId = event.external_id
+    // Handle both JSON and express.raw() Buffer
+    let event = req.body
+    if (Buffer.isBuffer(req.body)) {
+      try {
+        event = JSON.parse(req.body.toString("utf8"))
+      } catch (err) {
+        logger.error("Failed to parse raw webhook body", { error: err.message })
+        return res.status(400).json({ message: "Invalid JSON" })
+      }
+    }
+
+    const orderId = event.external_id || event.externalId
     const eventId = event.id || `${orderId}-${event.status}`
 
     if (!orderId) return res.sendStatus(400)
@@ -136,6 +144,21 @@ export const handleXenditWebhook = async (req, res) => {
         */
         if (updated.userId) {
           await awardOrderPoints(tx, orderId)
+        }
+
+        /*
+        NOTIFY ADMINS (Real-time Dashboard Update)
+        */
+        try {
+          const { notifyAdmins } = await import("../../config/socket.js")
+          notifyAdmins("order:status", { 
+            orderId, 
+            status: "paid",
+            total: Number(updated.totalAmount)
+          })
+          notifyAdmins("stats:update", {}) // Trigger dashboard refresh
+        } catch (socErr) {
+          logger.error("Socket notification failed", { error: socErr.message })
         }
 
       })

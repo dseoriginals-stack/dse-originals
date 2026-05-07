@@ -321,6 +321,8 @@ export const createOrder = async (req, res, next) => {
       amount: Number(order.totalAmount),
       payer_email: req.user?.email || guestEmail || "no-reply@dseoriginals.com",
       description: `DSE Order #${order.id}`,
+      success_url: `${process.env.FRONTEND_URL}/order-success/${order.id}`,
+      failure_url: `${process.env.FRONTEND_URL}/checkout`
     })
 
     /*

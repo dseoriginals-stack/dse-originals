@@ -2,87 +2,94 @@
 
 import { useParams } from "next/navigation"
 import Link from "next/link"
+import { motion } from "framer-motion"
+import { CheckCircle2, Package, Truck, Mail, ArrowRight, ShoppingBag } from "lucide-react"
 
 export default function SuccessPage() {
-
   const { id } = useParams()
 
   return (
+    <div className="min-h-screen flex items-center justify-center bg-[var(--bg-main)] px-6 py-12 relative overflow-hidden">
+      {/* Decorative Blur */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[var(--brand-primary)]/5 rounded-full blur-[100px] -z-10" />
 
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
-
-      <div className="bg-white max-w-xl w-full p-8 md:p-10 rounded-2xl shadow-md text-center space-y-6">
-
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white max-w-xl w-full p-8 md:p-12 rounded-[2.5rem] shadow-2xl shadow-[var(--brand-primary)]/5 border border-[var(--border-light)] text-center space-y-8"
+      >
         {/* SUCCESS ICON */}
-
-        <div className="text-5xl">
-          🎉
-        </div>
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
+          className="w-20 h-20 mx-auto bg-[var(--brand-soft)]/20 rounded-2xl flex items-center justify-center text-[var(--brand-primary)]"
+        >
+          <CheckCircle2 size={40} strokeWidth={1.5} />
+        </motion.div>
 
         {/* TITLE */}
-
-        <h1 className="text-2xl md:text-3xl font-bold">
-          Order Confirmed!
-        </h1>
-
-        {/* ORDER ID */}
-
-        <p className="text-gray-500 text-sm">
-          Order ID: <span className="font-medium text-black">{id}</span>
-        </p>
-
-        {/* MESSAGE */}
-
-        <div className="text-gray-600 text-sm space-y-2">
-
-          <p>Thank you for your purchase.</p>
-
-          <p>
-            We’ve received your order and it is now being processed.
+        <div className="space-y-2">
+          <h1 className="text-3xl md:text-4xl font-[1000] text-[var(--text-heading)] tracking-tighter">
+            Order Confirmed!
+          </h1>
+          <p className="text-[var(--text-muted)] text-sm font-bold uppercase tracking-widest">
+            Order ID: <span className="text-[var(--brand-primary)]">{String(id).substring(0, 13)}...</span>
           </p>
-
         </div>
 
+        {/* MESSAGE */}
+        <p className="text-[var(--text-muted)] font-medium leading-relaxed">
+          Thank you for choosing DSE Originals. Your journey with us has begun, and we're preparing your premium pieces with the utmost care.
+        </p>
+
         {/* WHAT HAPPENS NEXT */}
-
-        <div className="bg-slate-50 rounded-xl p-4 text-sm text-gray-600 text-left space-y-2">
-
-          <p>📦 Processing your order</p>
-          <p>🚚 Preparing shipment</p>
-          <p>📩 You will receive updates via email</p>
-
+        <div className="bg-[var(--bg-surface)] rounded-3xl p-6 text-sm text-[var(--text-main)] text-left space-y-4 border border-[var(--border-light)]">
+          <p className="font-black text-[10px] uppercase tracking-[0.2em] text-[var(--brand-primary)] mb-2">Next Steps</p>
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-8 rounded-lg bg-white border border-[var(--border-light)] flex items-center justify-center text-[var(--brand-primary)] shadow-sm">
+              <Package size={16} />
+            </div>
+            <span className="font-bold">Processing your premium order</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-8 rounded-lg bg-white border border-[var(--border-light)] flex items-center justify-center text-[var(--brand-primary)] shadow-sm">
+              <Truck size={16} />
+            </div>
+            <span className="font-bold">Preparing shipment via J&T Express</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-8 rounded-lg bg-white border border-[var(--border-light)] flex items-center justify-center text-[var(--brand-primary)] shadow-sm">
+              <Mail size={16} />
+            </div>
+            <span className="font-bold">Updates will be sent to your email</span>
+          </div>
         </div>
 
         {/* TRUST */}
-
-        <div className="text-xs text-gray-500">
-          🔒 Secure payment processed via Xendit
+        <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          <div className="w-1 h-1 rounded-full bg-emerald-500" />
+          Securely Processed via Xendit
         </div>
 
         {/* ACTIONS */}
-
-        <div className="flex flex-col md:flex-row gap-3 justify-center pt-4">
-
+        <div className="flex flex-col sm:flex-row gap-4 pt-4">
           <Link
             href="/products"
-            className="bg-black text-white px-6 py-3 rounded-xl"
+            className="flex-1 btn-premium !py-4 rounded-2xl text-sm shadow-lg flex items-center justify-center gap-2 group"
           >
+            <ShoppingBag size={18} />
             Continue Shopping
           </Link>
 
           <Link
             href={`/track?id=${id}`}
-            className="border px-6 py-3 rounded-xl hover:bg-slate-50 transition-colors"
+            className="flex-1 px-8 py-4 bg-white border-2 border-[var(--border-light)] rounded-2xl font-bold text-[var(--text-heading)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] transition-all flex justify-center items-center gap-2 text-sm"
           >
-            Track My Order
+            Track Order <ArrowRight size={18} />
           </Link>
-
         </div>
-
-      </div>
-
+      </motion.div>
     </div>
-
   )
-
 }

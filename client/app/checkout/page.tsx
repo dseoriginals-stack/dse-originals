@@ -7,7 +7,6 @@ import { api } from "@/lib/api"
 import { regions, provinces, cities } from "philippines"
 import { Truck, Store, CreditCard, Check, Package, MapPin, ChevronDown, Home, Briefcase, Gift, Coins } from "lucide-react"
 import { getShippingRate, calculateWeight, calculateShippingTotal, ShippingZone } from "@/lib/shipping"
-import PaymentModal from "@/components/PaymentModal"
 import toast from "react-hot-toast"
 import { motion, AnimatePresence } from "framer-motion"
 import { v4 as uuidv4 } from "uuid"
@@ -202,9 +201,11 @@ export default function CheckoutPage() {
         },
       })
 
-      setPaymentUrl(data.invoiceUrl)
-      setShowPayment(true)
+      // ✅ DIRECT REDIRECT TO PAYMENT (Better for success/callback flow)
       toast.success("Order created! Redirecting to payment...")
+      setTimeout(() => {
+        window.location.href = data.invoiceUrl
+      }, 1000)
 
     } catch (err: any) {
       console.error("Checkout Error:", err)
@@ -619,12 +620,7 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        <PaymentModal
-          isOpen={showPayment}
-          onClose={() => setShowPayment(false)}
-          invoiceUrl={paymentUrl}
-          total={total}
-        />
+        {/* REDIRECT HANDLED IN handlePlaceOrder */}
       </div>
     </div>
   )

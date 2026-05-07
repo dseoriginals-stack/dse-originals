@@ -148,14 +148,18 @@ const getAdminStats = async () => {
   })
  
   return {
-    totalCustomers: users,
-    totalOrders: ordersCount,
-    totalProducts: productsCount,
-    revenue: revenue._sum.totalAmount || 0,
-    donationRevenue: donations._sum.amount || 0,
+    totalCustomers: Number(users || 0),
+    totalOrders: Number(ordersCount || 0),
+    totalProducts: Number(productsCount || 0),
+    revenue: Number(revenue._sum.totalAmount || 0),
+    donationRevenue: Number(donations._sum.amount || 0),
     revenueChart,
     topProducts,
-    recentOrders,
+    recentOrders: recentOrders.map(o => ({
+      ...o,
+      totalAmount: Number(o.totalAmount || 0),
+      shippingFee: Number(o.shippingFee || 0)
+    })),
     categoryBreakdown,
     inventoryAlerts,
     customerTiers
@@ -163,7 +167,7 @@ const getAdminStats = async () => {
 }
 
 const getOrders = async () => {
-  return prisma.order.findMany({
+  const orders = await prisma.order.findMany({
     include: {
       items: true,
       user: {
@@ -183,6 +187,13 @@ const getOrders = async () => {
       createdAt: "desc"
     }
   })
+
+  return orders.map(o => ({
+    ...o,
+    totalAmount: Number(o.totalAmount || 0),
+    shippingFee: Number(o.shippingFee || 0),
+    pointsDiscount: Number(o.pointsDiscount || 0)
+  }))
 }
 
 const getPayments = async () => {

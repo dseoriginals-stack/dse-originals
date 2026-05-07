@@ -268,6 +268,41 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(quote)}`, '_blank')
   }
 
+  const handleThumbnailClick = (imgUrl: string) => {
+    setActiveImage(imgUrl)
+
+    if (!product?.variants) return
+
+    // Find all variants that use this image
+    const matchingVariants = product.variants.filter(v => v.image === imgUrl)
+    if (matchingVariants.length === 0) return
+
+    // Try to find a variant that matches current selections (to preserve Size if possible)
+    const bestMatch = matchingVariants.find(v =>
+      Object.entries(selections).every(([name, value]) => {
+        if (name === "Size" && v.attributes?.some(a => a.name === "Sizes")) {
+          return v.attributes.find(a => a.name === "Sizes")?.value.split(",").map(s => s.trim()).includes(value)
+        }
+        return v.attributes?.some(a => a.name === name && a.value === value)
+      })
+    ) || matchingVariants[0]
+
+    // Update selections based on bestMatch
+    const nextSelections = { ...selections }
+    bestMatch.attributes?.forEach(a => {
+      if (a.name === "Sizes") {
+        const vals = (a.value || "").split(",").map(s => s.trim()).filter(Boolean)
+        // If current size is not in the new variant's sizes, pick the first one
+        if (vals.length > 0 && (!selections["Size"] || !vals.includes(selections["Size"]))) {
+          nextSelections["Size"] = vals[0]
+        }
+      } else {
+        nextSelections[a.name] = a.value
+      }
+    })
+    setSelections(nextSelections)
+  }
+
   /* =========================
      STATES (REMOVED LOADING)
   ========================= */
@@ -338,7 +373,7 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
                 return (
                   <button
                     key={i}
-                    onClick={() => setActiveImage(img.url)}
+                    onClick={() => handleThumbnailClick(img.url)}
                     className={`relative overflow-hidden rounded-xl w-16 h-16 md:w-20 md:h-20 flex-shrink-0 transition-all duration-300 ${isActive
                       ? "ring-2 ring-[var(--brand-primary)] ring-offset-4 opacity-100 shadow-md scale-95"
                       : "border border-[var(--border-light)] opacity-50 hover:opacity-100 hover:scale-105"

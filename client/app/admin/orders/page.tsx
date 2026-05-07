@@ -129,7 +129,8 @@ export default function AdminOrders() {
         o.user?.email?.toLowerCase().includes(search.toLowerCase()) ||
         o.guestEmail?.toLowerCase().includes(search.toLowerCase())
       
-      const matchesFilter = filter === "all" || o.status.toLowerCase() === filter.toLowerCase()
+      const orderStatus = o.status.toLowerCase()
+      const matchesFilter = filter === "all" || orderStatus === filter.toLowerCase()
       
       return matchesSearch && matchesFilter
     })
@@ -216,6 +217,17 @@ export default function AdminOrders() {
           </table>
         </div>
       </div>
+
+      {selectedOrder && (
+        <OrderModal 
+          order={selectedOrder} 
+          onClose={() => setSelectedOrder(null)} 
+          onUpdateStatus={(status: string) => {
+            updateStatus(selectedOrder.id, status)
+            setSelectedOrder(null)
+          }} 
+        />
+      )}
     </div>
   )
 }
@@ -223,6 +235,7 @@ export default function AdminOrders() {
 function OrderRow({ order, onOpen, trackingValue, onTrackingChange, onUpdateStatus, onCancel, onDelete, canDelete }: any) {
   const statusStyles: any = {
     pending: "bg-amber-50 text-amber-600 border-amber-100",
+    initialized: "bg-gray-50 text-gray-400 border-gray-200",
     accepted: "bg-violet-50 text-violet-600 border-violet-100",
     paid: "bg-emerald-50 text-emerald-600 border-emerald-100",
     processing: "bg-amber-50 text-amber-600 border-amber-100",
@@ -260,7 +273,11 @@ function OrderRow({ order, onOpen, trackingValue, onTrackingChange, onUpdateStat
       <td className="px-8 py-6">
         <div className="flex flex-col">
           <span className="font-black text-sm text-[var(--text-heading)]">₱{Number(order.totalAmount).toLocaleString()}</span>
-          <span className="text-[9px] text-emerald-600 font-black uppercase tracking-widest mt-1">Fully Paid</span>
+          <span className={`text-[9px] font-black uppercase tracking-widest mt-1 ${
+            order.status.toLowerCase() === 'paid' ? 'text-emerald-600' : 'text-amber-500'
+          }`}>
+            {order.status.toLowerCase() === 'paid' ? 'Fully Paid' : 'Awaiting Payment'}
+          </span>
         </div>
       </td>
       <td className="px-8 py-6">
