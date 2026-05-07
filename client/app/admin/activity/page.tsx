@@ -62,6 +62,27 @@ export default function ActivityLogsPage() {
     }
   }
 
+  const parseDetails = (details: string | null) => {
+    if (!details) return "No additional metadata"
+    try {
+      const parsed = JSON.parse(details)
+      if (typeof parsed === 'object' && parsed !== null) {
+        return Object.entries(parsed).map(([k, v]) => `${k}: ${v}`).join(", ")
+      }
+      return String(details)
+    } catch {
+      return String(details)
+    }
+  }
+
+  const formatLogDate = (dateStr: string, pattern: string) => {
+    try {
+      return format(new Date(dateStr), pattern)
+    } catch {
+      return "—"
+    }
+  }
+
   if (loading && logs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
@@ -142,10 +163,10 @@ export default function ActivityLogsPage() {
                       <td className="px-8 py-5 whitespace-nowrap">
                         <div className="flex flex-col">
                           <span className="text-sm font-bold text-[var(--text-heading)]">
-                            {format(new Date(log.createdAt), "MMM d, yyyy")}
+                            {formatLogDate(log.createdAt, "MMM d, yyyy")}
                           </span>
                           <span className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-tighter">
-                            {format(new Date(log.createdAt), "h:mm a")}
+                            {formatLogDate(log.createdAt, "h:mm a")}
                           </span>
                         </div>
                       </td>
@@ -190,13 +211,7 @@ export default function ActivityLogsPage() {
                       {/* DETAILS */}
                       <td className="px-8 py-5 max-w-xs">
                         <p className="text-xs font-medium text-[var(--text-muted)] line-clamp-2 italic">
-                          {log.details ? (
-                            typeof JSON.parse(log.details) === 'object' 
-                              ? Object.entries(JSON.parse(log.details)).map(([k, v]) => `${k}: ${v}`).join(", ")
-                              : log.details
-                          ) : (
-                            "No additional metadata"
-                          )}
+                          {parseDetails(log.details)}
                         </p>
                       </td>
 
