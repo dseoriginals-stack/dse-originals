@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer"
+import { Resend } from 'resend'
 
 /*
 -----------------------------------
@@ -6,15 +6,27 @@ TRANSPORT
 -----------------------------------
 */
 
-export const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+const resend = new Resend(process.env.RESEND_API_KEY)
+
+export const sendEmail = async ({ to, subject, html }) => {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn("⚠️ RESEND_API_KEY not set. Email not sent:", subject)
+    return
   }
-})
+
+  try {
+    const data = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'DSEoriginals <onboarding@resend.dev>', // Users should update this to their verified domain
+      to,
+      subject,
+      html
+    })
+    return data
+  } catch (error) {
+    console.error("Failed to send email via Resend:", error)
+    throw error
+  }
+}
 
 /*
 -----------------------------------
@@ -112,8 +124,7 @@ export const sendOrderPaidEmail = async (to, order) => {
     ${button("View Order", `${process.env.CLIENT_URL}/orders/${order.id}`)}
   `
 
-  await transporter.sendMail({
-    from: `"DSEoriginals" <${process.env.EMAIL_USER}>`,
+  await sendEmail({
     to,
     subject: "Payment Confirmed",
     html: baseTemplate(content)
@@ -166,8 +177,7 @@ export const sendShippedEmail = async (to, order) => {
     </div>
   `
 
-  await transporter.sendMail({
-    from: `"DSEoriginals" <${process.env.EMAIL_USER}>`,
+  await sendEmail({
     to,
     subject: `Tracking Updated for Order #${order.id.slice(-6).toUpperCase()}`,
     html: baseTemplate(content)
@@ -201,8 +211,7 @@ export const sendAbandonedCartEmail = async (to, cart, recoveryUrl) => {
     ${button("Restore Cart", recoveryUrl)}
   `
 
-  await transporter.sendMail({
-    from: `"DSEoriginals" <${process.env.EMAIL_USER}>`,
+  await sendEmail({
     to,
     subject: "Complete your order before it's gone",
     html: baseTemplate(content)
@@ -243,8 +252,7 @@ export const sendDeliveredEmail = async (to, order) => {
     </p>
   `
 
-  await transporter.sendMail({
-    from: `"DSEoriginals" <${process.env.EMAIL_USER}>`,
+  await sendEmail({
     to,
     subject: `Delivered: Your DSEoriginals Order #${order.id.slice(-6).toUpperCase()}`,
     html: baseTemplate(content)
@@ -290,8 +298,7 @@ export const sendReadyForPickupEmail = async (to, order) => {
     </p>
   `
 
-  await transporter.sendMail({
-    from: `"DSEoriginals" <${process.env.EMAIL_USER}>`,
+  await sendEmail({
     to,
     subject: `Ready for Pickup: Order #${order.id.slice(-6).toUpperCase()}`,
     html: baseTemplate(content)
@@ -336,8 +343,7 @@ export const sendReviewRequestEmail = async (to, order, unreviewedItems) => {
     </p>
   `
 
-  await transporter.sendMail({
-    from: `"DSEoriginals" <${process.env.EMAIL_USER}>`,
+  await sendEmail({
     to,
     subject: "How was your recent purchase? ⭐",
     html: baseTemplate(content)

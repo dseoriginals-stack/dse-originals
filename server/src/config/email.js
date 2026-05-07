@@ -1,4 +1,4 @@
-import { transporter, baseTemplate } from "../services/email.service.js"
+import { sendEmail, baseTemplate } from "../services/email.service.js"
 
 /* =========================
    PASSWORD RESET EMAIL
@@ -6,9 +6,8 @@ import { transporter, baseTemplate } from "../services/email.service.js"
 
 export async function sendPasswordResetEmail(email, resetUrl) {
 
-  await transporter.sendMail({
+  await sendEmail({
     to: email,
-    from: `"DSEoriginals" <${process.env.EMAIL_USER}>`,
     subject: "Reset your password",
     html: baseTemplate(`
       <h2 style="margin-top:0;">Password Reset Request</h2>
@@ -29,9 +28,8 @@ export async function sendPasswordResetEmail(email, resetUrl) {
 export async function sendVerificationEmail(email, token) {
   const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`
 
-  await transporter.sendMail({
+  await sendEmail({
     to: email,
-    from: `"DSEoriginals" <${process.env.EMAIL_USER}>`,
     subject: "Verify your email - DSEoriginals",
     html: baseTemplate(`
       <div style="font-family: sans-serif;">
@@ -52,9 +50,8 @@ export async function sendVerificationEmail(email, token) {
 
 export async function sendInvoiceEmail(email, order) {
 
-  await transporter.sendMail({
+  await sendEmail({
     to: email,
-    from: `"DSEoriginals" <${process.env.EMAIL_USER}>`,
     subject: `Order #${order.id} confirmation`,
     html: baseTemplate(`
       <h2 style="margin-top:0;">Thank you for your order</h2>
@@ -69,9 +66,9 @@ export async function sendInvoiceEmail(email, order) {
 
 export async function sendAdminStoryNotification(story) {
   try {
-    await transporter.sendMail({
+    if (!process.env.EMAIL_USER) return
+    await sendEmail({
       to: process.env.EMAIL_USER,
-      from: `"DSEoriginals System" <${process.env.EMAIL_USER}>`,
       subject: "✨ New Story Pending Review - DSE Community",
       html: baseTemplate(`
         <div style="font-family: sans-serif; color: #333;">
