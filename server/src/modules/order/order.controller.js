@@ -1177,3 +1177,21 @@ export const deleteOrder = async (req, res, next) => {
     next(err)
   }
 }
+/* ============================
+   DOWNLOAD RECEIPT (PUBLIC-ISH)
+   ============================ */
+export const downloadReceipt = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const { generateOrderReceipt } = await import("../../services/receipt.service.js")
+    
+    const pdfBuffer = await generateOrderReceipt(id)
+    
+    res.setHeader("Content-Type", "application/pdf")
+    res.setHeader("Content-Disposition", `attachment; filename=DSE-Receipt-${id.slice(0, 8)}.pdf`)
+    res.send(pdfBuffer)
+  } catch (err) {
+    console.error("Receipt Generation Error:", err)
+    res.status(500).json({ message: "Could not generate receipt" })
+  }
+}

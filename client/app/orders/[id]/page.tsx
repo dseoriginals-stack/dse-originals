@@ -183,16 +183,24 @@ export default function OrderPage() {
 
         {/* ACTIONS */}
 
-        <div className="flex justify-center gap-4 pt-6">
-
+        <div className="flex flex-col sm:flex-row justify-center gap-4 pt-8 border-t border-gray-100">
           <Link
             href="/products"
-            className="bg-black text-white px-6 py-3 rounded-xl"
+            className="px-8 py-3.5 rounded-xl border-2 border-[var(--brand-primary)] text-[var(--brand-primary)] text-sm font-black uppercase tracking-widest hover:bg-[var(--brand-primary)]/10 transition text-center"
           >
             Continue Shopping
           </Link>
-
+          
+          <a
+            href={`${API_URL}/orders/${order.id}/receipt`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-8 py-3.5 rounded-xl bg-[var(--brand-primary)] text-white text-sm font-black uppercase tracking-widest shadow-lg hover:opacity-90 transition text-center"
+          >
+            Download Receipt
+          </a>
         </div>
+
 
       </div>
 

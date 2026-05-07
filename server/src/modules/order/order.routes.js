@@ -92,9 +92,9 @@ router.get(
 )
 
 router.get(
-  "/:id/invoice",
-  authenticate,
-  controller.generateInvoice
+  "/:id/receipt",
+  optionalAuthenticate,
+  controller.downloadReceipt
 )
 
 router.post(
