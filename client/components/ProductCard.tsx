@@ -135,10 +135,6 @@ export default function ProductCard({
     })
   }
 
-  return (
-    <Link
-      href={`/products/${product.slug}`}
-      className="group block h-full"
   // SECONDARY IMAGE FOR HOVER HOOK
   const secondaryImage = product.variants?.find(v => v.image && v.image !== activeVariant?.image)?.image 
     || product.image 
