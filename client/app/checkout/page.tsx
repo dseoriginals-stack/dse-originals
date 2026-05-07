@@ -265,40 +265,40 @@ export default function CheckoutPage() {
             {/* ===== STEP 1: DELIVERY METHOD ===== */}
             {step === 1 && (
               <Card title="1. How would you like to receive your order?">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div className="grid grid-cols-2 gap-3 md:gap-4 pt-2">
 
                   <button
                     onClick={() => setDelivery("delivery")}
-                    className={`p-5 rounded-2xl border-2 text-left transition-all ${delivery === "delivery"
+                    className={`p-3.5 md:p-5 rounded-2xl border-2 text-left transition-all relative ${delivery === "delivery"
                       ? "border-[var(--brand-primary)] bg-[var(--brand-soft)]/10 shadow-sm"
                       : "border-[var(--border-light)] hover:border-gray-300"
                       }`}
                   >
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${delivery === "delivery" ? "bg-[var(--brand-primary)] text-white" : "bg-gray-100 text-gray-500"}`}>
-                      <Truck size={20} />
+                    <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center mb-2 md:mb-3 ${delivery === "delivery" ? "bg-[var(--brand-primary)] text-white" : "bg-gray-100 text-gray-500"}`}>
+                      <Truck size={18} />
                     </div>
-                    <div className="font-bold text-[var(--text-heading)] text-sm">Home Delivery</div>
-                    <div className="text-xs text-[var(--text-muted)] mt-1 leading-relaxed">
-                      We'll ship via <strong>J&T Express</strong> to your door.<br />
-                      <span className="font-semibold text-[var(--brand-primary)]">Shipping fee calculated by region.</span>
+                    <div className="font-bold text-[var(--text-heading)] text-[10px] md:text-sm">Home Delivery</div>
+                    <div className="text-[9px] md:text-xs text-[var(--text-muted)] mt-1 leading-relaxed line-clamp-2 md:line-clamp-none">
+                      Ship via <strong>J&T Express</strong>.<br className="hidden md:block" />
+                      <span className="hidden md:inline font-semibold text-[var(--brand-primary)]">Shipping fee by region.</span>
                     </div>
                     <RadioDot active={delivery === "delivery"} />
                   </button>
 
                   <button
                     onClick={() => setDelivery("pickup")}
-                    className={`p-5 rounded-2xl border-2 text-left transition-all ${delivery === "pickup"
+                    className={`p-3.5 md:p-5 rounded-2xl border-2 text-left transition-all relative ${delivery === "pickup"
                       ? "border-[var(--brand-primary)] bg-[var(--brand-soft)]/10 shadow-sm"
                       : "border-[var(--border-light)] hover:border-gray-300"
                       }`}
                   >
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${delivery === "pickup" ? "bg-[var(--brand-primary)] text-white" : "bg-gray-100 text-gray-500"}`}>
-                      <Store size={20} />
+                    <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center mb-2 md:mb-3 ${delivery === "pickup" ? "bg-[var(--brand-primary)] text-white" : "bg-gray-100 text-gray-500"}`}>
+                      <Store size={18} />
                     </div>
-                    <div className="font-bold text-[var(--text-heading)] text-sm">Store Pickup</div>
-                    <div className="text-xs text-[var(--text-muted)] mt-1 leading-relaxed">
-                      Pick up at our store in Tagum.<br />
-                      <span className="font-semibold text-emerald-600">FREE — No shipping fee</span>
+                    <div className="font-bold text-[var(--text-heading)] text-[10px] md:text-sm">Store Pickup</div>
+                    <div className="text-[9px] md:text-xs text-[var(--text-muted)] mt-1 leading-relaxed line-clamp-2 md:line-clamp-none">
+                      Pick up in Tagum City.<br className="hidden md:block" />
+                      <span className="font-semibold text-emerald-600">FREE — No fee</span>
                     </div>
                     <RadioDot active={delivery === "pickup"} />
                   </button>
