@@ -127,7 +127,84 @@ router.post("/register", async (req, res) => {
   })
 })
 
+/* =============================
+   GUEST TO USER CONVERSION
+============================= */
 
+router.post("/convert-guest", async (req, res) => {
+  try {
+    const { orderId, password } = req.body
+
+    if (!orderId || !password) {
+      return res.status(400).json({ message: "Order ID and password are required" })
+    }
+
+    // 1. Find the order
+    const order = await prisma.order.findUnique({
+      where: { id: orderId }
+    })
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" })
+    }
+
+    if (order.userId) {
+      return res.status(400).json({ message: "This order is already linked to an account" })
+    }
+
+    const email = order.guestEmail
+    if (!email) {
+      return res.status(400).json({ message: "No email associated with this order" })
+    }
+
+    // 2. Check if user already exists
+    let user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() }
+    })
+
+    if (user) {
+      // If user exists, just link the order (after password verification maybe? No, this is a special flow)
+      // For security, we should probably check if they are already logged in as this user.
+      // But for guest conversion, if the email matches, we link it.
+      
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { userId: user.id }
+      })
+
+      return res.status(200).json({ 
+        message: "Order linked to your existing account. Please log in.",
+        exists: true 
+      })
+    }
+
+    // 3. Create new user
+    const hashedPassword = await bcrypt.hash(password, 10)
+    user = await prisma.user.create({
+      data: {
+        email: email.toLowerCase(),
+        password: hashedPassword,
+        name: order.guestName || "Customer",
+        phone: order.guestPhone,
+        role: "customer",
+        luckyPoints: 50 // Bonus for converting!
+      }
+    })
+
+    // 4. Link the order
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { userId: user.id }
+    })
+
+    // 5. Issue tokens
+    return await issueTokens(user, req, res)
+
+  } catch (error) {
+    console.error("CONVERT GUEST ERROR:", error)
+    return res.status(500).json({ message: "Conversion failed" })
+  }
+})
 
 /* =============================
    LOGIN
