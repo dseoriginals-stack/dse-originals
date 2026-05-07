@@ -116,6 +116,17 @@ export const handleXenditWebhook = async (req, res) => {
               stock: { decrement: item.quantity }
             }
           })
+
+          // ✅ RECORD AUDIT TRAIL
+          await tx.inventoryMovement.create({
+            data: {
+              variantId: item.variantId,
+              orderId,
+              change: -item.quantity,
+              type: "order",
+              reason: `Order Paid (Auto)`
+            }
+          })
         }
 
         /*

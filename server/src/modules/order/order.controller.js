@@ -599,11 +599,31 @@ export const refundOrder = async (req, res, next) => {
     await prisma.$transaction(async (tx) => {
 
       for (const item of order.items) {
+        // Return stock
         await tx.productVariant.update({
           where: { id: item.variantId },
           data: {
             stock: { increment: item.quantity }
           }
+        })
+
+        // ✅ RECORD REFUND MOVEMENT
+        await tx.inventoryMovement.create({
+          data: {
+            variantId: item.variantId,
+            orderId: id,
+            change: item.quantity,
+            type: "refund",
+            reason: "Order Refunded by Admin"
+          }
+        })
+      }
+
+      // ✅ REFUND POINTS
+      if (order.userId && order.pointsUsed > 0) {
+        await tx.user.update({
+          where: { id: order.userId },
+          data: { luckyPoints: { increment: order.pointsUsed } }
         })
       }
 

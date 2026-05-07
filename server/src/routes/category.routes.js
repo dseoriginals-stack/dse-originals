@@ -5,6 +5,8 @@ import {
   deleteCategory
 } from "../modules/category/category.controller.js"
 
+import authenticate, { authorize } from "../middleware/auth.middleware.js"
+
 const router = express.Router()
 
 /* =========================
@@ -13,9 +15,11 @@ const router = express.Router()
 router.get("/", getCategories)
 
 /* =========================
-   ADMIN
+   ADMIN / STAFF
 ========================= */
-router.post("/", createCategory)
-router.delete("/:id", deleteCategory)
+router.use(authenticate)
+
+router.post("/", authorize("admin", "staff"), createCategory)
+router.delete("/:id", authorize("admin", "staff"), deleteCategory)
 
 export default router

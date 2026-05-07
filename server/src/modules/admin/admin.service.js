@@ -221,7 +221,7 @@ const getPayments = async () => {
     type: "Order",
     customer: o.user?.name || o.guestName || "Guest",
     email: o.user?.email || o.guestEmail,
-    amount: o.totalAmount,
+    amount: Number(o.totalAmount || 0),
     method: "Xendit (Store)",
     reference: o.paymentId,
     createdAt: o.createdAt
@@ -232,7 +232,7 @@ const getPayments = async () => {
     type: "Donation",
     customer: d.name || d.user?.name || "Anonymous",
     email: d.email || d.user?.email,
-    amount: d.amount,
+    amount: Number(d.amount || 0),
     method: "Xendit (Cause)",
     reference: d.paymentId,
     createdAt: d.createdAt
@@ -242,12 +242,54 @@ const getPayments = async () => {
 }
 
 const updateOrderStatus = async (id, status, trackingNo) => {
-  const updated = await prisma.order.update({
+  // Get original order to check transition
+  const order = await prisma.order.findUnique({
     where: { id },
-    data: {
-      status,
-      trackingNo
+    select: { status: true, userId: true, pointsUsed: true }
+  })
+
+  const updated = await prisma.$transaction(async (tx) => {
+    const res = await tx.order.update({
+      where: { id },
+      data: {
+        status,
+        trackingNo
+      }
+    })
+
+    // ✅ CONSISTENCY: Award points if manually marked as paid
+    if (status === "paid" && order.status !== "paid" && order.userId) {
+      const orderWithItems = await tx.order.findUnique({
+        where: { id },
+        include: { items: true }
+      })
+      const totalPoints = orderWithItems.items.reduce((acc, item) => {
+        return acc + (Number(item.price) * item.quantity)
+      }, 0)
+      
+      const award = Math.floor(totalPoints / 100) // 1 point per 100 PHP
+      if (award > 0) {
+        await tx.user.update({
+          where: { id: order.userId },
+          data: { 
+            luckyPoints: { increment: award },
+            lifetimePoints: { increment: award }
+          }
+        })
+      }
     }
+
+    // ✅ CONSISTENCY: Refund points if manually cancelled
+    if (status === "cancelled" && order.status !== "cancelled") {
+      if (order.userId && order.pointsUsed > 0) {
+        await tx.user.update({
+          where: { id: order.userId },
+          data: { luckyPoints: { increment: order.pointsUsed } }
+        })
+      }
+    }
+
+    return res
   })
 
   // ✅ Log the manual status change for the audit trail
@@ -261,7 +303,7 @@ const updateOrderStatus = async (id, status, trackingNo) => {
 }
 
 const getProducts = async () => {
-  return prisma.product.findMany({
+  const products = await prisma.product.findMany({
     where: {
       status: { not: "archived" }
     },
@@ -290,6 +332,14 @@ const getProducts = async () => {
       createdAt: "desc"
     }
   })
+
+  return products.map(p => ({
+    ...p,
+    variants: p.variants.map(v => ({
+      ...v,
+      price: Number(v.price || 0)
+    }))
+  }))
 }
 
 const getUsers = async () => {

@@ -120,7 +120,9 @@ app.use("/api/categories", categoryRoutes)
 app.use("/api/issues", issueRoutes)
 app.use("/api/admin", adminRoutes)
 
-app.post("/api/upload", async (req, res) => {
+import authenticate, { authorize } from "./middleware/auth.middleware.js"
+
+app.post("/api/upload", authenticate, authorize("admin", "staff"), async (req, res) => {
   try {
     const { image } = req.body
     if (!image) return res.status(400).json({ message: "No image provided" })

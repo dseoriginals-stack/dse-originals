@@ -648,6 +648,11 @@ export const updateProduct = async (req, res, next) => {
 
           if (v.id && currentVariantIds.includes(v.id)) {
             clientVariantIds.push(v.id)
+            const existing = currentVariants.find(cv => cv.id === v.id)
+            const currentStock = existing?.stock || 0
+            const newStock = parseInt(String(v.stock)) || 0
+            const diff = newStock - currentStock
+
             // Update existing
             let imageUpdate = {}
             if (vImage) {
@@ -660,7 +665,7 @@ export const updateProduct = async (req, res, next) => {
               where: { id: v.id },
               data: {
                 price: new Prisma.Decimal(v.price),
-                stock: parseInt(String(v.stock)) || 0,
+                stock: newStock,
                 ...imageUpdate,
                 attributes: {
                   deleteMany: {},
@@ -668,6 +673,18 @@ export const updateProduct = async (req, res, next) => {
                 }
               }
             })
+
+            // ✅ RECORD MANUAL ADJUSTMENT
+            if (diff !== 0) {
+              await tx.inventoryMovement.create({
+                data: {
+                  variantId: v.id,
+                  change: diff,
+                  type: "adjustment",
+                  reason: "Manual Admin Update"
+                }
+              })
+            }
           } else {
             // Create new
             await tx.productVariant.create({
