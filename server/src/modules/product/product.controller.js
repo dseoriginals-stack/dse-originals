@@ -4,6 +4,7 @@ import generateSlug from "../../utils/slugify.js"
 import { Prisma } from "@prisma/client"
 import cloudinary from "../../config/cloudinary.js"
 import fs from "fs"
+import { logActivity } from "../../utils/activityLogger.js"
 import {
   getCache,
   setCache,
@@ -232,6 +233,15 @@ export const createProduct = async (req, res, next) => {
 
     await deleteCache("products:*")
     await deleteCache("product:*")
+    await logActivity({
+      userId: req.user.id,
+      action: "CREATE_PRODUCT",
+      entity: "Product",
+      entityId: product.id,
+      details: { name: product.name },
+      req
+    })
+
     res.status(201).json(product)
 
   } catch (err) {
@@ -456,6 +466,14 @@ export const deleteProduct = async (req, res) => {
 
     await deleteCache("products:*")
     await deleteCache("product:*")
+    await logActivity({
+      userId: req.user.id,
+      action: "ARCHIVE_PRODUCT",
+      entity: "Product",
+      entityId: id,
+      req
+    })
+
     res.json({ message: "Product disabled" })
   } catch (err) {
     console.error("❌ DELETE PRODUCT ERROR:", err)
@@ -752,6 +770,15 @@ export const updateProduct = async (req, res, next) => {
     } catch (cacheErr) {
       console.warn("⚠️ Cache invalidation warning:", cacheErr.message)
     }
+
+    await logActivity({
+      userId: req.user.id,
+      action: "UPDATE_PRODUCT",
+      entity: "Product",
+      entityId: id,
+      details: { name: result.name },
+      req
+    })
 
     res.json(result)
   } catch (err) {

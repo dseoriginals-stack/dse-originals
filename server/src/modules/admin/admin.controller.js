@@ -49,16 +49,6 @@ const updateOrderStatus = async (req, res, next) => {
   }
 }
 
-const getProducts = async (req, res, next) => {
-  try {
-    const products = await adminService.getProducts()
-    res.json(products)
-  } catch (err) {
-    logger.error("Admin products fetch failed", { error: err })
-    next(err)
-  }
-}
-
 const getUsers = async (req, res, next) => {
   try {
     const users = await adminService.getUsers()
@@ -105,9 +95,50 @@ const deleteReview = async (req, res, next) => {
   try {
     const { id } = req.params
     await adminService.deleteReview(id)
-    res.json({ success: true })
+    res.json({ message: "Review deleted" })
   } catch (err) {
     logger.error("Admin review delete failed", { error: err })
+    next(err)
+  }
+}
+
+const getNotifications = async (req, res, next) => {
+  try {
+    const notifications = await adminService.getNotifications()
+    res.json(notifications)
+  } catch (err) {
+    logger.error("Admin notifications fetch failed", { error: err })
+    next(err)
+  }
+}
+
+const markNotificationRead = async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const updated = await adminService.markNotificationRead(id)
+    res.json(updated)
+  } catch (err) {
+    logger.error("Admin notification read failed", { error: err })
+    next(err)
+  }
+}
+
+const markAllNotificationsRead = async (req, res, next) => {
+  try {
+    await adminService.markAllNotificationsRead()
+    res.json({ success: true })
+  } catch (err) {
+    logger.error("Admin notification read-all failed", { error: err })
+    next(err)
+  }
+}
+
+const getProducts = async (req, res, next) => {
+  try {
+    const products = await adminService.getProducts()
+    res.json(products)
+  } catch (err) {
+    logger.error("Admin products fetch failed", { error: err })
     next(err)
   }
 }
@@ -116,43 +147,9 @@ const deleteOrder = async (req, res, next) => {
   try {
     const { id } = req.params
     await adminService.deleteOrder(id)
-    res.json({ success: true, message: "Order deleted permanently" })
+    res.json({ message: "Order deleted" })
   } catch (err) {
     logger.error("Admin order delete failed", { error: err })
-    next(err)
-  }
-}
-
-const getNotifications = async (req, res, next) => {
-  try {
-    const { getNotifications, getUnreadCount } = await import("../../services/notification.service.js")
-    const [notifications, unreadCount] = await Promise.all([
-      getNotifications(),
-      getUnreadCount()
-    ])
-    res.json({ notifications, unreadCount })
-  } catch (err) {
-    next(err)
-  }
-}
-
-const markNotificationRead = async (req, res, next) => {
-  try {
-    const { id } = req.params
-    const { markAsRead } = await import("../../services/notification.service.js")
-    await markAsRead(id)
-    res.json({ success: true })
-  } catch (err) {
-    next(err)
-  }
-}
-
-const markAllNotificationsRead = async (req, res, next) => {
-  try {
-    const { markAllAsRead } = await import("../../services/notification.service.js")
-    await markAllAsRead()
-    res.json({ success: true })
-  } catch (err) {
     next(err)
   }
 }
@@ -160,12 +157,20 @@ const markAllNotificationsRead = async (req, res, next) => {
 const globalSearch = async (req, res, next) => {
   try {
     const { q } = req.query
-    if (!q) return res.json({ orders: [], products: [], users: [] })
-
     const results = await adminService.globalSearch(q)
     res.json(results)
   } catch (err) {
-    logger.error("Global search failed", { error: err })
+    logger.error("Admin search failed", { error: err })
+    next(err)
+  }
+}
+
+const getActivityLogs = async (req, res, next) => {
+  try {
+    const logs = await adminService.getActivityLogs()
+    res.json(logs)
+  } catch (err) {
+    logger.error("Admin activity logs fetch failed", { error: err })
     next(err)
   }
 }
@@ -175,15 +180,16 @@ export default {
   getOrders,
   getPayments,
   updateOrderStatus,
-  getProducts,
   getUsers,
   updateUserRole,
   getStories,
   getReviews,
   deleteReview,
-  deleteOrder,
   getNotifications,
   markNotificationRead,
   markAllNotificationsRead,
-  globalSearch
+  getProducts,
+  deleteOrder,
+  globalSearch,
+  getActivityLogs
 }

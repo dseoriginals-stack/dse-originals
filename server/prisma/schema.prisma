@@ -48,6 +48,7 @@ model User {
   addresses     Address[]
   donations     Donation[]
   issueReports  IssueReport[]
+  activityLogs  ActivityLog[]
 
   // ✅ REFERRALS
   // referrals     Referral[] @relation("Referrer")
@@ -626,5 +627,27 @@ model IssueReport {
 
   @@index([status])
   @@index([createdAt])
+}
+
+//////////////////////////////////////////////////////
+// ACTIVITY LOGS
+//////////////////////////////////////////////////////
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  userId    String
+  action    String   // e.g., "UPDATE_ORDER_STATUS", "DELETE_PRODUCT"
+  entity    String?  // e.g., "Order", "Product"
+  entityId  String?  
+  details   String?  // JSON string or description of changes
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([entity])
 }
 

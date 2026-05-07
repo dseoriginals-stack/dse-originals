@@ -12,6 +12,7 @@ import {
 import { createOrderEvent } from "../../services/orderEvent.service.js"
 import { createInvoice } from "../../config/xendit.js"
 import { awardOrderPoints } from "../../services/loyalty.service.js"
+import { logActivity } from "../../utils/activityLogger.js"
 import { getBaseShippingFee, calculateOrderWeight, calculateFinalShippingFee } from "../../utils/shipping.js"
 
 /* ============================
@@ -569,6 +570,15 @@ export const updateOrderStatus = async (req, res, next) => {
       }
     }
 
+    await logActivity({
+      userId: req.user.id,
+      action: "UPDATE_ORDER_STATUS",
+      entity: "Order",
+      entityId: id,
+      details: { from: order.status, to: status, trackingNo },
+      req
+    })
+
     res.json(result)
 
   } catch (err) {
@@ -637,6 +647,14 @@ export const refundOrder = async (req, res, next) => {
 
     logger.info("Order refunded", { orderId: id })
 
+    await logActivity({
+      userId: req.user.id,
+      action: "REFUND_ORDER",
+      entity: "Order",
+      entityId: id,
+      req
+    })
+
     res.json({ message: "Order refunded" })
 
   } catch (err) {
@@ -692,6 +710,14 @@ export const cancelOrder = async (req, res, next) => {
     })
 
     await createOrderEvent(id, "cancelled", `Order cancelled by ${userRole} ${userId}`)
+
+    await logActivity({
+      userId: req.user.id,
+      action: "CANCEL_ORDER",
+      entity: "Order",
+      entityId: id,
+      req
+    })
 
     res.json({ message: "Order cancelled" })
 
