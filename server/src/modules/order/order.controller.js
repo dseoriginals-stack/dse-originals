@@ -3,7 +3,13 @@ import xendit from "../../config/xendit.js"
 import PDFDocument from "pdfkit"
 import logger from "../../config/logger.js"
 import { canTransition } from "../../utils/orderState.js"
-import { sendShippedEmail, sendDeliveredEmail, sendReadyForPickupEmail } from "../../services/email.service.js"
+import { 
+  sendShippedEmail, 
+  sendDeliveredEmail, 
+  sendReadyForPickupEmail,
+  sendOrderPlacedEmail,
+  sendOrderCanceledEmail 
+} from "../../services/email.service.js"
 import {
   reserveStock,
   reserveStockBatch,
@@ -389,6 +395,16 @@ export const createOrder = async (req, res, next) => {
       }
     })
 
+    // Send Initial Order Confirmation Email
+    const toEmail = req.user?.email || guestEmail
+    if (toEmail) {
+      try {
+        await sendOrderPlacedEmail(toEmail, order)
+      } catch (err) {
+        logger.error("Failed to send order placed email", { orderId: order.id, error: err.message })
+      }
+    }
+
     return res.json({
       orderId: order.id,
       invoiceUrl: invoice.invoiceUrl || invoice.invoice_url
@@ -599,6 +615,17 @@ export const updateOrderStatus = async (req, res, next) => {
       }
     }
 
+    if (status === "cancelled") {
+      const fullOrder = await prisma.order.findUnique({
+        where: { id },
+        include: { items: true, user: true }
+      })
+      const toEmail = fullOrder.user?.email || fullOrder.guestEmail
+      if (toEmail) {
+        await sendOrderCanceledEmail(toEmail, fullOrder)
+      }
+    }
+
     await logActivity({
       userId: req.user.id,
       action: "UPDATE_ORDER_STATUS",
@@ -747,6 +774,15 @@ export const cancelOrder = async (req, res, next) => {
       entityId: id,
       req
     })
+
+    const toEmail = order.user?.email || order.guestEmail
+    if (toEmail) {
+      try {
+        await sendOrderCanceledEmail(toEmail, order)
+      } catch (err) {
+        logger.error("Failed to send cancellation email", { orderId: id, error: err.message })
+      }
+    }
 
     res.json({ message: "Order cancelled" })
 

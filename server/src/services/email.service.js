@@ -99,6 +99,43 @@ const button = (label, url) => `
 
 /*
 -----------------------------------
+ORDER PLACED EMAIL (INITIAL)
+-----------------------------------
+*/
+
+export const sendOrderPlacedEmail = async (to, order) => {
+  const content = `
+    <div style="text-align: center; margin-bottom: 30px;">
+      <div style="font-size: 50px; margin-bottom: 10px;">✨</div>
+      <h2 style="margin: 0; font-size: 24px; color: #1e293b; font-weight: 800;">Order Received</h2>
+      <p style="color: #64748b; font-size: 14px; margin-top: 5px;">We've received your order and it's being processed.</p>
+    </div>
+
+    <div style="background: #f8fafc; border-radius: 12px; padding: 25px; border: 1px solid #e2e8f0; margin-bottom: 30px;">
+       <p style="color: #1e293b; font-size: 16px; font-weight: 700; margin: 0;">Order #${order.id.slice(-6).toUpperCase()}</p>
+       <p style="color: #64748b; font-size: 14px; margin-top: 5px;">Status: ${order.status.toUpperCase()}</p>
+    </div>
+
+    <div style="margin-bottom: 30px;">
+      <h3 style="font-size: 14px; color: #1e293b; margin-bottom: 15px;">Summary of Items</h3>
+      ${renderItems(order.items || [])}
+    </div>
+
+    <div style="text-align: center;">
+       <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">You'll receive another email once your payment is confirmed or when your order ships.</p>
+       ${button("View Order Details", `${process.env.CLIENT_URL}/orders/${order.id}`)}
+    </div>
+  `
+
+  await sendEmail({
+    to,
+    subject: `Order Received: #${order.id.slice(-6).toUpperCase()}`,
+    html: baseTemplate(content)
+  })
+}
+
+/*
+-----------------------------------
 ORDER PAID EMAIL
 -----------------------------------
 */
@@ -346,6 +383,45 @@ export const sendReviewRequestEmail = async (to, order, unreviewedItems) => {
   await sendEmail({
     to,
     subject: "How was your recent purchase? ⭐",
+    html: baseTemplate(content)
+  })
+}
+
+/*
+-----------------------------------
+ORDER CANCELED EMAIL
+-----------------------------------
+*/
+
+export const sendOrderCanceledEmail = async (to, order) => {
+  const content = `
+    <div style="text-align: center; margin-bottom: 30px;">
+      <div style="font-size: 50px; margin-bottom: 10px;">🛑</div>
+      <h2 style="margin: 0; font-size: 24px; color: #1e293b; font-weight: 800;">Order Canceled</h2>
+      <p style="color: #64748b; font-size: 14px; margin-top: 5px;">Your order #${order.id.slice(-6).toUpperCase()} has been canceled.</p>
+    </div>
+
+    <div style="background: #fef2f2; border-radius: 12px; padding: 25px; border: 1px solid #fee2e2; margin-bottom: 30px; text-align: center;">
+       <p style="color: #991b1b; font-size: 16px; font-weight: 700; margin: 0;">We've processed the cancellation for your request.</p>
+    </div>
+
+    <div style="margin-bottom: 30px;">
+      <h3 style="font-size: 14px; color: #1e293b; margin-bottom: 15px;">Summary of Items</h3>
+      ${renderItems(order.items || [])}
+    </div>
+
+    <p style="text-align: center; font-size: 13px; color: #64748b; margin-top: 30px;">
+      If this was a mistake or you have questions about your refund (if applicable), please contact our support team.
+    </p>
+
+    <div style="text-align: center;">
+       ${button("Return to Shop", `${process.env.CLIENT_URL}/products`)}
+    </div>
+  `
+
+  await sendEmail({
+    to,
+    subject: `Order Canceled: #${order.id.slice(-6).toUpperCase()}`,
     html: baseTemplate(content)
   })
 }

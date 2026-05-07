@@ -95,7 +95,8 @@ const getPayments = async () => {
 import { 
   sendShippedEmail, 
   sendDeliveredEmail, 
-  sendReadyForPickupEmail 
+  sendReadyForPickupEmail,
+  sendOrderCanceledEmail
 } from "../../services/email.service.js"
 
 const updateOrderStatus = async (orderId, status, trackingNo) => {
@@ -126,6 +127,8 @@ const updateOrderStatus = async (orderId, status, trackingNo) => {
       } else if (status === "shipped" && updated.deliveryMethod === "pickup") {
         // Shipped for pickup means ready for pickup
         await sendReadyForPickupEmail(email, updated)
+      } else if (status === "cancelled") {
+        await sendOrderCanceledEmail(email, updated)
       }
     } catch (err) {
       console.error(`Failed to send status update email to ${email}:`, err)
