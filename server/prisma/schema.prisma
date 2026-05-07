@@ -269,6 +269,9 @@ model Order {
   deliveryMethod  String
   pickupTime     DateTime?
 
+  voucherCode    String?
+  voucherDiscount Decimal   @default(0) @db.Decimal(10, 2)
+
   paymentId      String?     @unique
   clientOrderId  String?     @unique
   paymentMethod  String?     // cash, online
@@ -673,4 +676,23 @@ model ProductQuestion {
 
   @@index([productId])
   @@index([userId])
+}
+
+//////////////////////////////////////////////////////
+// VOUCHERS
+//////////////////////////////////////////////////////
+
+model Voucher {
+  id         String    @id @default(uuid())
+  code       String    @unique
+  discount   Decimal   @db.Decimal(10, 2) // Percentage or fixed amount
+  minSpend   Decimal   @default(0) @db.Decimal(10, 2)
+  isActive   Boolean   @default(true)
+  usageLimit Int?
+  usedCount  Int       @default(0)
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([code])
 }

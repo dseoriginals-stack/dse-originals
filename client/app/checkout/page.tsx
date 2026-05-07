@@ -58,6 +58,12 @@ export default function CheckoutPage() {
   const [savedAddresses, setSavedAddresses] = useState<any[]>([])
   const [showAddressBook, setShowAddressBook] = useState(false)
 
+  // VOUCHER STATE
+  const [voucherCode, setVoucherCode] = useState("")
+  const [appliedVoucher, setAppliedVoucher] = useState<{ code: string, discount: number, minSpend: number } | null>(null)
+  const [voucherError, setVoucherError] = useState<string | null>(null)
+  const [validatingVoucher, setValidatingVoucher] = useState(false)
+
   // Scroll to top on step change
   useEffect(() => {
     // SCROLL TO TOP ON STEP CHANGE
@@ -130,7 +136,14 @@ export default function CheckoutPage() {
   const pointsDiscount = usePoints ? Math.min(userPoints, subtotal) : 0
   const pointsEarned = Math.floor(subtotal / 100)
   
-  const total = subtotal + shippingFee - pointsDiscount
+  // Voucher Logic
+  let voucherDiscount = appliedVoucher ? appliedVoucher.discount : 0
+  if (voucherDiscount > (subtotal - pointsDiscount)) {
+    voucherDiscount = subtotal - pointsDiscount
+  }
+  
+  let total = subtotal + shippingFee - pointsDiscount - voucherDiscount
+  if (total < 0) total = 0
 
   const isDetailsValid = !!(
     form.name && 
@@ -170,6 +183,40 @@ export default function CheckoutPage() {
     setStep(3)
   }
 
+  /* ============================ VOUCHER ============================ */
+
+  const handleApplyVoucher = async () => {
+    if (!voucherCode.trim()) return
+    setValidatingVoucher(true)
+    setVoucherError(null)
+
+    try {
+      const res = await api.post("/vouchers/validate", {
+        code: voucherCode,
+        subtotal: subtotal
+      })
+      
+      if (res.success) {
+        setAppliedVoucher(res.voucher)
+        toast.success("Voucher applied successfully!")
+      } else {
+        setVoucherError(res.message || "Invalid voucher")
+        setAppliedVoucher(null)
+      }
+    } catch (err: any) {
+      setVoucherError(err.response?.data?.message || err.message || "Failed to validate voucher")
+      setAppliedVoucher(null)
+    } finally {
+      setValidatingVoucher(false)
+    }
+  }
+
+  const handleRemoveVoucher = () => {
+    setAppliedVoucher(null)
+    setVoucherCode("")
+    setVoucherError(null)
+  }
+
   /* ============================ SUBMIT ============================ */
 
   const handlePlaceOrder = async () => {
@@ -190,6 +237,7 @@ export default function CheckoutPage() {
         deliveryMethod: delivery,
         shippingFee,
         pointsToUse: usePoints ? Math.floor(pointsDiscount) : 0,
+        voucherCode: appliedVoucher ? appliedVoucher.code : undefined,
         guestName: form.name,
         guestEmail: form.email,
         clientOrderId,
@@ -536,6 +584,12 @@ export default function CheckoutPage() {
                     <span className="text-[var(--text-muted)]">Subtotal</span>
                     <span>₱{subtotal.toLocaleString()}</span>
                   </div>
+                  {appliedVoucher && (
+                    <div className="flex justify-between text-emerald-600">
+                      <span className="text-[var(--text-muted)]">Promo ({appliedVoucher.code})</span>
+                      <span>-₱{appliedVoucher.discount.toLocaleString()}</span>
+                    </div>
+                  )}
                   {usePoints && (
                     <div className="flex justify-between text-emerald-600">
                       <span className="text-[var(--text-muted)]">Points Discount</span>
@@ -595,11 +649,55 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
-              <div className="border-t border-[var(--border-light)] mt-3 pt-4 space-y-2 text-sm font-semibold text-[var(--text-main)]">
+              <div className="border-t border-[var(--border-light)] mt-3 pt-4">
+                {/* VOUCHER INPUT SECTION */}
+                <div className="mb-4">
+                  {!appliedVoucher ? (
+                    <div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Promo Code"
+                          value={voucherCode}
+                          onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                          className="flex-1 bg-white border border-[var(--border-light)] rounded-xl px-3 py-2 text-xs font-bold focus:border-[var(--brand-primary)] outline-none uppercase"
+                        />
+                        <button
+                          onClick={handleApplyVoucher}
+                          disabled={validatingVoucher || !voucherCode.trim()}
+                          className="btn-premium !py-2 !px-4 !rounded-xl !text-[10px] disabled:opacity-50"
+                        >
+                          {validatingVoucher ? "..." : "Apply"}
+                        </button>
+                      </div>
+                      {voucherError && (
+                        <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{voucherError}</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-emerald-600 text-xs font-black uppercase tracking-wider">{appliedVoucher.code}</span>
+                        <span className="text-emerald-700 text-[10px] font-bold bg-emerald-200/50 px-2 py-0.5 rounded-full">-₱{appliedVoucher.discount.toLocaleString()}</span>
+                      </div>
+                      <button onClick={handleRemoveVoucher} className="text-emerald-600 hover:text-emerald-800 text-[10px] font-bold underline">
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2 text-sm font-semibold text-[var(--text-main)]">
                 <div className="flex justify-between">
                   <span className="text-[var(--text-muted)]">Subtotal</span>
                   <span>₱{subtotal.toLocaleString()}</span>
                 </div>
+                {appliedVoucher && (
+                  <div className="flex justify-between text-emerald-600">
+                    <span className="text-[var(--text-muted)]">Promo ({appliedVoucher.code})</span>
+                    <span>-₱{appliedVoucher.discount.toLocaleString()}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-[var(--text-muted)]">Shipping</span>
                   <span className={shippingFee === 0 && step === 3 ? "text-emerald-600 font-bold" : "text-[var(--text-muted)]"}>

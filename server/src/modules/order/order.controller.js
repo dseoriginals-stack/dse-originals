@@ -108,7 +108,8 @@ export const createOrder = async (req, res, next) => {
       deliveryMethod = "delivery",
       shippingFee = 0,
       pointsToUse = 0,
-      clientOrderId
+      clientOrderId,
+      voucherCode
     } = req.body
 
     const userId = req.user?.id || null
@@ -236,7 +237,33 @@ export const createOrder = async (req, res, next) => {
         finalShippingFee = calculateFinalShippingFee(baseFee, totalWeight)
       }
 
-      const totalAmount = subtotal + finalShippingFee - pointsDiscount
+      // --- VOUCHER LOGIC ---
+      let voucherDiscount = 0
+      if (voucherCode) {
+        const voucher = await tx.voucher.findUnique({ where: { code: voucherCode.toUpperCase() } })
+        if (!voucher) throw new Error("Invalid voucher code")
+        if (!voucher.isActive) throw new Error("Voucher is no longer active")
+        if (voucher.expiresAt && new Date(voucher.expiresAt) < new Date()) throw new Error("Voucher has expired")
+        if (voucher.usageLimit && voucher.usedCount >= voucher.usageLimit) throw new Error("Voucher usage limit reached")
+        if (subtotal < Number(voucher.minSpend)) throw new Error(`Minimum spend of ₱${Number(voucher.minSpend)} required for this voucher`)
+        
+        voucherDiscount = Number(voucher.discount)
+        
+        // Ensure discount doesn't exceed the subtotal minus points discount
+        const remainingSubtotal = subtotal - pointsDiscount
+        if (voucherDiscount > remainingSubtotal) {
+          voucherDiscount = remainingSubtotal
+        }
+
+        // Increment usage
+        await tx.voucher.update({
+          where: { id: voucher.id },
+          data: { usedCount: { increment: 1 } }
+        })
+      }
+
+      let totalAmount = subtotal + finalShippingFee - pointsDiscount - voucherDiscount
+      if (totalAmount < 0) totalAmount = 0
 
       return tx.order.create({
         data: {
@@ -247,6 +274,8 @@ export const createOrder = async (req, res, next) => {
           shippingFee: finalShippingFee,
           pointsUsed: userId ? Math.floor(pointsDiscount) : 0,
           pointsDiscount: pointsDiscount,
+          voucherCode: voucherCode ? voucherCode.toUpperCase() : null,
+          voucherDiscount: voucherDiscount,
           deliveryMethod,
           clientOrderId,
           status: "initialized",
