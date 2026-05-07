@@ -100,8 +100,9 @@ export function CartProvider({
 
   const animationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const storageDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
-  // Track which userId we've already initialized for — prevents double-merge
+  // Track which IDs we've already initialized for — prevents double-merge
   const initializedUserId = useRef<string | null | undefined>(undefined)
+  const initializedGuestId = useRef<string | null>(null)
 
   const setCartItems = useCallback((items: CartItem[]) => {
     setCart(items)
@@ -133,23 +134,21 @@ export function CartProvider({
 
   /* =========================
      CART LOAD + MERGE (AUTHORITATIVE)
-
-     This single effect handles ALL cart initialization:
-     - Logged-in user → fetch from server
-     - Guest → load from localStorage
-     - Login event → clear state first, then optionally merge guest cart
-
-     Key rule: we track `initializedUserId` so we only merge once
-     per distinct login event. If the same user is already loaded,
-     we skip.
   ========================= */
 
   useEffect(() => {
     const currentUserId = user?.id || null
     const previousUserId = initializedUserId.current
+    const previousGuestId = initializedGuestId.current
 
-    if (previousUserId !== undefined && previousUserId === currentUserId) return
+    // If same user AND same guest, skip
+    if (previousUserId !== undefined && previousUserId === currentUserId && previousGuestId === guestId) return
+    
+    // If guest mode and no guestId yet, wait
+    if (!currentUserId && !guestId) return
+
     initializedUserId.current = currentUserId
+    initializedGuestId.current = guestId
 
     if (currentUserId) {
       // LOGGED-IN: fetch server cart & merge
