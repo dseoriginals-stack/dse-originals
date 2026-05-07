@@ -108,3 +108,43 @@ export const getVouchers = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" })
   }
 }
+
+/**
+ * Toggle voucher active status
+ * PUT /api/vouchers/:id/toggle
+ * Admin only
+ */
+export const toggleVoucherStatus = async (req, res) => {
+  try {
+    const { id } = req.params
+    const voucher = await prisma.voucher.findUnique({ where: { id } })
+    
+    if (!voucher) return res.status(404).json({ success: false, message: "Voucher not found" })
+
+    const updated = await prisma.voucher.update({
+      where: { id },
+      data: { isActive: !voucher.isActive }
+    })
+
+    res.json({ success: true, voucher: updated })
+  } catch (error) {
+    console.error("❌ Toggle Voucher Error:", error)
+    res.status(500).json({ success: false, message: "Internal server error" })
+  }
+}
+
+/**
+ * Delete a voucher
+ * DELETE /api/vouchers/:id
+ * Admin only
+ */
+export const deleteVoucher = async (req, res) => {
+  try {
+    const { id } = req.params
+    await prisma.voucher.delete({ where: { id } })
+    res.json({ success: true })
+  } catch (error) {
+    console.error("❌ Delete Voucher Error:", error)
+    res.status(500).json({ success: false, message: "Internal server error" })
+  }
+}
