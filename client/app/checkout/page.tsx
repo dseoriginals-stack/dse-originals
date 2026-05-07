@@ -56,8 +56,14 @@ export default function CheckoutPage() {
 
   // Scroll to top on step change
   useEffect(() => {
+    // SCROLL TO TOP ON STEP CHANGE
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [step])
+
+    // EMPTY CART GUARD: Redirect home if cart is empty
+    if (!loading && cartItems.length === 0) {
+      router.push("/")
+    }
+  }, [step, cartItems, loading, router])
 
   useEffect(() => {
     if (!authLoading) {
