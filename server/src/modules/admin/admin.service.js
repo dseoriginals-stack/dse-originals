@@ -5,7 +5,7 @@ const getAdminStats = async () => {
   const users = await prisma.user.count()
   const ordersCount = await prisma.order.count({
     where: {
-      status: { notIn: ['cancelled', 'rejected'] }
+      status: { notIn: ['cancelled'] }
     }
   })
   const productsCount = await prisma.product.count()

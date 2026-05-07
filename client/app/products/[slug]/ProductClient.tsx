@@ -608,9 +608,14 @@ export default function ProductClient({ initialProduct }: { initialProduct: Prod
               {added && <Check size={24} />}
               {adding ? "Preparing Order..." : added ? "Successfully Added" : "Buy Now"}
             </button>
+            <button
+              onClick={handleShare}
+              className="w-12 h-12 flex items-center justify-center rounded-xl border-2 border-[var(--border-light)] text-[var(--text-muted)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] transition-all active:scale-90 shadow-sm"
+              title="Share Product"
+            >
+              <Share2 size={20} />
+            </button>
           </div>
-
-          {/* SOCIAL SHARE REMOVED */}
         </div>
       </div>
 
