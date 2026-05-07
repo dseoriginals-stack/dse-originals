@@ -30,15 +30,23 @@ export async function generateMetadata(
     
     if (primaryImage) {
       imageUrl = getImageUrl(primaryImage)
-      // If it's a relative path, prepend the main domain
-      if (imageUrl.startsWith('/')) {
+      
+      // ✅ Force absolute URL using the main domain for social media
+      // This solves issues where crawlers might be blocked from the API subdomain
+      if (imageUrl.startsWith('http')) {
+        imageUrl = imageUrl.replace('https://api.dseoriginals.com', 'https://www.dseoriginals.com')
+      } else if (imageUrl.startsWith('/')) {
         imageUrl = `https://www.dseoriginals.com${imageUrl}`
       }
-      // If it's a Cloudinary URL, we can force a social-friendly transformation
-      if (imageUrl.includes('cloudinary.com') && !imageUrl.includes('/upload/')) {
-         // Handle cases where /upload/ might be missing or structured differently
-      } else if (imageUrl.includes('cloudinary.com')) {
-         imageUrl = imageUrl.replace('/upload/', '/upload/w_1200,h_630,c_fill,g_auto,f_jpg/')
+
+      // ✅ High-quality Cloudinary transformation
+      if (imageUrl.includes('cloudinary.com')) {
+        if (imageUrl.includes('/upload/')) {
+          imageUrl = imageUrl.replace('/upload/', '/upload/w_1200,h_630,c_fill,g_auto,f_jpg/')
+        } else {
+          // Fallback if /upload/ is missing for some reason
+          imageUrl += '?w=1200&h=630&c=fill'
+        }
       }
     } else {
       // Fallback to a branded social share image if the product has no images
