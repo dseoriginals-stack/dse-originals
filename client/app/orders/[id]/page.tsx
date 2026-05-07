@@ -262,22 +262,22 @@ export default function OrderPage() {
 
             <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
               <div className="flex-1 space-y-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-400 text-black text-[10px] font-black uppercase tracking-widest rounded-full">
-                  <Star size={12} fill="currentColor" /> Limited Offer
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 text-white text-[10px] font-black uppercase tracking-widest rounded-full">
+                  Create Account
                 </div>
                 <h2 className="text-3xl font-black leading-tight tracking-tight">
-                  Claim your <span className="text-amber-400">50 Lucky Points</span> Rewards!
+                  Save your order <span className="text-blue-400">to your account</span>
                 </h2>
                 <p className="text-slate-400 font-medium">
-                  You just earned points for this order. Set a password now to create your account and unlock your lifetime rewards.
+                  Set a password now to save your order history and unlock easier tracking for future purchases.
                 </p>
                 
                 <div className="flex items-center gap-4 text-sm text-slate-400">
                   <div className="flex items-center gap-1.5">
-                    <CheckCircle2 size={16} className="text-emerald-400" /> Save Order History
+                    <CheckCircle2 size={16} className="text-blue-400" /> Lifetime History
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <CheckCircle2 size={16} className="text-emerald-400" /> Priority Support
+                    <CheckCircle2 size={16} className="text-blue-400" /> Priority Tracking
                   </div>
                 </div>
               </div>
@@ -311,7 +311,7 @@ export default function OrderPage() {
                     setConverting(true)
                     try {
                       await api.post("/auth/convert-guest", { orderId: order.id, password })
-                      toast.success("Account created! 50 Lucky Points added.")
+                      toast.success("Account created successfully!")
                       setConverted(true)
                       await refreshAuth()
                     } catch (err: any) {
@@ -321,10 +321,10 @@ export default function OrderPage() {
                     }
                   }}
                   disabled={converting}
-                  className="w-full h-14 bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-black font-black uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 transition shadow-xl"
+                  className="w-full h-14 bg-white text-black font-black uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 transition shadow-xl"
                 >
                   <UserPlus size={18} />
-                  {converting ? "Processing..." : "Claim My Rewards"}
+                  {converting ? "Processing..." : "Create My Account"}
                 </button>
 
                 <p className="text-[10px] text-center text-slate-500 font-medium">
@@ -339,14 +339,14 @@ export default function OrderPage() {
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="mt-12 bg-emerald-50 border-2 border-emerald-100 rounded-3xl p-8 text-center"
+            className="mt-12 bg-slate-50 border-2 border-slate-100 rounded-3xl p-8 text-center"
           >
-            <div className="w-16 h-16 bg-emerald-500 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-200">
-              <Star size={32} fill="currentColor" />
+            <div className="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <CheckCircle2 size={32} />
             </div>
-            <h3 className="text-2xl font-black text-emerald-900 tracking-tight">Welcome to the Community!</h3>
-            <p className="text-emerald-700 font-medium mt-2">Your account is active and your Lucky Points are safe. Welcome home!</p>
-            <Link href="/account" className="mt-6 inline-flex h-12 px-8 bg-emerald-600 text-white font-black uppercase tracking-widest rounded-xl items-center hover:bg-emerald-700 transition">
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">Account Created!</h3>
+            <p className="text-slate-600 font-medium mt-2">Your order history is now saved to your new account.</p>
+            <Link href="/account" className="mt-6 inline-flex h-12 px-8 bg-slate-900 text-white font-black uppercase tracking-widest rounded-xl items-center hover:opacity-90 transition">
               View My Profile
             </Link>
           </motion.div>

@@ -186,8 +186,7 @@ router.post("/convert-guest", async (req, res) => {
         password: hashedPassword,
         name: order.guestName || "Customer",
         phone: order.guestPhone,
-        role: "customer",
-        luckyPoints: 50 // Bonus for converting!
+        role: "customer"
       }
     })
 
