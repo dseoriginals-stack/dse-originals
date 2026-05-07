@@ -112,6 +112,27 @@ const sendRecoveryEmails = async (req, res, next) => {
   }
 }
 
+const getReviewRequests = async (req, res, next) => {
+  try {
+    const requests = await adminService.getReviewRequests()
+    res.json(requests)
+  } catch (err) {
+    logger.error("Admin review requests fetch failed", { error: err })
+    next(err)
+  }
+}
+
+const sendReviewRequests = async (req, res, next) => {
+  try {
+    const { orderIds } = req.body
+    const result = await adminService.sendReviewRequests(orderIds)
+    res.json(result)
+  } catch (err) {
+    logger.error("Admin send review requests failed", { error: err })
+    next(err)
+  }
+}
+
 const getReviews = async (req, res, next) => {
   try {
     const reviews = await adminService.getReviews()
@@ -213,6 +234,8 @@ export default {
   getQuestions,
   getAbandonedCarts,
   sendRecoveryEmails,
+  getReviewRequests,
+  sendReviewRequests,
   updateOrderStatus,
   getUsers,
   updateUserRole,

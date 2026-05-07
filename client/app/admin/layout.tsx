@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic"
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, BarChart3, Package, ShoppingCart, CreditCard, Users, LogOut, MessageSquare, BookOpen, Bell, Menu, X, Globe, AlertTriangle, History, Tag, HelpCircle } from "lucide-react"
+import { LayoutDashboard, BarChart3, Package, ShoppingCart, CreditCard, Users, LogOut, MessageSquare, BookOpen, Bell, Menu, X, Globe, AlertTriangle, History, Tag, HelpCircle, Star } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 import { useEffect, useState } from "react"
 import NotificationPanel from "@/components/admin/NotificationPanel"
@@ -21,6 +21,7 @@ const nav = [
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Stories", href: "/admin/stories", icon: BookOpen },
   { name: "Reviews", href: "/admin/reviews", icon: MessageSquare },
+  { name: "Review Requests", href: "/admin/review-requests", icon: Star },
   { name: "Q&A", href: "/admin/qa", icon: HelpCircle },
   { name: "Issues", href: "/admin/issues", icon: AlertTriangle },
   { name: "Activity Logs", href: "/admin/activity", icon: History },

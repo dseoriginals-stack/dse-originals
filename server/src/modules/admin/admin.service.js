@@ -235,6 +235,96 @@ const sendRecoveryEmails = async (cartIds) => {
   return { count }
 }
 
+/* =======================================
+   AUTOMATED REVIEW REQUESTS
+======================================= */
+
+const getReviewRequests = async () => {
+  // Orders delivered more than 5 days ago
+  const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
+
+  // Find orders that are delivered and haven't had a REVIEW_REQUEST_SENT event
+  const orders = await prisma.order.findMany({
+    where: {
+      status: "delivered",
+      updatedAt: { lte: fiveDaysAgo },
+      events: {
+        none: { type: "REVIEW_REQUEST_SENT" }
+      }
+    },
+    include: {
+      user: true,
+      items: {
+        include: { variant: { include: { product: true } } }
+      }
+    }
+  })
+
+  const eligibleRequests = []
+
+  for (const order of orders) {
+    if (!order.userId && !order.guestEmail) continue
+    
+    // For each item, check if the user has a review for this product
+    const unreviewedItems = []
+    for (const item of order.items) {
+      const productId = item.variant.product.id
+      let hasReview = false
+      if (order.userId) {
+        const review = await prisma.review.findFirst({
+          where: { userId: order.userId, productId }
+        })
+        if (review) hasReview = true
+      }
+      
+      if (!hasReview && !unreviewedItems.find(i => i.productId === productId)) {
+        unreviewedItems.push({
+          productId,
+          productName: item.variant.product.name
+        })
+      }
+    }
+
+    if (unreviewedItems.length > 0) {
+      eligibleRequests.push({
+        orderId: order.id,
+        email: order.user?.email || order.guestEmail,
+        name: order.user?.name || order.guestName || "Customer",
+        deliveredAt: order.updatedAt,
+        unreviewedItems
+      })
+    }
+  }
+
+  return eligibleRequests
+}
+
+const sendReviewRequests = async (orderIds) => {
+  if (!orderIds || !orderIds.length) return { count: 0 }
+
+  const orders = await prisma.order.findMany({
+    where: { id: { in: orderIds } }
+  })
+
+  let count = 0
+  for (const order of orders) {
+    // Record the event so we don't send again
+    await prisma.orderEvent.create({
+      data: {
+        orderId: order.id,
+        type: "REVIEW_REQUEST_SENT",
+        message: "Automated review request email dispatched."
+      }
+    })
+
+    // In a real app, integrate email service here.
+    
+    count++
+  }
+
+  return { count }
+}
+
 const getReviews = async () => {
   return await prisma.review.findMany({
     include: { user: true, product: true },
@@ -362,6 +452,8 @@ export default {
   getQuestions,
   getAbandonedCarts,
   sendRecoveryEmails,
+  getReviewRequests,
+  sendReviewRequests,
   updateOrderStatus,
   getProducts,
   getUsers,

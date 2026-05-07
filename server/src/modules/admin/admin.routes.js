@@ -19,6 +19,8 @@ router.get("/products", authorize("admin", "staff"), adminController.getProducts
 router.get("/questions", authorize("admin", "staff"), adminController.getQuestions)
 router.get("/abandoned-carts", authorize("admin", "staff"), adminController.getAbandonedCarts)
 router.post("/abandoned-carts/send", authorize("admin", "staff"), adminController.sendRecoveryEmails)
+router.get("/review-requests", authorize("admin", "staff"), adminController.getReviewRequests)
+router.post("/review-requests/send", authorize("admin", "staff"), adminController.sendReviewRequests)
 router.patch("/orders/:id/status", authorize("admin", "staff"), adminController.updateOrderStatus)
 
 // Sensitive Routes (Admin Only)
