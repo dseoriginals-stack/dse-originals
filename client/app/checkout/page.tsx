@@ -322,8 +322,8 @@ export default function CheckoutPage() {
               <Card title={delivery === "delivery" ? "2. Shipping Details" : "2. Contact & Pickup Info"}>
                 {error && <ErrorBox message={error} />}
 
-                {/* ADDRESS BOOK SELECTOR */}
-                {user && savedAddresses.length > 0 && (
+                {/* ADDRESS BOOK SELECTOR (Delivery Only) */}
+                {delivery === "delivery" && user && savedAddresses.length > 0 && (
                   <div className="mb-6">
                     <button 
                       onClick={() => setShowAddressBook(!showAddressBook)}

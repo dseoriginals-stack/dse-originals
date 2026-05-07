@@ -347,3 +347,16 @@ h6 {
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
 }
+
+/* =========================
+   ANIMATIONS
+========================= */
+
+@keyframes infinite-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-infinite-scroll {
+  animation: infinite-scroll 40s linear infinite;
+}

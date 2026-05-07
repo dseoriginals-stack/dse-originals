@@ -139,60 +139,92 @@ export default function ProductCard({
     <Link
       href={`/products/${product.slug}`}
       className="group block h-full"
+  // SECONDARY IMAGE FOR HOVER HOOK
+  const secondaryImage = product.variants?.find(v => v.image && v.image !== activeVariant?.image)?.image 
+    || product.image 
+    || "/placeholder.png"
+  const secondaryImageUrl = getImageUrl(secondaryImage)
+
+  return (
+    <motion.div
+      whileHover={{ y: -8 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      className="h-full"
     >
-      <div className="h-full flex flex-col relative overflow-hidden rounded-2xl md:rounded-3xl bg-white/60 backdrop-blur-md transition-all duration-300 group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
+      <Link
+        href={`/products/${product.slug}`}
+        className="group block h-full"
+      >
+        <div className="h-full flex flex-col relative overflow-hidden rounded-2xl md:rounded-[2rem] bg-white border border-gray-100 transition-all duration-500 group-hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)]">
 
-        {/* BADGE: BEST SELLER */}
-        {product.isBestseller && (
-          <div className="absolute top-4 left-4 z-10 text-[10px] tracking-[0.2em] font-black bg-[var(--brand-primary)] text-white px-3 py-1.5 rounded-full shadow-md uppercase">
-            BEST SELLER
+          {/* BADGES */}
+          <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+            {product.isBestseller && (
+              <div className="text-[9px] tracking-[0.2em] font-black bg-[var(--brand-primary)] text-white px-3 py-1.5 rounded-lg shadow-lg uppercase">
+                BEST SELLER
+              </div>
+            )}
+            {(product.isPopular || ["Heaven's Embrace", "Incensum", "Sacred Serenity", "Eterna Lume"].includes(product.name)) && !product.isBestseller && (
+              <div className="text-[9px] tracking-[0.2em] font-black bg-[var(--brand-accent)] text-white px-3 py-1.5 rounded-lg shadow-lg uppercase">
+                POPULAR
+              </div>
+            )}
           </div>
-        )}
 
-        {/* BADGE: POPULAR */}
-        {(product.isPopular || ["Heaven's Embrace", "Incensum", "Sacred Serenity", "Eterna Lume"].includes(product.name)) && !product.isBestseller && (
-          <div className="absolute top-4 left-4 z-10 text-[10px] tracking-[0.2em] font-black bg-[var(--brand-accent)] text-white px-3 py-1.5 rounded-full shadow-md uppercase">
-            POPULAR
+          {/* WISHLIST */}
+          <button
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              toggleWishlist(product.id)
+            }}
+            className={`absolute top-4 right-4 z-10 rounded-xl p-2.5 backdrop-blur-md transition-all duration-300 shadow-md border group/heart ${isWishlisted
+              ? 'bg-[var(--brand-primary)] border-transparent text-white'
+              : 'bg-white/80 border-gray-100 text-[var(--brand-primary)] hover:bg-[var(--brand-accent)] hover:text-white'
+              }`}
+          >
+            <motion.div whileTap={{ scale: 1.4 }}>
+              <Heart size={16} fill={isWishlisted ? "currentColor" : "none"} />
+            </motion.div>
+          </button>
+
+          {/* IMAGE SECTION WITH HOVER SWAP */}
+          <div className="relative aspect-[4/5] w-full overflow-hidden bg-gray-50">
+            {/* Main Image */}
+            <Image
+              src={imageUrl}
+              alt={product.name}
+              fill
+              priority={priority}
+              placeholder="blur"
+              blurDataURL={getCloudinaryBlurUrl(imageUrl)}
+              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+              className="object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:opacity-0"
+            />
+            
+            {/* Hover Image (Ghost Hook) */}
+            <Image
+              src={secondaryImageUrl}
+              alt={product.name}
+              fill
+              className="object-cover transition-all duration-700 ease-out scale-110 opacity-0 group-hover:opacity-100 group-hover:scale-100"
+            />
+
+            {/* QUICK ADD OVERLAY */}
+            <div className="absolute inset-x-0 bottom-0 p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out hidden md:block z-20">
+              <button 
+                onClick={handleAdd} 
+                disabled={loading} 
+                className="w-full bg-[var(--brand-primary)] text-white py-3.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl hover:bg-[#1B3B60] transition-colors flex items-center justify-center gap-2"
+              >
+                {added ? <Check size={14} /> : <ShoppingBag size={14} />}
+                {added ? "ADDED" : loading ? "ADDING..." : "QUICK ADD"}
+              </button>
+            </div>
+            
+            {/* SOFT VIGNETTE */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           </div>
-        )}
-
-        {/* WISHLIST */}
-        <button
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            toggleWishlist(product.id)
-          }}
-          className={`absolute top-4 right-4 z-10 rounded-full p-2 backdrop-blur-md transition-all duration-300 shadow-md border group/heart ${isWishlisted
-            ? 'bg-[var(--brand-primary)] border-transparent text-white'
-            : 'bg-white/60 border-[var(--border-light)] text-[var(--brand-primary)] hover:bg-[var(--brand-accent)] hover:text-white'
-            }`}
-        >
-          <motion.div whileTap={{ scale: 1.5 }}>
-            <Heart size={16} fill={isWishlisted ? "currentColor" : "none"} />
-          </motion.div>
-        </button>
-
-        {/* IMAGE */}
-        <div className="relative aspect-[4/5] w-full overflow-hidden">
-          <Image
-            src={imageUrl}
-            alt={product.name}
-            fill
-            priority={priority}
-            placeholder="blur"
-            blurDataURL={getCloudinaryBlurUrl(imageUrl)}
-            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-          />
-
-          {/* DESKTOP CTA */}
-          <div className="absolute bottom-6 w-full px-6 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 hidden md:block z-20 text-center">
-            <button onClick={handleAdd} disabled={loading} className="btn-premium w-full !text-sm !py-3">
-              {added ? "Added to Cart" : loading ? "Adding..." : "Add to Cart"}
-            </button>
-          </div>
-        </div>
 
         {/* CONTENT */}
         <div className="px-4 pt-4 pb-5 md:px-5 md:pt-5 md:pb-6 flex-1 flex flex-col justify-between">
@@ -313,6 +345,7 @@ export default function ProductCard({
           </div>
         </div>
       </div>
-    </Link>
+      </Link>
+    </motion.div>
   )
 }
