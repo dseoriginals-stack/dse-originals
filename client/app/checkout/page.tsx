@@ -41,6 +41,8 @@ export default function CheckoutPage() {
   const [shipping, setShipping] = useState<ShippingZone | null>(null)
   const [showPayment, setShowPayment] = useState(false)
   const [paymentUrl, setPaymentUrl] = useState("")
+  const [pickupTime, setPickupTime] = useState("")
+  const [orderPlaced, setOrderPlaced] = useState(false)
   const clientOrderId = useRef(uuidv4()).current
 
   const [form, setForm] = useState({
@@ -62,10 +64,11 @@ export default function CheckoutPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
 
     // EMPTY CART GUARD: Redirect home if nothing to checkout
-    if (!authLoading && itemsToCheckout.length === 0) {
+    // Skip if order has already been placed (cart will be empty after removeSelectedItems)
+    if (!orderPlaced && !authLoading && itemsToCheckout.length === 0) {
       router.push("/")
     }
-  }, [step, itemsToCheckout.length, authLoading])
+  }, [step, itemsToCheckout.length, authLoading, orderPlaced])
 
   useEffect(() => {
     if (!authLoading) {
@@ -190,6 +193,7 @@ export default function CheckoutPage() {
         guestName: form.name,
         guestEmail: form.email,
         clientOrderId,
+        pickupTime: delivery === "pickup" && pickupTime ? new Date(pickupTime).toISOString() : undefined,
         address: delivery === "delivery" ? {
           fullName: form.name,
           phone: form.phone,
@@ -201,7 +205,6 @@ export default function CheckoutPage() {
         } : {
           fullName: form.name,
           phone: form.phone,
-          // Placeholder for pickup
           region: "Store Pickup",
           province: "Store Pickup",
           city: "Tagum",
@@ -210,7 +213,8 @@ export default function CheckoutPage() {
         },
       })
 
-      // ✅ DIRECT REDIRECT TO PAYMENT (Better for success/callback flow)
+      // ✅ Mark order placed BEFORE cart clears so guard doesn't fire
+      setOrderPlaced(true)
       toast.success("Order created! Redirecting to payment...")
       setTimeout(() => {
         window.location.href = data.invoiceUrl

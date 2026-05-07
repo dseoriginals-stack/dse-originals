@@ -1,6 +1,6 @@
 import express from "express"
 import { validateVoucher, createVoucher, getVouchers } from "./voucher.controller.js"
-import { protect, adminOnly } from "../../middlewares/auth.middleware.js"
+import authenticate, { authorize } from "../../middleware/auth.middleware.js"
 
 const router = express.Router()
 
@@ -8,7 +8,7 @@ const router = express.Router()
 router.post("/validate", validateVoucher)
 
 // Admin routes
-router.post("/", protect, adminOnly, createVoucher)
-router.get("/", protect, adminOnly, getVouchers)
+router.post("/", authenticate, authorize("admin"), createVoucher)
+router.get("/", authenticate, authorize("admin"), getVouchers)
 
 export default router

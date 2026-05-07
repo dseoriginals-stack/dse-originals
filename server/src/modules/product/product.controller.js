@@ -457,6 +457,7 @@ export const getProductBySlugController = async (req, res) => {
 
 export const deleteProduct = async (req, res) => {
   try {
+    if (!req.user?.id) return res.status(401).json({ message: "Unauthorized" })
     const { id } = req.params
 
     await prisma.product.update({

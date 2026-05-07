@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { api } from "@/lib/api"
 import { format } from "date-fns"
-import { History, User as UserIcon, Package, ShoppingBag, Info, Shield, RefreshCw } from "lucide-react"
+import { History, Package, ShoppingBag, Info, Shield, RefreshCw } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 type ActivityLog = {

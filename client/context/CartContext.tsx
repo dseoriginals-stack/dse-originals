@@ -209,7 +209,14 @@ export function CartProvider({
             return { ...i, cartKey }
           })
           setCart(items)
-          setSelectedItems(prev => prev.length > 0 ? prev : items.map(i => i.cartKey!))
+          // Restore persisted selection, fallback to all selected
+          const selKey = `${guestCartKey}_sel`
+          const selRaw = localStorage.getItem(selKey)
+          if (selRaw) {
+            try { setSelectedItems(JSON.parse(selRaw)) } catch { setSelectedItems(items.map(i => i.cartKey!)) }
+          } else {
+            setSelectedItems(items.map(i => i.cartKey!))
+          }
         } else {
           setCart([])
           setSelectedItems([])
@@ -235,9 +242,11 @@ export function CartProvider({
       try {
         const key = getGuestCartKey(guestId)
         localStorage.setItem(key, JSON.stringify(cart))
+        // Also persist current selection
+        localStorage.setItem(`${key}_sel`, JSON.stringify(selectedItems))
       } catch {}
     }, 200)
-  }, [cart, guestId, user])
+  }, [cart, selectedItems, guestId, user])
 
   /* =========================
      CLEANUP

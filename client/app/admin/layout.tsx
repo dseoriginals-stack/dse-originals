@@ -63,8 +63,8 @@ export default function AdminLayout({
       return
     }
 
-    // Staff path protection
-    const allowedStaffPaths = ["/admin", "/admin/products", "/admin/orders", "/admin/payments", "/admin/manual-sale"]
+    // Staff path protection — Activity Logs is admin-only
+    const allowedStaffPaths = ["/admin", "/admin/products", "/admin/orders", "/admin/payments", "/admin/manual-sale", "/admin/analytics"]
     if (user.role === "staff" && pathname !== "/admin" && !allowedStaffPaths.some(p => pathname.startsWith(p))) {
       router.push("/admin")
     }
@@ -116,7 +116,7 @@ export default function AdminLayout({
 
           {nav.filter(item => {
             if (isStaff) {
-              return ["Dashboard", "Products", "Orders", "Payments", "Walk-in Order"].includes(item.name)
+              return ["Dashboard", "Products", "Orders", "Payments", "Walk-in Order", "Analytics"].includes(item.name)
             }
             return true
           }).map(item => {

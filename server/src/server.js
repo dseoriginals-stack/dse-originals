@@ -33,6 +33,7 @@ import reviewRoutes from "./modules/review/review.routes.js"
 import analyticsRoutes from "./modules/analytics/analytics.routes.js"
 import userRoutes from "./modules/user/user.routes.js"
 import issueRoutes from "./modules/issue/issue.routes.js"
+import voucherRoutes from "./modules/voucher/voucher.routes.js"
 import cloudinary from "./config/cloudinary.js"
 
 // Webhooks
@@ -118,6 +119,7 @@ app.use("/api/search", searchRoutes)
 app.use("/api/donations", donationRoutes)
 app.use("/api/categories", categoryRoutes)
 app.use("/api/issues", issueRoutes)
+app.use("/api/vouchers", voucherRoutes)
 app.use("/api/admin", adminRoutes)
 
 import authenticate, { authorize } from "./middleware/auth.middleware.js"

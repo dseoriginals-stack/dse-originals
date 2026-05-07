@@ -81,7 +81,8 @@ const getOrders = async () => {
       user: true,
       address: true
     },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
+    take: 200
   })
 }
 
@@ -177,6 +178,12 @@ const globalSearch = async (q) => {
           { slug: { contains: q, mode: 'insensitive' } }
         ]
       },
+      include: {
+        variants: {
+          take: 1,
+          select: { price: true }
+        }
+      },
       take: 5
     }),
     prisma.user.findMany({
@@ -201,7 +208,7 @@ const globalSearch = async (q) => {
     products: products.map(p => ({
       id: p.id,
       title: p.name,
-      subtitle: `₱${Number(p.price).toLocaleString()}`,
+      subtitle: `₱${Number(p.variants?.[0]?.price || 0).toLocaleString()}`,
       type: 'product',
       link: `/admin/products?id=${p.id}`
     })),
@@ -213,6 +220,27 @@ const globalSearch = async (q) => {
       link: `/admin/users?id=${u.id}`
     }))
   }
+}
+
+const getNotifications = async () => {
+  return await prisma.notification.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 50,
+  })
+}
+
+const markNotificationRead = async (id) => {
+  return await prisma.notification.update({
+    where: { id },
+    data: { isRead: true },
+  })
+}
+
+const markAllNotificationsRead = async () => {
+  return await prisma.notification.updateMany({
+    where: { isRead: false },
+    data: { isRead: true },
+  })
 }
 
 const getActivityLogs = async (limit = 100) => {
@@ -245,5 +273,8 @@ export default {
   deleteReview,
   deleteOrder,
   globalSearch,
+  getNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
   getActivityLogs
 }
